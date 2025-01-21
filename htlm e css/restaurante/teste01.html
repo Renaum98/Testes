@@ -8,21 +8,40 @@
         *{
             margin: 0px;
             padding: 0px;
+            
+        }
+        body{
+            width: 100vw;
+            height: 100vh;
         }
         nav{
             background: url(imagens/fachada.webp);
             background-size:  cover;
             background-repeat: no-repeat;
+            color:white
+        }
+        .menu{
+            display: flex;
+            justify-content: space-evenly;
+        }
+        a{
+            color: white;
+            text-decoration: none;
+            background-color: rgba(240, 248, 255, 0.282);
+            padding: 5px;
+            border-radius: 5px 5px 0px 0px;
         }
         h1{
             color: white;
             text-align: center;
+            height: 200px;
         }
         main{
             width: 90%;
             text-align: justify;
             border: 1px black solid;
-
+            margin: auto;
+            padding: 10px;
         }
     </style>
 </head>
@@ -30,10 +49,10 @@
     <nav>
         <h1>Dona Maloca</h1>
         <div class="menu">
-            <div class="botoes">Inicio</div>
-            <div class="botoes">Quem somos</div>
-            <div class="botoes">Cardapio</div>
-            <div class="botoes">Trabalhe Conosco</div>
+            <div class="botoes"><a href="#">Inicio</a></div>
+            <div class="botoes"><a href="#">Quem somos</a></div>
+            <div class="botoes"><a href="#">Cardapio</a></div>
+            <div class="botoes"><a href="#">Trabalhe Conosco</a></div>
         </div>
     </nav>
     <main>
