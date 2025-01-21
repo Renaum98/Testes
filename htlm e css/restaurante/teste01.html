@@ -4,62 +4,60 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Teste01</title>
-    <style>
-        *{
-            margin: 0px;
-            padding: 0px;
-            
-        }
-        body{
-            width: 100vw;
-            height: 100vh;
-            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
-        }
-        nav{
-            background: url(imagens/fachada.webp);
-            background-size:  cover;
-            background-repeat: no-repeat;
-            backdrop-filter: blur(10px);
-            color:white
-        }
-        .menu{
-            display: flex;
-            justify-content: space-evenly;
-        }
-        a{
-            color: white;
-            text-decoration: none;
-            background-color: rgba(240, 248, 255, 0.282);
-            padding: 5px;
-            border-radius: 5px 5px 0px 0px;
-        }
-        h1{
-            color: white;
-            text-align: center;
-            height: 200px;
-        }
-        main{
-            width: 90%;
-            text-align: justify;
-            border: 1px black solid;
-            margin: auto;
-            padding: 10px;
-        }
-    </style>
+    <link rel="stylesheet" href="estilo/style.css">
 </head>
 <body>
     <nav>
-        <h1>Dona Maloca</h1>
-        <div class="menu">
-            <div class="botoes"><a href="#">Inicio</a></div>
-            <div class="botoes"><a href="#">Quem somos</a></div>
-            <div class="botoes"><a href="#">Cardapio</a></div>
-            <div class="botoes"><a href="#">Trabalhe Conosco</a></div>
-        </div>
+        <div id="head">Dona Maloca</div>
     </nav>
+    <div class="menu">
+        <div class="botoes"><a href="#">Inicio</a></div>
+        <div class="botoes"><a href="#">Historia</a></div>
+        <div class="botoes"><a href="#">Cardapio</a></div>
+        <div class="botoes"><a href="#">Reservas</a></div>
+    </div>
+    <hr>
     <main>
-        <p>Nosso restaurante é sinônimo de tradição, atualidade e paixão pela verdadeira culinária italiana. Desde a sua fundação, temos o compromisso de preservar os sabores que definem a essência da Itália, com receitas que atravessam
+        <section>
+            <h2>Tradição e Historia</h2>
+            <p>Nosso restaurante é sinônimo de tradição, atualidade e paixão pela verdadeira culinária italiana. Desde a sua fundação, temos o compromisso de preservar os sabores que definem a essência da Itália, com receitas que atravessam
             Cada detalhe do ambiente reflete essa dedicação à tradição: desde a decoração rústica e acolhedora, inspirada nas charmosas trattorias italianas, até a música suave que cria um clima de nostalgia. Nossos pratos são preparados com ingredientes frescos e selecionados, respeitando os métodos artesanais que transformam uma simples refeição em uma experiência inesquecível.</p>
+        </section>
+        <section>
+            <img src="imagens/prato1.webp" alt="prato1">
+        </section>
+        <section>
+            <h3>Nossos Pratos:</h3> 
+            <P>Uma Viagem ao Coração da Itália
+            No nosso restaurante, cada prato é uma verdadeira celebração da gastronomia italiana, feita com carinho, ingredientes frescos e receitas tradicionais que atravessam gerações. Da Sicília ao Piemonte, passamos por cada região da Itália para trazer o melhor da sua culinária para sua mesa.
+            </P>
+
+            <h3>Massas Artesanais</h3>
+            <p>Nosso cardápio é repleto de massas artesanais preparadas com toda a dedicação e autenticidade. Cada macarrão, feito à mão, é uma experiência única, que se combina perfeitamente com nossos molhos ricos e saborosos. A lasanha, por exemplo, traz camadas de sabor e textura que fazem qualquer um se sentir em uma típica trattoria italiana.
+            </p>
+                
+            <h3>Risotos Cremosos e Saborosos</h3>
+            <p>O risoto, uma das grandes paixões da culinária italiana, é preparado com arroz de alta qualidade e ingredientes frescos da estação. Desde o clássico Risotto alla Milanese até opções mais inovadoras, como o Risotto de Funghi Porcini, cada garfada traz a sofisticação e o equilíbrio de sabores que só a Itália pode oferecer.
+            </p>
+        </section>
+
+        <section>
+            <img src="imagens/prato2.webp" alt="prato2">
+        </section>
+        
+        <section> 
+            <h3>Pizza: Tradição e Sabor</h3>
+            <p>Nossa pizza é feita no forno a lenha, garantindo uma massa crocante e leve, com bordas douradas e sabor incomparável. Combinamos os ingredientes mais frescos e as coberturas mais saborosas para criar pizzas que são um verdadeiro deleite para o paladar, como a clássica Margherita ou a saborosa Quattro Stagioni.</p>
+            
+            <h3>Antipasti: O Começo Perfeito</h3>
+            <p>Para começar a refeição de maneira deliciosa, oferecemos uma variedade de antipasti, como bruschettas crocantes, queijos finos e embutidos italianos, azeitonas e conservas, preparados para despertar o apetite e preparar seu paladar para o que vem a seguir.</p>
+
+            <h3>Sobremesas: Doce Encanto</h3>
+            <p>E para finalizar sua refeição de forma inesquecível, não poderia faltar o toque doce da tradição italiana. Nossas sobremesas, como o clássico Tiramisù e o Cannoli Siciliano, são preparadas com a mesma paixão e cuidado que todos os outros pratos, trazendo a verdadeira essência doce da Itália.
+            Cada prato que servimos é uma homenagem à rica tradição culinária italiana e à busca incessante por sabores autênticos e memoráveis. Venha nos visitar e embarque em uma experiência gastronômica que vai fazer você se sentir na Itália, sem sair do lugar.
+            </p>
+        </section>
+        
     </main>
 </body>
 </html>
