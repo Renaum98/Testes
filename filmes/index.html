@@ -12,7 +12,7 @@
     </nav>
     <div id="menu">
         <div>
-            <input type="search" class="buscar" placeholder="Buscar">
+            <input type="search" id="searchInput" class="buscar" placeholder="Buscar">
         </div>
         <div>
             <a href="index.html" target="_self">Inicio</a>
@@ -21,53 +21,68 @@
     </div>
     <main>
         <a href="avaliacoes/nosferatu.html" target="_self">
-            <section>
+            <section id="nosferatu">
                 <img src="imagens/nosferatu.jpg" alt="capa">
                 <h3>Nosferatu</h3>
             </section>
         </a>
         <a href="avaliacoes/abutre.html" target="_self">
-            <section>
+            <section id="abutre">
                 <img src="imagens/abutre.jpg"alt="capa">
                 <h3>O Abutre</h3>
             </section>
         </a>
         <a href="avaliacoes/lake.html" target="_self">
-            <section>
+            <section id="lake">
                 <img src="imagens/cadolake.jpg"alt="capa">
                 <h3>Os Horrores de Cado lake</h3>
             </section>
         </a>
         <a href="avaliacoes/coerencia.html" target="_self">
-            <section>
+            <section id="coerencia">
                 <img src="imagens/coerencia.jpg"alt="capa">
                 <h3>Coerência</h3>
             </section>
         </a>
         <a href="avaliacoes/olhos.html" target="_self">
-            <section>
+            <section id="olhos">
                 <img src="imagens/deolhos.jpg"alt="capa">
                 <h3>De Olhos Bem Fechados</h3>
             </section>
         </a>
         <a href="avaliacoes/lapso.html" target="_self">
-            <section>
+            <section id="lapso">
                 <img src="imagens/lapso.jpg"alt="capa">
                 <h3>Lapso Temporal</h3>
             </section>
         </a>
         <a href="avaliacoes/palha.html" target="_self">
-            <section>
+            <section id="palha">
                 <img src="imagens/palha.jpg"alt="capa">
                 <h3>O Homem de Palha (1973)</h3>
             </section>
         </a>
         <a href="avaliacoes/pecados.html" target="_self">
-            <section>
+            <section id="pecados">
                 <img src="imagens/sete.jpg"alt="capa">
                 <h3>Os Sete Crimes Capitais</h3>
             </section>
         </a>
     </main>
+    <script>
+        document.getElementById('searchInput').addEventListener('input', function() {
+            var searchValue = this.value.toLowerCase();
+            var sections = document.querySelectorAll('main section');
+    
+            sections.forEach(function(section) {
+                var title = section.querySelector('h3').textContent.toLowerCase();
+                if (title.includes(searchValue)) {
+                    section.parentElement.style.display = '';
+                } else {
+                    section.parentElement.style.display = 'none';
+                }
+            });
+        });
+    </script>
 </body>
 </html>
