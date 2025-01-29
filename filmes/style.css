@@ -95,9 +95,8 @@ section>img{
     width: 180px;
 }
 section:hover{
-    transform: scale(1.1);
     transition: 1s;
-    background-image: linear-gradient(to bottom, darkred,  rgb(86, 6, 6));
+    background-image: linear-gradient(to bottom,darkred, rgb(86, 6, 6));
 }
 section>h3{
     text-align: center;
