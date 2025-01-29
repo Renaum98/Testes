@@ -32,30 +32,30 @@ nav>img{
     box-shadow: 0px 10px 10px rgba(0, 0, 0, 0.318);
 
     display: flex;
-    justify-content: space-evenly;
+    justify-content: space-between;
     align-items: flex-end;
     text-align: center;
 }
-#menu > a{
+#menu >a{
     color: white;
     padding: 5px;
-    width: 100px;
+    width: 200px;
 }
 #menu > a:hover{
     transition: .5s;
     color: darkred;
     background-color: whitesmoke;
-    border-radius: 5px;
+    border-radius: 20px;
 }
 main{
     background-color: whitesmoke;
     width: 80%;
-    max-width: 1200px;
+    max-width: 1000px;
     margin: auto;
     padding: 10px;
 
     display: flex;
-    justify-content:space-between ;
+    justify-content:center;
     flex-flow: wrap;
 }
 a{
@@ -76,6 +76,10 @@ section>img{
     margin-top: 10px;
     border-radius: 10px;
     width: 180px;
+}
+section:hover{
+    transform: scale(1.1);
+    transition: 0.5s;
 }
 section>h3{
     text-align: center;
