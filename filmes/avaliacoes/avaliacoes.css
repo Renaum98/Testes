@@ -69,6 +69,7 @@ main{
     max-width: 1000px;
     margin: auto;
     padding: 10px;
+    border-radius: 0px 0px 20px 20px;
 
     display: flex;
     justify-content:center;
@@ -78,29 +79,40 @@ a{
     text-decoration: none;
 }
 section{
-    width: 200px;
-    height: 350px;
-    color: white;
-    background-color: darkred;
-    margin: 10px;
-    border-radius: 10px;
-    overflow: hidden;
-}
-section>img{
-    display: block;
-    margin: auto;
-    margin-top: 10px;
-    border-radius: 10px;
-    width: 180px;
-}
-section:hover{
-    transition: 1s;
-    background-image: linear-gradient(to bottom,darkred, rgb(86, 6, 6));
-}
-section>h3{
+    width: 1200px;
+    height: fit-content;
+    color: black;
+    padding: 10px;
     text-align: center;
-    height: 75px;
+
     display: flex;
-    justify-content: center;
+    flex-flow: column nowrap;
     align-items: center;
+}
+#img-capa{
+    display:flex;
+    flex-flow: column;
+}
+#img-capa>img{
+    width: 200px;
+    border-radius: 10px;
+    margin: auto;
+}
+#avaliacao{
+    padding: 10px;
+    height: fit-content;
+    width: 90%;
+    border-radius: 10px;
+    margin: 0px 10px;
+    border: 1px solid rgba(0, 0, 0, 0.203);
+    text-align: justify;
+    text-indent: 1em;
+    line-height: 1.5em;
+}
+.rating{
+    background-color: darkred;
+    color: gold;
+    border-radius: 10px;
+    padding: 5px;
+    margin: 10px 0px;
 }
