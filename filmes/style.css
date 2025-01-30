@@ -25,10 +25,13 @@ nav>img{
     height: 100%;
 }
 #menu{
-    background-image: linear-gradient(to bottom, darkred,  rgba(106, 5, 5, 0.748));
+    background-image: linear-gradient(to bottom, darkred,  rgb(106, 5, 5));
     border-radius: 0px 0px 20px 20px;
     text-align: center;
-
+    position: sticky;
+    top: 0;
+    margin-top: -1px;
+    
     display: flex;
     flex-flow:column ;
     justify-content: center;
