@@ -63,17 +63,17 @@ nav>img{
     width: 300px;
 }
 
-main{
+main {
     background-color: whitesmoke;
+    flex: 1;
     width: 80%;
     max-width: 1000px;
     margin: auto;
-    padding: 10px;
-    border-radius: 0px 0px 20px 20px;
-
+    padding: 20px;
     display: flex;
-    justify-content:center;
-    flex-flow: wrap;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 10px;
 }
 a{
     text-decoration: none;
