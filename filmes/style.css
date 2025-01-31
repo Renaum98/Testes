@@ -40,7 +40,7 @@ nav>img{
     text-align: center;
     display: flex;
     flex-flow: row nowrap ;
-    justify-content: center;
+    justify-content: flex-end;
     align-items: center;
 }
 #menu>div{
