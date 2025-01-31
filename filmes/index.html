@@ -8,18 +8,20 @@
     <link rel="shortcut icon" href="favicon.ico" type="image/x-icon">
 </head>
 <body>
-    <nav>
-        <img src="imagens/Meus Filmes.png" alt="capa">
-    </nav>
-    <div id="menu">
-        <div>
-            <input type="search" id="searchInput" class="buscar" placeholder="Buscar">
+    <header>
+        <nav>
+            <img src="imagens/Meus Filmes.png" alt="capa">
+        </nav>
+        <div id="menu">
+            <div>
+                <input type="search" id="searchInput" class="buscar" placeholder="Buscar">
+            </div>
+            <div>
+                <a href="index.html" target="_self">Inicio</a>
+                <a href="#">Filmes</a>
+            </div>
         </div>
-        <div>
-            <a href="index.html" target="_self">Inicio</a>
-            <a href="#">Filmes</a>
-        </div>
-    </div>
+    </header>
     <main>
         <a href="avaliacoes/nosferatu.html" target="_self">
             <section id="nosferatu">
@@ -70,6 +72,9 @@
             </section>
         </a>
     </main>
+    <footer>
+        <p>Criado por <strong>Renan Matos</strong></p>
+    </footer>
     <script>
         document.getElementById('searchInput').addEventListener('input', function() {
             var searchValue = this.value.toLowerCase();
