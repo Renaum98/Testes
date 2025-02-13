@@ -7,14 +7,35 @@
     <link rel="stylesheet" href="estilos/style.css">
 </head>
 <body>
-    <div class="cabeça">
-        <div id="olhos">
-            
-            <div id="olho_esquerdo"></div>
-            <div id="olho_direito"></div>
+    <section id="emoji">
+        <div class="cabeça">
+            <div id="olhos">
+                <div id="olho_esquerdo"></div>
+                <div id="olho_direito"></div>
+            </div>
+            <div id="nariz"></div>
+            <div id="bigode"></div>
+            <div id="boca"></div>
         </div>
-        <div id="nariz"></div>
-        <div id="boca"></div>
-    </div>
+    </section>
+    <section class="login">
+        <form action="login.php" method="post">
+            <h1>Login</h1>
+            <div class="input">
+                <div class="dados">
+                    <label for="email">E-mail:</label>
+                    <input type="email" name="email" id="email" required placeholder="Digite seu e-mail">
+                </div>
+                <div class="dados">
+                    <label for="senha">Senha:</label>
+                    <input type="password" name="senha" id="senha" required placeholder="Digite sua senha" maxlength="8">
+                </div>
+            </div>
+            <div id="botoes">
+                <input type="submit" value="Entrar" class="botao">
+                <input type="reset" value="Limpar" class="botao">
+            </div>
+        </form>
+    </section>
 </body>
 </html>
