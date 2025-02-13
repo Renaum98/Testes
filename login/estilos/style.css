@@ -13,7 +13,8 @@
 body{
     min-height: 100vh;
     width: 100vw;
-    background-image: radial-gradient(circle,rgb(95, 95, 95),rgb(27, 27, 27));
+    background-image: radial-gradient(circle,rgb(188, 188, 191),rgb(32, 57, 183));
+    
     display: flex;
     justify-content: center;
     align-items: center;
@@ -24,30 +25,31 @@ body{
     height: 200px;
     border-radius: 50% 50% 60% 60%;
     background-color: var(--cor-pele);
+    border: 0.1px solid #544b3755;
     position: relative;
     display: flex;
     justify-content: center;
     align-items: center;
-    overflow: hidden;
-    box-shadow: 0 0 5px rgba(0, 0, 0, 0.351)
 }
-.cabeça::before{ /*cabelo 1*/
+.cabeça::before{/*orelha esquerda*/
     content: '';
-    width: 180px;
-    height: 50px;
-    border-radius: 0px 0px 70% 70%;
-    background-color: var(--cor-cabelo);
+    width: 20px;
+    height: 30px;
+    border-radius: 50%;
     position: absolute;
-    top: 0;
+    border-left:0.1px solid #544b3755;
+    background-color: var(--cor-pele);
+    left: -10px;
 }
-.cabeça::after{ /*cor cabelo 2*/
+.cabeça::after{
     content: '';
-    width: 180px;
-    height: 70px;
-    border-radius: 0px 0px 70% 70%;
-    background-image:linear-gradient(to bottom,#000000,#272727 );
+    width: 20px;
+    height: 30px;
+    border-radius: 50%;
+    border-right:0.1px solid #544b3755;
     position: absolute;
-    top: 0px;
+    background-color: var(--cor-pele);
+    right: -10px;
 }
 
 #olhos {
@@ -62,7 +64,7 @@ body{
     height: 40px;
     background-color: var(--cor-olhos);
     border-radius: 50%;
-    box-shadow: 0 5px 5px rgba(0, 0, 0, 0.181);
+    box-shadow: 0 3px 1px rgba(0, 0, 0, 0.047);
     position: relative;
     overflow: hidden;
     z-index: 1;
@@ -72,7 +74,7 @@ body{
     content: '';
     width: 100%;
     height: 100%;
-    bottom: 30px;
+    bottom: 35px;
     border-bottom: 1px solid #b5a27855;
     background-color: var(--cor-pele);
     position: absolute;
@@ -84,38 +86,23 @@ body{
     content: '';
     width: 20px;
     height: 20px;
-    background-image:radial-gradient(circle, rgb(45, 108, 55), #52c365);
+    background-image:radial-gradient(circle, rgb(0, 0, 0), #52c365 40%);
     border-radius: 50%;
     position: absolute;
     top: 15px;
     left: 5px;
-    box-shadow: 0 0 5px rgba(0, 0, 0, 0.351);
+    
     z-index: 2;
-    animation: pupila 5s infinite alternate;
+    animation: pupila 8s  infinite ease-in-out alternate;
     animation-delay: 1ms;
 }
-@keyframes pupila{
-    0%,100%{
-        transform: translateX(0px);
-    }
-    70%{
-        transform: translateX(0px);
-    }
-    50%{
-        transform: translateX(10px);
-        transform: translateY(5px);
-    }
-    90%{
-        transform: translateX(-10px);
-        transform: translateY(-5px);
-    }
-}
+
 #olho_direito{
     width: 30px;
     height: 40px;
     background-color: var(--cor-olhos);
+    box-shadow: 0 3px 1px rgba(0, 0, 0, 0.047);
     border-radius: 50%;
-    box-shadow: 0 5px 5px rgba(0, 0, 0, 0.181);
     position: relative;
     overflow: hidden;
     z-index: 1;
@@ -125,7 +112,7 @@ body{
     content: '';
     width: 100%;
     height: 100%;
-    bottom: 30px;
+    bottom: 35px;
     border-bottom: 1px solid #b5a27855;
     background-color: var(--cor-pele);
     position: absolute;
@@ -133,29 +120,17 @@ body{
     animation: palpebra 7s infinite;
     animation-delay: 1ms;
 }
-@keyframes palpebra{
-    0%,100%{
-        transform: translateY(0px);
-    }
-    70%{
-        transform: translateY(0px);
-    }
-    90%{
-        transform: translateY(30px);
-    }
-}
 #olho_direito::after{ /*pupila*/
     content: '';
     width: 20px;
     height: 20px;
-    background-image:radial-gradient(circle, rgb(45, 108, 55), #52c365);
+    background-image:radial-gradient(circle, rgb(0, 0, 0), #52c365 40%);
     border-radius: 50%;
     position: absolute;
     top: 15px;
     left: 5px;
-    box-shadow: 0 0 5px rgba(0, 0, 0, 0.351);
     z-index: 2;
-    animation: pupila 5s infinite alternate;
+    animation: pupila 8s infinite ease-in-out alternate;
     animation-delay: 1ms;
 }
 #nariz{
@@ -166,7 +141,7 @@ body{
     position: absolute;
     top: 100px;
     left: 61px;
-    box-shadow: 0 2px 3px rgba(0, 0, 0, 0.351);
+    box-shadow: 0 2px 2px rgba(0, 0, 0, 0.234);
     overflow: hidden;
     display: flex;
     justify-content: center;
@@ -203,6 +178,7 @@ body{
     left: 46px;
     border-radius: 10px 10px 50% 50%;
     overflow: hidden;
+    animation: boca 7s infinite ease-in-out alternate;
 }
 #boca::before{/*linha da boca*/
     content: '';
@@ -213,21 +189,19 @@ body{
     height: 1px;
     top: 7px;
 }
-
 #emoji{
-    min-width: 200px; 
+    min-width: 300px; 
     width: 50%;
     height: 250px;
     border-radius: 20px 20px 0 0;
-    background-color: rgb(230, 230, 230);
-    
+    background-image: linear-gradient(to bottom, rgb(115, 169, 252),rgb(230, 230, 230));
 
     display: flex;
     justify-content: center;
     align-items: center;
 }
 .login{
-    min-width: 200px; 
+    min-width: 300px; 
     width: 50%;
     height: 300px;
     background-color: rgb(230, 230, 230);
@@ -246,12 +220,12 @@ body{
     height: 100%;
     display: flex;
     flex-flow: column;
-    justify-content: space-between;
+    justify-content: space-around;
 }
 .input{
     padding: 5px;
     height: 110px;
-    width: 100%;
+    min-width: 300px;
     display: flex;
     flex-flow: column;
     justify-content: space-between;
@@ -280,6 +254,3 @@ body{
     cursor: pointer;
     position: relative;
 }
-
-
-
