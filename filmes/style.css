@@ -28,7 +28,7 @@ nav{
     justify-content: center;
     align-items: center;
 }
-nav>img{
+nav > a > img{
     height: 80px;
 }
 #menu{
