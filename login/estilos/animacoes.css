@@ -25,7 +25,7 @@
         transform: translateY(0px);
     }
     90%{
-        transform: translateY(35px);
+        transform: translateY(30px);
     }
 }
 @keyframes boca {
