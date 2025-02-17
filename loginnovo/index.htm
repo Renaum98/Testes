@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login</title>
     <link rel="stylesheet" href="estilos/estilo.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    
 </head>
 <body>
     <header></header>
@@ -12,8 +14,14 @@
         <div class="login">
             <form action="#" method="get">
                 <div class="entrada">
-                    <input type="email" name="email" id="idemail">
-                    <input type="password" name="senha" id="idsenha">
+                    <div id="e1">
+                        <label for="email" id="idemail"><i class="fas fa-envelope"></i></label>
+                        <input type="email" name="email" id="idemail"  required>
+                    </div>
+                    <div id="e2">
+                        <label for="password"><i class="fas fa-lock"></i></label>
+                        <input type="password" name="senha" id="idsenha" maxlength="8" required>
+                    </div>
                 </div>
                 <div class="botoes">
                     <input type="submit" value="Entrar">
@@ -25,3 +33,6 @@
     <footer></footer>
 </body>
 </html>
+    
+   
+    
