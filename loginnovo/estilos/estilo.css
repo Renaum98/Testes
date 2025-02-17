@@ -19,17 +19,19 @@ main{
     align-items: center;
 }
 .login{
+    width: 40%;
     min-width: 300px;
     height: 400px;
     background-color: #e0e0e0;
     padding: 10px;
     text-align: center;
     border-radius: 20px;
+    border: 1px solid rgba(184, 183, 183, 0.203);
     box-shadow: 10px 10px 10px rgba(170, 170, 170, 0.362), -10px -10px 10px rgba(255, 255, 255, 0.405);
     display: flex;
     justify-content: center;
     align-items: center;
-    flex-flow: column;
+    flex-flow: column nowrap;
 }
 .login h1{
     color:rgb(95, 95, 95);
@@ -58,13 +60,12 @@ main{
 }
 .botoes input{
     background-color: transparent;
+    color: rgb(95, 95, 95);
     padding: 10px;
     border: none;
-    margin: 0px 20px;
-    cursor: pointer;
     border: 1px solid rgba(95, 95, 95, 0.258);
-    color: rgb(95, 95, 95);
-    margin: 5px 0px;
+    margin: 5px 20px;
+    cursor: pointer;
 }
 .botoes input:hover{
     border-radius: 10px;
