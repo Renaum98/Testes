@@ -44,7 +44,7 @@ header {
     background-color: var(--corLogo--);
     height: 100%;
     padding: 10px;
-    border-radius: 0px 50px 50px 0px;
+    border-radius: 0px 20px 20px 0px;
     width: 200px;
     color: white;
     display: flex;
