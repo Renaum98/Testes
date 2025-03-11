@@ -10,5 +10,101 @@
 }
 body{
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    height: 100vh;
+    box-sizing: border-box;
+    background-color: #d5d5d5;
+    display: flex;
+}
+header{
+    background-color: var(--corLogo--);
+    height: 100%;
+    padding: 10px;
+    border-radius: 0px 20px 20px 0px;
+    width: 200px;
+    color: white;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+nav{
+    text-align: center;
+    padding: 10px;
+    height: 300px;
+    width: 100%;
+}
+ul{
+    list-style-type: none;
+    height: 90%;
+    margin: 10px 0px;
+}
+li{
+    margin: 20px 0px;
+    padding: 5px;
+}
+a{
+    font-size: 1.2rem;
+    color: white;
+    text-decoration: none;
+}
+li:hover{
+    border-radius: 20px;
+    background-color: var(--corDetalhe--);
+    transition: 0.2s;
+}
+span{
+    padding: 5px;
+}
+span:hover{
+    background-color: #D71946;
+    cursor: pointer;
+    border-radius: 50%;
+    transition: 0.2s;
+}
+main{
+    height: 100%;
+    width: 100%;
+    background-image: radial-gradient(circle,#f4f4f4,#d5d5d5);
+    display: flex;
+    flex-flow: column;
+    justify-content: center;
+    align-items: center;
+}
+.caixa-principal{
+    width: 50%;
+    max-width: 1000px;
+    min-width: 300px;
+    height: 50%;
+    margin: auto;
+    padding: 20px;
+    border-radius: 10px;
+}
+form{
     
+    height: 100%;
+
+    display: flex;
+    flex-flow: column;
+}
+fieldset{
+    padding: 10px;
+    border-radius: 10px;
+    margin: 10px 0px;
+    font-size: 1rem;
+}
+select{
+    font-size: 1rem;
+    text-align: center;
+}
+#botao-enviar{
+    padding: 10px;
+    border-radius: 20px;
+    border: none;
+    background-color: var(--corLogo--);
+    color: white;
+    cursor: pointer;
+    font-size: 1.1rem;
+}
+#botao-enviar:hover{
+    background-color: var(--corDetalhe--);
+    transition: 0.5s;
 }
