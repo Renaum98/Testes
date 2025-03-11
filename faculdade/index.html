@@ -8,11 +8,14 @@
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0&icon_names=menu" />
 </head>
 <body>
-    <header class="menu">
+    <!-- Botão de menu fora do header -->
+    <span class="material-symbols-outlined" id="menu-icon">
+        menu
+    </span>
+
+    <!-- Menu -->
+    <header id="menu">
         <nav>
-            <span class="material-symbols-outlined" id="menu-icon">
-                menu
-                </span>
             <ul>
                 <a href="#">
                     <li>Solicitar</li>
@@ -26,14 +29,15 @@
             </ul>
         </nav>
     </header>
+
+    <!-- Conteúdo principal -->
     <main>
         <img src="img/logo.png" alt="" width="150">
         <section class="caixa-principal">
             <form action="#" method="get">
                 <fieldset>
                     <legend>Usuario</legend>
-                    
-                    <select name="usuarios" id="id-us" >
+                    <select name="usuarios" id="id-us">
                         <option value="" selected>Escolha um Usuario</option>
                         <option value="">André Paulo</option>
                         <option value="">Maria da Penha</option>
@@ -59,7 +63,6 @@
                             <option value="">Notebook i5 Radeon750 20pl</option>
                         </optgroup>
                     </select>
-
                 </fieldset>
                 <fieldset>
                     <legend>Data</legend>
