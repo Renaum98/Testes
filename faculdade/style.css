@@ -1,5 +1,9 @@
 @charset "UTF-8";
-
+:root{
+    --corLogo-- : #455561;
+    --corFundo-- : #ffff;
+    --corDetalhe-- : #D71946;
+}
 *{
     margin: 0px;
     padding: 0px;
