@@ -45,7 +45,7 @@ header {
     height: 100%;
     padding: 10px;
     border-radius: 0px 50px 50px 0px;
-    width: 0px;
+    width: 200px;
     color: white;
     display: flex;
     justify-content: center;
@@ -58,7 +58,7 @@ header {
 }
 
 header.hidden {
-    width: 200px;
+    transform: translate(-100%);
 }
 
 nav {
