@@ -58,7 +58,7 @@ header {
 }
 
 header.hidden {
-    transform: translate(-100%);
+    transform: translateX(-100%);
 }
 
 nav {
