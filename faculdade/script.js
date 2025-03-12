@@ -9,7 +9,7 @@ boxMenuBt.addEventListener("click", (evento) => {
     if (boxMenu.style.transform === "translateX(-100%)" || !boxMenu.style.transform) {
         // Mostra o menu
         boxMenu.style.transform = "translateX(0)";
-        mainContent.style.marginLeft = "0px"; // Ajusta a margem do conteúdo principal
+        mainContent.style.marginLeft = "200px"; // Ajusta a margem do conteúdo principal
     } else {
         // Recolhe o menu
         boxMenu.style.transform = "translateX(-100%)";
