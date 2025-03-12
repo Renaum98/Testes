@@ -132,7 +132,8 @@ main>img:hover{
     transition: 1s;
 }
 
-.caixa-principal {
+.caixa-principal,
+.caixa-principal-historico{
     width: 50%;
     max-width: 1000px;
     min-width: 300px;
