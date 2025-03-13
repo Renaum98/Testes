@@ -14,17 +14,17 @@
     <header id="menu">
         <nav>
             <ul>
-                <a href="index.html"><li>Solicitar</li></a>
-                <a href="historico.html"><li>Histórico</li></a>
-                <a href="#"><li>Sair</li></a>
+                <li><a href="index.html">Solicitar</a></li>
+                <li><a href="historico.html">Histórico</a></li>
+                <li><a href="#">Sair</a></li>
             </ul>
         </nav>
     </header>
 
     <main>
-        <img src="img/logo.png" alt="" width="200">
+        <img src="img/logo.png" alt="logotipo da marca" width="200">
         <section class="caixa-principal">
-            <form action="#" method="get" id="form">
+            <form action="#" method="post" id="form">
                 <fieldset>
                     <legend>Usuário</legend>
                     <select name="usuarios" id="id-us" required>
@@ -58,7 +58,7 @@
                     <legend>Data</legend>
                     <input type="date" name="" id="id-data" required>
                 </fieldset>
-                <input type="button" value="Enviar" id="botao-enviar" onclick="botaoEnviar()">
+                <button type="button" id="botao-enviar" onclick="botaoEnviar()">Enviar</button>
             </form>
         </section>
     </main>
