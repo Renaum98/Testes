@@ -9,73 +9,60 @@
     <link rel="shortcut icon" href="img/favicon.ico" type="image/x-icon">
 </head>
 <body>
-    <!-- Botão de menu fora do header -->
-    <span class="material-symbols-outlined" id="menu-icon">
-        menu
-    </span>
+    <span class="material-symbols-outlined" id="menu-icon">menu</span>
 
-    <!-- Menu -->
     <header id="menu">
         <nav>
             <ul>
-                <a href="index.html">
-                    <li>Solicitar</li>
-                </a>
-                <a href="historico.html">
-                    <li>Histórico</li>
-                </a>
-                <a href="#">
-                    <li>Sair</li>
-                </a>
+                <a href="index.html"><li>Solicitar</li></a>
+                <a href="historico.html"><li>Histórico</li></a>
+                <a href="#"><li>Sair</li></a>
             </ul>
         </nav>
     </header>
 
-    <!-- Conteúdo principal -->
     <main>
         <img src="img/logo.png" alt="" width="200">
         <section class="caixa-principal">
-            <form action="#" method="get">
+            <form action="#" method="get" id="form">
                 <fieldset>
                     <legend>Usuário</legend>
-                    <select name="usuarios" id="id-us">
+                    <select name="usuarios" id="id-us" required>
                         <option value="" selected>Escolha um Usuário</option>
-                        <option value="">André Paulo</option>
-                        <option value="">Maria da Penha</option>
-                        <option value="">Elisabeth Olsen</option>
-                        <option value="">Marcio Andrade</option>
-                        <option value="">Givanildo Soares</option>
-                        <option value="">Michael Jackson</option>
+                        <option value="andre-paulo">André Paulo</option>
+                        <option value="maria-da-penha">Maria da Penha</option>
+                        <option value="elisabeth-olsen">Elisabeth Olsen</option>
+                        <option value="marcio-andrade">Marcio Andrade</option>
+                        <option value="givanilso-soares">Givanildo Soares</option>
+                        <option value="minhael-jackson">Michael Jackson</option>
                     </select>
                 </fieldset>
                 <fieldset>
                     <legend>Equipamento</legend>
-                    <select name="equipamentos" id="id-eq">
+                    <select name="equipamentos" id="id-eq" required>
                         <option value="" selected>Escolha um Equipamento</option>
                         <optgroup label="Mouse">
-                            <option value="">Mouse Logitech</option>
-                            <option value="">Mouse Razer 1200dpi</option>
+                            <option value="mouse-logitech">Mouse Logitech</option>
+                            <option value="mouse-razer">Mouse Razer 1200dpi</option>
                         </optgroup>
                         <optgroup label="Monitor">
-                            <option value="">Monitor LG 23pl</option>
+                            <option value="monitor-lg">Monitor LG 23pl</option>
                         </optgroup>
                         <optgroup label="Notebook">
-                            <option value="">Notebook i7 rtx4060 23pl</option>
-                            <option value="">Notebook i5 Radeon750 20pl</option>
+                            <option value="notebook-i7">Notebook i7 rtx4060 23pl</option>
+                            <option value="notebook-i5">Notebook i5 Radeon750 20pl</option>
                         </optgroup>
                     </select>
                 </fieldset>
                 <fieldset>
                     <legend>Data</legend>
-                    <!--<label for="data-inicial">De</label>-->
-                    <input type="date" name="" id="data-inicial">
-                    <!--<label for="data-final">Até</label>
-                    <input type="date" name="" id="data-final">-->
+                    <input type="date" name="" id="id-data" required>
                 </fieldset>
-                <input type="submit" value="Enviar" id="botao-enviar">
+                <input type="button" value="Enviar" id="botao-enviar" onclick="botaoEnviar()">
             </form>
         </section>
     </main>
+
     <script src="script.js"></script>
 </body>
 </html>
