@@ -95,7 +95,8 @@ a {
 li::before{
     content: "";
     width: 0;
-    height: 1px;
+    height: 2px;
+    border-radius: 20px;
     position: absolute;
     left: 0;
     bottom: 0;
@@ -103,27 +104,9 @@ li::before{
     
 }
 li:hover::before{
-    transition: 1s;
+    transition: .5s ease;
     width: 100%;
-    height: 1px;
 }
-li::after{
-    content: "";
-    width: 0;
-    height: 100%;
-    top: 0;
-    left: 0;
-    background-color: var(--corDetalhe--);
-    position: absolute;
-    z-index: -1;
-}
-li:hover::after{
-    width: 100%;
-    transition: 1s;
-    border-radius: 0 10px 10px 0;
-}
-
-
 
 /* Conteúdo principal */
 main {
@@ -146,7 +129,7 @@ main>img{
 }
 main>img:hover{
     transform: scale(1.1);
-    transition: 1s;
+    transition: 2s;
 }
 
 .caixa-principal,
