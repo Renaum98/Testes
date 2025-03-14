@@ -1,7 +1,8 @@
 table{
     width: 100%;
+    min-width: 300px;
+    margin: auto;
     border-collapse: collapse;
-    position: relative;
 }
 caption{
     background-color: #455561;
@@ -20,5 +21,4 @@ td,th{
 }
 .caixa-principal-historico{
     margin-top: 10px;
-    width: 50%;
 }
