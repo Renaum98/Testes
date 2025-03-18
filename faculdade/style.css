@@ -151,19 +151,17 @@ form {
 }
 
 fieldset {
-    height: 80px;
+    height: 60px;
     border-radius: 10px;
+    border: 1px solid var(--corLogo--);
     margin: 10px 0px;
     padding: 10px;
     font-size: 1rem;
-    border: 1px solid var(--corLogo--);
+    text-align: ;
 
     display: flex;
     justify-content: center;
     flex-flow: column;
-}
-legend{
-    padding: 5px;
 }
 
 select ,input[type="date"]{
