@@ -11,7 +11,7 @@
 }
 
 body {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
     height: 100vh;
     box-sizing: border-box;
     background-color: #d5d5d5;
@@ -103,7 +103,7 @@ li::before{
     left: 0;
     bottom: 0;
     background-color:white;
-    
+    transform: translateX(0);
 }
 li:hover::before{
     transition: .5s ease;
@@ -157,7 +157,6 @@ fieldset {
     margin: 10px 0px;
     padding: 10px;
     font-size: 1rem;
-    text-align: ;
 
     display: flex;
     justify-content: center;
