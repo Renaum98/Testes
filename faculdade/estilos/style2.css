@@ -104,6 +104,7 @@ input[type="checkbox"]{
     height: 20px;
     width: 20px;
     position: relative;
+    overflow: hidden;
 }
 input[type="checkbox"]:checked:before{
     content: "";
@@ -111,6 +112,7 @@ input[type="checkbox"]:checked:before{
     height: 100%;
     background-color: var(--corLogo--);
     position: absolute;
+    border-radius: 2px;
 }
 .qtde{
     display: inline;
