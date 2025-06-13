@@ -7,6 +7,7 @@
 
 .filmes_lista {
     width: 70%;
+    padding: 1.7rem 0;
     list-style-type: none;
     display: flex;
     gap: 20px;
@@ -14,12 +15,20 @@
     justify-content: flex-start;
 }
 .filme_lista_item {
+    flex: 1 1 200;
+    overflow: hidden;
+    padding: 0 20px;
     box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.116);
     border-radius: 8px;
-    padding: 10px 1rem;
     display: flex;
     flex-direction: column;
     justify-content: center;
+}
+
+.filme_lista_item img {
+    width: 100%;
+    object-fit: cover;
+    border-radius: 8px;
 }
 .filme_linha {
     padding: 10px 0;
@@ -32,10 +41,16 @@
 
 .filmes_titulo{
     text-align: center;
-    width: 100%;
     font-family: var(--fonte-texto);
     font-size: 14pt;
+    height: 60px;
+    padding: 5px 0;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
+
 .filme_lista-avaliacao {
     text-align: center;
 }
@@ -45,6 +60,11 @@
     color: var(--cor-texto);
     background-color: #272727;
     border-radius: 10px;
-    padding: 5px 0;
     cursor: pointer;
 }
+
+.filme-streaming,.filme-categoria,.filme-duracao,.filme-ano{
+    padding: 0 10px;
+    border-radius: 8px;
+}
+

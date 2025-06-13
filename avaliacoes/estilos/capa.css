@@ -38,4 +38,5 @@
     background-color: var(--cor-destaque);
     padding: 5px;
     border-radius: 8px;
+    cursor: pointer;
 }
