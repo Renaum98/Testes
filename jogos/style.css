@@ -1,0 +1,36 @@
+@import url(estilos/header.css);
+@import url(estilos/banner.css);
+@import url(estilos/filtro.css);
+@import url(estilos/jogos.css);
+@import url(estilos/sobre.css);
+
+
+
+:root {
+    --cor-primaria-fundo:#272727;
+    --cor-primaria-detalhe:#b836c4;
+    --cor-secundaria-detalhe:#4d2757;
+    --cor-base:#ffffff;
+
+    --fonte-texto:'Poppins',sans-serif;
+    --fonte-titulo:'Montserrat';
+
+
+    --font-size-p:.5rem; 
+    --font-size-m:1rem;
+    --font-size-mm:1.5rem;
+    --font-size-g:2rem;
+    --font-size-xg:4rem;
+
+}
+
+*{
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: var(--fonte-texto);
+}
+
+body {
+    background-color: var(--cor-primaria-fundo);
+}
