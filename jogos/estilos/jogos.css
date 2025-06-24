@@ -7,6 +7,7 @@
 }
 .jogos_container{
     padding: 1rem;
+    min-width: 300px;
     display:grid;
     grid-template-columns: repeat(4,300px);
     gap: 1rem;
