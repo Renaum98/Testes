@@ -27,5 +27,8 @@
     text-shadow: 
     2px 2px 0 var(--cor-primaria-detalhe),
     4px 4px 0 var(--cor-secundaria-detalhe);
+    @media screen and (max-width:763px){
+        font-size:var(--font-size-g)
+    }
 }
 
