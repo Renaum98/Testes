@@ -7,12 +7,12 @@
 }
 .jogos_container{
     padding: 1rem;
-    min-width: 300px;
     display:grid;
     grid-template-columns: repeat(4,300px);
     gap: 1rem;
     
     @media screen and (max-width: 768px) {
+        min-width: 300px;
         display: flex;
         flex-direction: column;
     }

@@ -29,3 +29,4 @@ console.log(filtroJogos)
 jogoTitulo.forEach((titulo) => {
     filtroJogos.innerHTML += `<option value="">${titulo.textContent}</option>`
 })
+
