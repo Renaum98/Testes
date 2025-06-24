@@ -10,8 +10,8 @@
     display:grid;
     grid-template-columns: repeat(3,300px);
     gap: 1rem;
-    
-    @media screen and (max-widt: 733px) {
+
+    @media screen and (max-width: 768px) {
         display: flex;
         flex-direction: column;
     }
