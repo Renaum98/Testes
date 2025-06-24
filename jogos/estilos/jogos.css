@@ -8,8 +8,13 @@
 .jogos_container{
     padding: 1rem;
     display:grid;
-    grid-template-columns: repeat(3,1fr);
+    grid-template-columns: repeat(3,300px);
     gap: 1rem;
+    
+    @media screen and (max-widt: 733px) {
+        display: flex;
+        flex-direction: column;
+    }
 }
 
 .jogos_container-item{
@@ -53,14 +58,11 @@
 }
 
 .icone-melhor {
-    background-color: aqua;
     position: relative;
 }
 .icone-melhor::before{
-    content: url(../imagens/assets/asset-icon-absolut.png);
+    content: url(../imagens/assets/asset-icon-absolut70px.png);
     position: absolute;
-    top: 0;
-    left: 0;
-    width: 10px;
-    height: 10px;
+    top: -10px;
+    left: -10px;
 }
