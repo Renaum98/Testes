@@ -9,11 +9,11 @@
     color: var(--cor-base);
 }
 .header_list {
+    flex: 1 1;
     font-weight: bold;
     list-style-type: none;
     display: flex;
-    justify-content: space-between;
-    gap: 0 30px;
+    justify-content: space-around;
 }
 
 .header_list a {

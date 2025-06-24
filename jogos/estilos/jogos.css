@@ -8,9 +8,9 @@
 .jogos_container{
     padding: 1rem;
     display:grid;
-    grid-template-columns: repeat(3,300px);
+    grid-template-columns: repeat(4,300px);
     gap: 1rem;
-
+    
     @media screen and (max-width: 768px) {
         display: flex;
         flex-direction: column;
@@ -21,29 +21,50 @@
     padding: 10px;
     display: flex;
     flex-flow: column;
+    border-radius: 10px;
+}
+
+.jogos_container-item:hover{
+    background-color: var(--cor-secundaria-detalhe);
+    transition: .5s;
 }
 
 .jogo_item-descricao{
     background-image: radial-gradient(circle,white,rgb(161, 161, 161));
     padding: 1rem;
+    text-align: center;
+    height: 100%;
+    border-radius: 0 0 10px 10px;
+    box-shadow: 5px 5px 10px rgba(0, 0, 0, 0.301);
     display: flex;
     flex-flow: column;
     justify-content: center;
     align-items: center;
-    text-align: center;
+}
+
+.jogo_item-capa{
+    height: 350px;
+}
+
+.jogo_item-capa img {
+    width: 100%;
     height: 100%;
-    border-radius: 0 0 10px 10px;
+    border-radius: 10px 10px 0 0;
+    box-shadow: 5px 5px 10px rgba(0, 0, 0, 0.301);
 }
 
 .jogo-titulo{
     font-family: var(--fonte-titulo);
 }
 
-.jogo_item-capa img {
-    width: 100%;
-    box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.507);
-    border-radius: 10px 10px 0 0;
+.jogo-titulo,
+.jogo-plataforma,
+.jogo-nota{
+    padding: 5px;
+    border-radius: 10px;
+    
 }
+
 
 .jogo_button-avaliacao{
     cursor: pointer;
