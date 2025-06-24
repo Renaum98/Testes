@@ -1,4 +1,27 @@
 .filtro {
     margin: 10px 0;
-    height: 200px;
+    height: 100px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+.filtro_form{
+    display: flex;
+    gap: 0 50px;
+}
+
+.filtro_form-caixa {
+    padding: 10px 40px;
+    font-size: var(--font-size-m);
+    background-color: var(--cor-secundaria-detalhe);
+    color: var(--cor-base);
+    border-radius: 50px;
+    border: none;
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    background-image: url(../imagens/assets/icon-seta.svg);
+    background-repeat: no-repeat;
+    background-position: center right;
+    background-size: 40px;
 }
