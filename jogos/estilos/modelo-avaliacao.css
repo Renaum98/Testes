@@ -1,0 +1,144 @@
+.avaliacao{
+    margin: 0 auto;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+}
+.avaliacao_dados{
+    background-color:#3f403c;
+    background-image: url(../avaliacoes/cyberpunk2077/imagens/fundo-cyberpunk2077.png);
+    background-position: center center;
+    background-repeat: no-repeat;
+    background-attachment: scroll;
+    background-size: cover;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.479);
+    border-radius: 10px;
+    width: 80%;
+    padding: 1rem;
+    margin-top: 50px;
+
+    display: flex;
+}
+.avaliacao_capa{
+    background-color: transparent;
+    border-radius: 10px;
+    padding: 10px;
+    width: 300px;
+    height: 300px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.capa-img{
+    width: 100%;
+    animation: rotacao 5s linear infinite;
+    animation-delay: 1s;
+}
+
+.avaliacao_descricao{
+    flex: 1 1;
+    background-color: rgba(0, 0, 0, 0.397);
+    backdrop-filter: blur(10px);
+    border-radius: 10px;
+    padding: 1rem;
+    text-align: center;
+    display: flex;
+    flex-flow: column;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.avaliacao_titulo{
+    text-align: center;
+    font-family: var(--fonte-titulo);
+    font-size: var(--font-size-g);
+    font-weight: bolder;
+}
+
+.avaliacao_ano,.avaliacao_plataforma,.avaliacao_nota-container{
+    font-size: var(--font-size-mm);
+    font-weight: 500;
+}
+
+.avaliacao_nota-container{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0 20px;
+}
+
+.nota-valor{
+    margin: auto;
+    color: var(--cor-base);
+    background-color: var(--cor-primaria-detalhe);
+    width: fit-content;
+    padding: 10px;
+    border-radius: 10px;
+}
+
+
+@keyframes rotacao {
+    from{
+        transform: rotate(0deg);
+    }
+    to{
+        transform: rotate(360deg);
+    }
+}
+
+
+.historia,
+.grafico,
+.trilha{
+    margin: 0 auto;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+}
+
+.historia_container,
+.grafico_container,
+.trilha_container{
+    background-color:#3f403c;
+    border-radius: 10px;
+    margin-top: 50px;
+    width: 80%;
+    color: white;
+    padding: 1rem;
+    display: flex;
+    flex-flow: column;
+    gap: 2rem;
+    
+    animation: appear 1ms ease-in-out;
+    animation-timeline: view();
+    animation-range: cover 0% cover 50%;
+    
+}
+
+.historia_titulo,.grafico_titulo,.trilha_titulo{
+    text-align: center;
+    font-size: var(--font-size-mm);
+    font-family: var(--fonte-titulo);
+}
+
+.historia_avaliacao,.grafico_avaliacao,.trilha_avaliacao{
+    text-align: justify;
+}
+
+.historia_nota,.grafico_nota,.trilha_nota{
+    background-color: var(--cor-primaria-detalhe);
+    text-align: center;
+    font-size: var(--font-size-g);
+}
+
+@keyframes appear {
+        from {
+            opacity: 0;
+            translate: 0 100vh;
+        }
+        to {
+            opacity: 1;
+            translate: 0 0;
+        }
+}
