@@ -9,7 +9,7 @@
     background-image: url(../avaliacoes/cyberpunk2077/imagens/fundo-cyberpunk2077.png);
     background-position: center center;
     background-repeat: no-repeat;
-    background-attachment: scroll;
+    background-attachment: fixed;
     background-size: cover;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.479);
     border-radius: 10px;
@@ -130,6 +130,8 @@
     background-color: var(--cor-primaria-detalhe);
     text-align: center;
     font-size: var(--font-size-g);
+    border-radius: 10px;
+    font-weight: bold;
 }
 
 @keyframes appear {
