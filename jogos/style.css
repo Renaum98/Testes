@@ -3,8 +3,12 @@
 @import url(estilos/filtro.css);
 @import url(estilos/jogos.css);
 @import url(estilos/sobre.css);
+@import url(estilos/modelo-classificado.css);
 
 
+::-webkit-scrollbar{
+    width: 0;
+}
 
 :root {
     --cor-primaria-fundo:#272727;
