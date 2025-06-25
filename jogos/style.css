@@ -36,6 +36,10 @@
     font-family: var(--fonte-texto);
 }
 
+html{
+    scroll-behavior: smooth;
+}
+
 body {
     background-color: var(--cor-primaria-fundo);
 }
