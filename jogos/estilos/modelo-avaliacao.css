@@ -29,6 +29,10 @@
     align-items: center;
     justify-content: center;
 
+    @media screen and (max-width:763px) {
+        display: none;
+    }
+
 }
 
 .capa-img{
@@ -51,6 +55,10 @@
     justify-content: space-between;
     align-items: center;
     gap: 2rem 0;
+
+    @media screen and (max-width:763px) {
+        width: 100%;
+    }
 }
 
 .avaliacao_titulo{
@@ -83,6 +91,15 @@
     width: 100%;
     justify-content: space-around;
     gap: 0 1rem;
+    transition: 1s;
+    
+    @media  screen and (max-width:763px) {
+        flex-flow: column;
+        align-items: center;
+        justify-content: center;
+        gap: 10px 0;
+        transition: 1s;
+    }
 }
 
 .avaliacao_sinopse-titulo{
