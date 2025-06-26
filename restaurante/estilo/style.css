@@ -81,8 +81,11 @@ section > img{
     max-width: 400px;
     display: block;
     margin: auto;
-    border-radius: 30% 5px 30% 5px;
+    /*border-radius: 30% 5px 30% 5px;*/
     box-shadow: 5px 5px 10px rgba(0, 0, 0, 0.219);
+    animation: border 1ms both;
+    animation-timeline: view();
+    animation-range: cover 0% cover 50%;
 }
 section > h3{
     padding: 5px;
@@ -110,4 +113,15 @@ footer > p{
     font-style: italic;
     color: rgb(109, 109, 109);
     padding: 5px 0;
+}
+
+@keyframes border {
+    from{
+        border-radius: 0;
+        opacity: 0;
+    }
+    to{
+        border-radius: 30% 5px 30% 5px;
+        opacity: 1;
+    }
 }
