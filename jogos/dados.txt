@@ -1,0 +1,86 @@
+[
+  {
+    "jogo": "Cyberpunk 2077",
+    "ano": 2020,
+    "plataforma": "PC",
+    "genero": "RPG"
+  },
+  {
+    "jogo": "God of War",
+    "ano": 2018,
+    "plataforma": "PC",
+    "genero": "Ação-aventura"
+  },
+  {
+    "jogo": "God of War Ragnarok",
+    "ano": 2022,
+    "plataforma": "PS5",
+    "genero": "Ação-aventura"
+  },
+  {
+    "jogo": "GTA V",
+    "ano": 2013,
+    "plataforma": "PC",
+    "genero": "Ação-aventura"
+  },
+  {
+    "jogo": "Hellblade: Senua's Sacrifice",
+    "ano": 2017,
+    "plataforma": "PC",
+    "genero": "Ação-aventura"
+  },
+  {
+    "jogo": "Hogwarts Legacy",
+    "ano": 2023,
+    "plataforma": "PS5",
+    "genero": "RPG"
+  },
+  {
+    "jogo": "Red Dead Redemption 2",
+    "ano": 2018,
+    "plataforma": "PC",
+    "genero": "Ação-aventura"
+  },
+  {
+    "jogo": "Skate 3",
+    "ano": 2010,
+    "plataforma": "Xbox 360",
+    "genero": "Esportes (skate)"
+  },
+  {
+    "jogo": "The Last of Us 2",
+    "ano": 2020,
+    "plataforma": "PS5",
+    "genero": "Ação-aventura"
+  },
+  {
+    "jogo": "The Last of Us Remake",
+    "ano": 2022,
+    "plataforma": "PS5",
+    "genero": "Ação-aventura"
+  },
+  {
+    "jogo": "Mass Effect: Andromeda",
+    "ano": 2017,
+    "plataforma": "PC",
+    "genero": "RPG"
+  },
+  {
+    "jogo": "Grounded",
+    "ano": 2022,
+    "plataforma": "PC",
+    "genero": "Sobrevivência"
+  },
+  {
+    "jogo": "Death Stranding",
+    "ano": 2020,
+    "plataforma": "PC",
+    "genero": "Aventura"
+  },
+  {
+    "jogo": "It Takes Two",
+    "ano": 2021,
+    "plataforma": "PS5",
+    "genero": "Aventura cooperativa"
+  }
+]
