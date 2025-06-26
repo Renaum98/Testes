@@ -45,6 +45,7 @@
     flex-flow: column;
     justify-content: center;
     align-items: center;
+    gap: 1rem 0;
 }
 
 .jogo_item-capa{
