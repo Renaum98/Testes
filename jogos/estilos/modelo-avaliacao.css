@@ -6,7 +6,7 @@
 }
 .avaliacao_dados{
     background-color:#3f403c;
-    background-image: url(../avaliacoes/cyberpunk2077/imagens/fundo-cyberpunk2077.png);
+    background-image: url(../avaliacoes/imagens/fundo-cyberpunk2077.png);
     background-position: center center;
     background-repeat: no-repeat;
     background-attachment: fixed;
@@ -24,22 +24,25 @@
     border-radius: 10px;
     padding: 10px;
     width: 300px;
-    height: 300px;
+    height: 100%;
     display: flex;
     align-items: center;
     justify-content: center;
+
 }
 
 .capa-img{
     width: 100%;
     animation: rotacao 5s linear infinite;
     animation-delay: 1s;
+
 }
 
 .avaliacao_descricao{
     flex: 1 1;
+    color: white;
     background-color: rgba(0, 0, 0, 0.397);
-    backdrop-filter: blur(10px);
+    backdrop-filter: blur(50px);
     border-radius: 10px;
     padding: 1rem;
     text-align: center;
@@ -47,6 +50,7 @@
     flex-flow: column;
     justify-content: space-between;
     align-items: center;
+    gap: 2rem 0;
 }
 
 .avaliacao_titulo{
@@ -56,25 +60,40 @@
     font-weight: bolder;
 }
 
-.avaliacao_ano,.avaliacao_plataforma,.avaliacao_nota-container{
-    font-size: var(--font-size-mm);
-    font-weight: 500;
-}
-
-.avaliacao_nota-container{
+.avaliacao_ano-container,.avaliacao_plataforma-container,.avaliacao_nota-container{
+    font-size: var(--font-size-m);
     display: flex;
     align-items: center;
     justify-content: center;
     gap: 0 20px;
 }
 
-.nota-valor{
+
+.nota-valor,.plataforma-valor,.ano-valor{
     margin: auto;
     color: var(--cor-base);
     background-color: var(--cor-primaria-detalhe);
     width: fit-content;
     padding: 10px;
     border-radius: 10px;
+}
+
+.avaliacao_descricao-container{
+    display: flex;
+    width: 100%;
+    justify-content: space-around;
+    gap: 0 1rem;
+}
+
+.avaliacao_sinopse-titulo{
+    margin-bottom: 10px;
+    font-size: var(--font-size-mm);
+    font-weight: 400;
+}
+
+.avaliacao_sinopse-texto{
+    text-align: justify;
+    font-weight: 200;
 }
 
 
@@ -86,6 +105,8 @@
         transform: rotate(360deg);
     }
 }
+
+
 
 
 .historia,
@@ -124,6 +145,7 @@
 
 .historia_avaliacao,.grafico_avaliacao,.trilha_avaliacao{
     text-align: justify;
+    font-weight: 200;
 }
 
 .historia_nota,.grafico_nota,.trilha_nota{
