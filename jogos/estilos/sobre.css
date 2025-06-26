@@ -31,8 +31,13 @@
     margin-top: 10px;
     text-align: justify;
     line-height: 2rem;
+    font-weight: 200;
     font-size: var(--font-size-mm);
     @media screen and (max-width: 763px) {
         font-size: var(--font-size-m);
     }
+}
+
+.texto_destaque{
+    font-weight: 500;
 }

@@ -25,9 +25,9 @@
             background-color: darkred;
             border-radius: 10px;
 
-            animation: appear 1ms ease-in-out;
+            animation: appear 1ms ease-in-out both;
             animation-timeline: view();
-            animation-range: cover 0% cover 50%;
+            animation-range: entry 25% cover 50%;
         }
 
         .c-indicator{
@@ -44,7 +44,7 @@
         @keyframes appear {
             from {
                 opacity: 0;
-                translate: 0 -100vh;
+                translate: 0 100vh;
             }
             to {
                 opacity: 1;
