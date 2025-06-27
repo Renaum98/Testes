@@ -1,14 +1,15 @@
 .header{
     font-size: var(--font-size-m);
     width: 100%;
-    z-index: 1;
     padding: 1rem;
-    gap: 0 60px;
     background-image: linear-gradient(to bottom, var(--cor-primaria-detalhe),var(--cor-secundaria-detalhe));
+    color: var(--cor-base);
+
     display: flex;
     justify-content: space-between;
     align-items: center;
-    color: var(--cor-base);
+    gap: 0 60px;
+    z-index: 1;
 }
 .header_list {
     flex: 1 1;
@@ -21,4 +22,10 @@
 .header_list a {
     text-decoration: none;
     color: var(--cor-base);
+}
+
+.header_icon-off,
+.header_icon-on{
+    width: 2rem;
+    cursor: pointer;
 }

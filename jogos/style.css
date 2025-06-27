@@ -5,6 +5,11 @@
 @import url(estilos/sobre.css);
 @import url(estilos/modelo-avaliacao.css);
 
+@font-face {
+    font-family:"Panic-logo";
+    src: url(font/Panic.ttf);
+}
+
 
 ::-webkit-scrollbar{
     width: 0;
@@ -18,6 +23,7 @@
 
     --fonte-texto:'Poppins',sans-serif;
     --fonte-titulo:'Montserrat';
+    --fonte-logo: 'Panic-logo';
 
 
     --font-size-p:.5rem; 
