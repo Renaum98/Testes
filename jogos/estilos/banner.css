@@ -9,6 +9,10 @@
     display: flex;
     justify-content: center;
     align-items: center;
+    transition: 1s;
+    @media (max-width: 768px) {
+        height: 200px;
+    }
 }
 
 .banner_container{

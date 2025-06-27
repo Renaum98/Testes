@@ -5,18 +5,13 @@
 @import url(estilos/sobre.css);
 @import url(estilos/modelo-avaliacao.css);
 
-@font-face {
-    font-family:"Panic-logo";
-    src: url(font/Panic.ttf);
-}
-
 
 ::-webkit-scrollbar{
     width: 0;
 }
 
 :root {
-    --cor-primaria-fundo:#272727;
+    --cor-primaria-fundo:rgb(39, 39, 39);
     --cor-primaria-detalhe:#b836c4;
     --cor-secundaria-detalhe:#4d2757;
     --cor-base:#ffffff;

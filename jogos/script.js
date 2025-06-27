@@ -1,9 +1,10 @@
 const jogoPlataforma = document.querySelectorAll('.jogo-plataforma');
-var filtroJogos = document.querySelector('#jogo');
-const jogoTitulo = document.querySelectorAll('.jogo-titulo');
+
+const mudarTema = document.querySelector('.header_icon-off')
+const body = document.body
 
 jogoPlataforma.forEach((plataforma) => {
-    switch (plataforma.textContent) {
+    switch (plataforma.textContent.trim()) {
         case "PC":
             plataforma.style.backgroundColor = "grey"
             plataforma.style.color = "white"
@@ -24,9 +25,20 @@ jogoPlataforma.forEach((plataforma) => {
     }
 })
 
-console.log(filtroJogos)
 
-jogoTitulo.forEach((titulo) => {
-    filtroJogos.innerHTML += `<option value="">${titulo.textContent}</option>`
-})
 
+mudarTema.onclick = () => {
+    const currentBg = getComputedStyle(body).backgroundColor;
+
+    if (currentBg === 'rgb(39, 39, 39)') {
+        body.style.backgroundColor = "var(--cor-base)";
+        mudarTema.setAttribute('src', 'imagens/assets/seta-on.svg');
+        mudarTema.style.transform = 'rotate(360deg)'
+        
+    } else {
+        body.style.backgroundColor = 'var(--cor-primaria-fundo)'; 
+        mudarTema.setAttribute('src', 'imagens/assets/seta-off.svg');
+        mudarTema.style.transform = 'rotate(-360deg)'
+        
+    }
+}

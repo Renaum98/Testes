@@ -21,6 +21,7 @@
     color: var(--cor-base);
     border-radius: 50px;
     border: none;
+    outline: none;
     appearance: none;
     -webkit-appearance: none;
     -moz-appearance: none;
@@ -28,4 +29,28 @@
     background-repeat: no-repeat;
     background-position: center right;
     background-size: 40px;
+}
+
+.form_pesquisar-container{
+    border-radius: 50px;
+    overflow: hidden;
+
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background-color: var(--cor-secundaria-detalhe);
+}
+
+.form-pesquisar-input{
+    padding: 10px 40px;
+    font-size: var(--font-size-m);
+    background-color: var(--cor-secundaria-detalhe);
+    color: var(--cor-base);
+    border: none;  
+    outline: none;
+}
+
+.form_pesquisar-botao{
+    padding: 10px;
+    cursor: pointer;
 }
