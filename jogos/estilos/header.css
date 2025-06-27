@@ -53,10 +53,6 @@
     @media (max-width: 768px) {
         width: 30px;
     }
-
-    &:hover{
-        box-shadow: 0 0 5px var(--cor-base);
-    }
 }
 
 .header_logo {
