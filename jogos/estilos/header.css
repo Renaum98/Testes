@@ -47,7 +47,6 @@
     cursor: pointer;
     border-radius: 50px;
     transition: 1s;
-    border: 1px solid;
     padding: 5px;
     
     @media (max-width: 768px) {
