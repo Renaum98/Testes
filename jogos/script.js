@@ -1,5 +1,4 @@
 const jogoPlataforma = document.querySelectorAll('.jogo-plataforma');
-
 const mudarTema = document.querySelector('.header_icon-off')
 const body = document.body
 
@@ -25,8 +24,6 @@ jogoPlataforma.forEach((plataforma) => {
     }
 })
 
-
-
 mudarTema.onclick = () => {
     const currentBg = getComputedStyle(body).backgroundColor;
 
@@ -42,3 +39,5 @@ mudarTema.onclick = () => {
         
     }
 }
+
+
