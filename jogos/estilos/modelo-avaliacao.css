@@ -7,8 +7,7 @@
 .avaliacao_dados{
     background-color:#3f403c;
     background-repeat: no-repeat;
-    background-attachment: scroll;
-    background-size: 110%;
+    background-size: cover;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.479);
     border-radius: 10px;
     width: 80%;
@@ -173,10 +172,10 @@
 }
 @keyframes rolagemFundo{
     from{
-        background-position: center left;
+        background-position: 0% 0%;
     }
     to{
-        background-position: center right; 
+        background-position: 100% 100%; 
     }
 }
 
