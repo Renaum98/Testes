@@ -12,3 +12,8 @@
     flex-flow: column;
     align-items: center;
 }
+
+.footer_logo-container{
+    display: flex;
+    gap: 0 1rem;
+}
