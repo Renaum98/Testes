@@ -6,18 +6,24 @@
 }
 .avaliacao_dados{
     background-color:#3f403c;
-    background-position: center center;
     background-repeat: no-repeat;
-    background-attachment: fixed;
-    background-size: cover;
+    background-attachment: scroll;
+    background-size: 110%;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.479);
     border-radius: 10px;
     width: 80%;
     padding: 1rem;
     margin-top: 50px;
+    animation: rolagemFundo 5s forwards;
 
     display: flex;
+    @media (max-width: 768px) {
+        background-size: cover;
+        background-position: center center;
+        animation: none;
+    }
 }
+
 .avaliacao_capa{
     padding: 10px;
     width: 300px;
@@ -35,7 +41,6 @@
 .capa-img{
     width: 100%;
     animation: rotacao 5s linear infinite;
-    animation-delay: 1s;
     border-radius: 50%;
 }
 
@@ -53,6 +58,8 @@
     align-items: center;
     gap: 2rem 0;
 
+    animation: opacidade 2s;
+    
     @media screen and (max-width:763px) {
         width: 100%;
     }
@@ -110,19 +117,6 @@
     font-weight: 200;
 }
 
-
-@keyframes rotacao {
-    from{
-        transform: rotate(0deg);
-    }
-    to{
-        transform: rotate(360deg);
-    }
-}
-
-
-
-
 .historia,
 .grafico,
 .trilha{
@@ -165,4 +159,32 @@
     font-size: var(--font-size-g);
     border-radius: 10px;
     font-weight: bold;
+}
+
+/*Animações*/
+
+@keyframes rotacao {
+    from{
+        transform: rotate(0deg);
+    }
+    to{
+        transform: rotate(360deg);
+    }
+}
+@keyframes rolagemFundo{
+    from{
+        background-position: center left;
+    }
+    to{
+        background-position: center right; 
+    }
+}
+
+@keyframes opacidade {
+   from{
+        opacity: 0;
+   }
+   to{
+        opacity: 1;
+   }
 }
