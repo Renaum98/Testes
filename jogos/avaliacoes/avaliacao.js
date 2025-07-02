@@ -2,6 +2,7 @@ const trilhaNota = parseFloat(document.querySelector('.trilha_nota').textContent
 const graficoNota = parseFloat(document.querySelector('.grafico_nota').textContent)
 const historiaNota = parseFloat(document.querySelector('.historia_nota').textContent)
 
+const avaliacaoDescricao = document.querySelector('.avaliacao_descricao')
 const mediaNotaFinal = document.querySelector('.nota-valor')
 const mudarTema = document.querySelector('.header_icon-off')
 const body = document.body
@@ -17,11 +18,12 @@ mudarTema.onclick = () => {
         body.style.backgroundColor = "var(--cor-base)";
         mudarTema.setAttribute('src', '../imagens/assets/seta-on.svg');
         mudarTema.style.transform = 'rotate(360deg)'
+        body.style.transition = '.5s'
+
     } else {
         body.style.backgroundColor = 'var(--cor-primaria-fundo)'; 
         mudarTema.setAttribute('src', '../imagens/assets/seta-off.svg');
         mudarTema.style.transform = 'rotate(-360deg)'
-
     }
 }
 

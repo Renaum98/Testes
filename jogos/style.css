@@ -45,3 +45,8 @@ html{
 body {
     background-color: var(--cor-primaria-fundo);
 }
+
+a {
+    text-decoration: none;
+    color: var(--cor-base);
+}
