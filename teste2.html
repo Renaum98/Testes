@@ -10,26 +10,63 @@
             padding: 0;
             box-sizing: border-box;
         }
-        body{
-            height: 100vh;
-        }
         main{
-            width: 100%;
-            height: 100%;
+            margin: 1rem 0;
             display: flex;
             justify-content: center;
             align-items: center;
         }
         ul{
             width: 80%;
-            border: 1px solid;
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
+            display: flex;
+            flex-wrap: wrap;
+            padding: 1rem 0;
+            gap: 1rem;
             justify-content: center;
             align-items: center;
         }
         li{
             list-style-type: none;
+            background-color: darkred;
+            width: 300px;
+            height: 400px;
+            color: white;
+            text-align: center;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 5rem;
+            text-transform: uppercase;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-weight: bolder;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            text-shadow: 0 5px 5px rgba(0, 0, 0, 0.473);
+            &:hover{
+                transition: .5s;
+                scale: 1.1;
+                background-image: linear-gradient(to bottom, red,blue,purple,green,yellow,orange);
+            }
+
+        }
+        .barra{
+            background-color: darkred;
+            transform-origin: left;
+            height: 25px;
+            inset: 0;
+            position: fixed;
+            border-radius: 0 20px 20px 0;
+
+            animation: scroll 1ms ease-in-out;
+            animation-timeline: scroll();
+        }
+        @keyframes scroll {
+            from {
+                scale: 0 1;
+            }
+            to {
+                scale: 1 1;
+            }
         }
     </style>
 </head>
