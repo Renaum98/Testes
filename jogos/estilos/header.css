@@ -29,6 +29,16 @@
 
     @media (max-width: 768px) {
         flex-flow: column;
+        display: none;
+        
+    }
+}
+
+#header_menu-icon{
+    display: none;
+    cursor: pointer;
+    @media (max-width: 768px) {
+        display: block;
     }
 }
 

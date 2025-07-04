@@ -1,3 +1,5 @@
+const listaMenu = document.querySelector('.header_list')
+const menuButton = document.getElementById('header_menu-icon')
 const jogoPlataforma = document.querySelectorAll('.jogo-plataforma');
 const mudarTema = document.querySelector('.header_icon-off')
 const body = document.body
@@ -61,5 +63,13 @@ function filtrarJogos() {
 
 // Adiciona um evento para detectar mudanças no campo de pesquisa
 document.getElementById('pesquisar').addEventListener('input', filtrarJogos);
+
+menuButton.onclick = () => {
+    if (listaMenu.style.display == "none") {
+        listaMenu.style.display = "block"
+    } else {
+        listaMenu.style.display = "none"
+    }
+}
 
 
