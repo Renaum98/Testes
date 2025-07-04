@@ -65,8 +65,8 @@ function filtrarJogos() {
 document.getElementById('pesquisar').addEventListener('input', filtrarJogos);
 
 menuButton.onclick = () => {
-    if (listaMenu.style.display == "none") {
-        listaMenu.style.display = "block"
+    if (listaMenu.style.display == "none" ||screen < "768px" ) {
+        listaMenu.style.display = "flex"
     } else {
         listaMenu.style.display = "none"
     }

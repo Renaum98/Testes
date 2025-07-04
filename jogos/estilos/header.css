@@ -37,6 +37,12 @@
 #header_menu-icon{
     display: none;
     cursor: pointer;
+    transition: .5s;
+
+    &:hover{
+        scale: 1.1;  
+    }
+
     @media (max-width: 768px) {
         display: block;
     }
@@ -58,6 +64,10 @@
     border-radius: 50px;
     transition: 1s;
     padding: 5px;
+
+    &:hover{
+        scale: 1.1;  
+    }
     
     @media (max-width: 768px) {
         width: 30px;
