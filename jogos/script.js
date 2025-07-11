@@ -26,6 +26,8 @@ jogoPlataforma.forEach((plataforma) => {
     }
 })
 
+
+
 mudarTema.onclick = () => {
     const currentBg = getComputedStyle(body).backgroundColor;
 
@@ -71,5 +73,6 @@ menuButton.onclick = () => {
         listaMenu.style.display = "none"
     }
 }
+
 
 
