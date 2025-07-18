@@ -1,0 +1,31 @@
+:root {
+    --cor-principal: #272727;
+    --cor-secundaria: #3432c7;
+    --cor-base: #ffff;
+
+    --font-size-titulo:2rem;
+    --font-size-texto:1rem;
+}
+
+
+*{
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: "Open sans",sans-serif;
+}
+body{
+    height: 100vh;
+    background-image: linear-gradient(to bottom, var(--cor-secundaria),var(--cor-principal));
+    color: var(--cor-base);
+}
+a{
+    text-decoration: none;
+    color: var(--cor-base);
+}
+ul {
+    list-style-type: none;
+}
+
+
+
