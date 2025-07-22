@@ -29,10 +29,9 @@
 @keyframes efeito {
     0%,100%{
         filter: blur(40px);
-        translate: -100vh 0;
     }
     44%,55%{
         filter: blur(0);
-        translate: 0 0;
     }
+    
 }
