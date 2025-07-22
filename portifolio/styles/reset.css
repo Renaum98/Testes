@@ -15,7 +15,6 @@
     font-family: "Open sans",sans-serif;
 }
 body{
-    height: 100vh;
     background-image: linear-gradient(to bottom, var(--cor-secundaria),var(--cor-principal));
     color: var(--cor-base);
 }
