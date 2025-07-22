@@ -17,7 +17,7 @@
     border-radius: 20px;
     font-size: 3rem;
     
-    animation: efeito;
+    animation: efeito linear both;
     animation-timeline: view();
     transition: 0.5s;
 }
@@ -29,8 +29,10 @@
 @keyframes efeito {
     0%,100%{
         filter: blur(40px);
+        translate: -100vh 0;
     }
     44%,55%{
         filter: blur(0);
+        translate: 0 0;
     }
 }
