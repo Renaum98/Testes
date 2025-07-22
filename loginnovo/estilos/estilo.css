@@ -52,6 +52,7 @@ main{
     border: none;
     background-color: transparent;
     text-decoration: none;
+    outline: none;
 }
 .botoes{
     display: flex;
@@ -66,6 +67,7 @@ main{
     border: 1px solid rgba(95, 95, 95, 0.258);
     margin: 5px 20px;
     cursor: pointer;
+    
 }
 .botoes input:hover{
     border-radius: 10px;
