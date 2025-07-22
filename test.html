@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>teste</title>
+    <style>
+        *{
+            margin: 0px;
+            padding: 0px;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        body{
+            height: 100vh;
+        }
+        main{
+            display: flex;
+            flex-direction: column;
+            gap: 1rem 0;
+            justify-content: center;
+            align-items: center;
+        }
+        div{
+            font-size: 6rem;
+            font-weight: bolder;
+            color: grey;
+
+            animation: efeito linear both;
+            animation-timeline: view();
+
+            @media (max-width:768px) {
+                font-size: 3rem;
+            }
+        }
+        @keyframes efeito {
+            0%,100%{
+                filter: blur(40px);
+                translate: -100vw 0;
+            }
+            44%,55%{
+                filter: blur(0);
+                translate: -0 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <main>
+        <div>inicio</div>
+        <div>teste 1</div>
+        <div>contato</div>
+        <div>fotos</div>
+        <div>menu</div>
+        <div>infomarçoes</div>
+        <div>sobre mim</div>
+        <div>descubra</div>
+        <div>pratos</div>
+        <div>escolha</div>
+        <div>o seu futuro</div>
+        <div>TESTE</div>
+        <div>TESTE</div>
+        <div>TESTE</div>
+        <div>TESTE</div>
+    </main>
+</body>
+</html>

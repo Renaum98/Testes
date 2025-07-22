@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        .banner{
+            height: 100vh;
+            overflow: hidden;
+            position: relative;
+        }
+        .banner .product {
+            /*background-color: red;*/
+            width: 500px;
+            height: 500px;
+            position: absolute;
+            bottom: 170px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 1;
+            transition: 0.7s;
+        }
+        .banner .product .soda{
+            background: 
+                url(50247cd2-0677-4872-9960-b7daf01a0267.jpg),
+                url(lata-de-lata-metalica-de-perto.png); 
+                
+            background-size: auto 100%;
+            width: 280px;
+            aspect-ratio: 2/3.9;
+            background-blend-mode: multiply;
+            mask-image: url(lata-de-lata-metalica-de-perto.png);
+        }
+    </style>
+</head>
+<body>
+    <div class="banner">
+        <div class="product">
+            <div class="soda"></div>
+        </div>
+    </div>
+</body>
+</html>
