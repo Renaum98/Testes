@@ -17,7 +17,9 @@
     border-radius: 20px;
     font-size: 3rem;
     
+    -webkit-animation: efeito linear both;
     animation: efeito linear both;
+    -webkit-animation-timeline:view();
     animation-timeline: view();
     transition: 0.5s;
 }
