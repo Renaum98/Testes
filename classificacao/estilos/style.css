@@ -1,4 +1,4 @@
-@import url(estilos/reset.css);
+@import url(reset.css);
 
 
 
@@ -17,23 +17,22 @@ ol{
     gap: 1rem;
 }
 ul{
-    list-style-type: disc;
-    list-style-position: inside;
+    list-style-type: none;
+    
 }
 
 main{
     width: 100%;
     height: 100%;
     color: white;
-    
     padding: 2rem 0;
-
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
     gap: 2rem 0;
 }
+
 .caixa-classe{
     max-width: 600px;
     width: 90%;
@@ -46,8 +45,21 @@ main{
     display: flex; 
     flex-direction: column;
     gap: 1rem;
+}
 
-    /*box-shadow: 5px 5px rgba(255, 255, 255, 0.377);*/
+.categorias{
+    font-size: 1.5rem;
+    position: relative;
+}
+
+.categorias::after{
+    position: absolute;
+    content: url(../imagens/assets/icon-abrir.png);  
+    translate: 10px 3px;
+}
+
+.categorias-list{
+    display: none;
 }
 
 .list-item{
@@ -55,9 +67,6 @@ main{
     border-radius: 32px;
     overflow: hidden;
     padding: 1rem 0;
-}
-.categorias{
-    font-size: 1.5rem;
 }
 footer{
     text-align: center;
@@ -72,6 +81,29 @@ footer{
 
 }
 
+.informacao-papel{
+    margin: 0 auto;
+    background-color: #272727a2;
+    box-shadow: inset 5px 5px 5px rgba(255, 255, 255, 0.116),inset -5px -5px rgba(0, 0, 0, 0.089);
+    border-radius: 32px;
+    width: 90%;
+    padding: 1rem;
+}
+
+.informacao-papel li{
+    font-weight: 300;
+}
+
+.informacao-papel span {
+    font-weight: 100;
+}
+
 .informacao-nome{
+    font-weight: bolder;
+    font-family: "Montserrat";
+    transform: translateY(-5px);
+}
+
+.informacao-titulo{
     font-weight: bolder;
 }
