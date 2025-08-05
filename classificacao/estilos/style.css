@@ -62,7 +62,7 @@ main{
 }
 
 .categorias-list{
-    display: none;
+    display: flex;   
 }
 
 .list-item{
