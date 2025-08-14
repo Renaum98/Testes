@@ -11,8 +11,7 @@
     width: 200px;
     border-radius: 50%;
     overflow: hidden;
-    box-shadow: 5px 5px 10px rgba(202, 30, 188, 0.863),-5px -5px 10px rgba(196, 199, 24, 0.89);
-    border: 1px solid rgba(255, 255, 255, 0.288);
+    animation: sombraEfeito 5s infinite linear;
 }
 
 .foto-perfil{
@@ -35,4 +34,13 @@
     text-align: justify;
     width: 90%;
     font-size: var(--font-size-conteudo);
+}
+
+@keyframes sombraEfeito {
+    0%,100%{
+        box-shadow: 10px 5px 10px rgba(202, 30, 188, 0.863),-5px -5px 10px rgba(196, 199, 24, 0.89);
+    }
+    50%{
+        box-shadow: -10px -5px 10px rgba(196, 199, 24, 0.89),5px 5px 10px rgba(202, 30, 188, 0.863);
+    }
 }
