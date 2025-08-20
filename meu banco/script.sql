@@ -7,3 +7,4 @@ CREATE TABLE alunos(
 INSERT INTO alunos(id, nome, idade, curso) VALUES (3,'Ana', 23,'ADM')
 
 SELECT * FROM alunos;
+
