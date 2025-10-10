@@ -10,11 +10,10 @@
     width: 80%;
     text-align: center;
     color: white;
-    transform: translateY(50px);
 
     display: flex;
     flex-direction: column;
-    gap: 2rem;
+    gap: 1rem;
 }
 
 fieldset{
@@ -37,5 +36,6 @@ input,select {
     border: 0;
     text-align: center;
     padding: 5px 5px;
-    box-shadow:2px 2px rgba(0, 0, 0, 0.274);
+    box-shadow: 0 2px 2px rgba(0, 0, 0, 0.301);
+    outline: none;
 }

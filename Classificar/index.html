@@ -17,7 +17,7 @@
                     <li class="cabecalho_nav-list_item">Inicio</li>
                 </a>
 
-                <a href="#">
+                <a href="#filmes">
                     <li class="cabecalho_nav-list_item">Filmes</li>
                 </a>
                 <a href="#">
@@ -28,15 +28,26 @@
     </header>
     <section class="formulario">
         <form action="#" id="formulario">
+            <fieldset class="formulario_campo">
+                <legend>Nome</legend>
+                <select name="nome" id="nome-id">
+                    <option value="" selected disabled></option>
+                    <option value="">Renan</option>
+                    <option value="">Bruna</option>
+                    <option value="">Cauane</option>
+                    <option value="">Fabio</option>
+                </select>
+            </fieldset>
+
             <div class="formulario_campo" id="campo_filme">
                 <label for="filme">Filme</label> <br>
-                <input type="text" name="filme" id="filme-id">
+                <input type="text" name="filme" id="filme-id" placeholder="Escolha um filme">
             </div>
 
             <fieldset class="formulario_campo">
                 <legend>Onde Assistir</legend>
                 <select name="onde" id="onde-id">
-                    <option value="" selected disabled>Escolha a plataforma</option>
+                    <option value="" selected disabled></option>
                     <option value="">Mubi</option>
                     <option value="">Netflix</option>
                     <option value="">Prime</option>
@@ -52,7 +63,7 @@
             <fieldset class="formulario_campo">
                 <legend>Gênero</legend>
                 <select name="genero" id="genero-id">
-                    <option value="" selected disable>Escolha o gênero</option>
+                    <option value="" selected disable></option>
                     <option value="">Ação</option>
                     <option value="">Comédia</option>
                     <option value="">Suspense</option>
@@ -68,6 +79,84 @@
             </div>
         </form>
     </section>
-    
+    <section class="filmes" id="filmes">
+        <div class="filmes_container">
+            <div class="filmes_container-item">
+                <div class="filme_card-nome">
+                    <img src="imagens/perfil_renan.png" alt="" width="50" class="imagem_perfil">
+                    <p class="titulo-usuario">Renan</p>
+                </div>
+                <div class="filme_card-dados">
+                    <p class="titulo_filme">Filme: 
+                        <p class="titulo_filme-escolhido">Nosferatu</p>
+                    </p>
+                    <p class="titulo_onde">Onde Assistir: 
+                        <p class="titulo_onde-escolhido">Prime</p>
+                    </p>
+                    <p class="titulo_genero">Gênero:
+                        <p class="titulo_genero-escolhido">Terror</p>
+                    </p>
+                    <p class="titulo-data">25/07/2025</p>
+                </div>
+            </div>
+
+            <div class="filmes_container-item">
+                <div class="filme_card-nome">
+                    <img src="imagens/perfil_fabio.png" alt="" width="50" class="imagem_perfil">
+                    <p class="titulo-usuario">Fabio</p>
+                </div>
+                <div class="filme_card-dados">
+                    <p class="titulo_filme">Filme: 
+                        <p class="titulo_filme-escolhido">Velozes e Furiosos 2</p>
+                    </p>
+                    <p class="titulo_onde">Onde Assistir: 
+                        <p class="titulo_onde-escolhido">Netflix</p>
+                    </p>
+                    <p class="titulo_genero">Gênero:
+                        <p class="titulo_genero-escolhido">Ação</p>
+                    </p>
+                    <p class="titulo-data">01/10/2025</p>
+                </div>
+            </div>
+
+            <div class="filmes_container-item">
+                <div class="filme_card-nome">
+                    <img src="imagens/perfil_bruna.png" alt="" width="50" class="imagem_perfil">
+                    <p class="titulo-usuario">Bruna</p>
+                </div>
+                <div class="filme_card-dados">
+                    <p class="titulo_filme">Filme: 
+                        <p class="titulo_filme-escolhido">Django</p>
+                    </p>
+                    <p class="titulo_onde">Onde Assistir: 
+                        <p class="titulo_onde-escolhido">Prime</p>
+                    </p>
+                    <p class="titulo_genero">Gênero:
+                        <p class="titulo_genero-escolhido">Ação</p>
+                    </p>
+                    <p class="titulo-data">25/07/2025</p>
+                </div>
+            </div>
+
+            <div class="filmes_container-item">
+                <div class="filme_card-nome">
+                    <img src="imagens/perfil_cauane.png" alt="" width="50" class="imagem_perfil">
+                    <p class="titulo-usuario">Cauane</p>
+                </div>
+                <div class="filme_card-dados">
+                    <p class="titulo_filme">Filme: 
+                        <p class="titulo_filme-escolhido">Onde os fracos não tem vez</p>
+                    </p>
+                    <p class="titulo_onde">Onde Assistir: 
+                        <p class="titulo_onde-escolhido">Mercado Play</p>
+                    </p>
+                    <p class="titulo_genero">Gênero:
+                        <p class="titulo_genero-escolhido">Suspense</p>
+                    </p>
+                    <p class="titulo-data">10/07/2025</p>
+                </div>
+            </div>
+        </div>
+    </section>
 </body>
 </html>
