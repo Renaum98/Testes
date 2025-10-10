@@ -1,0 +1,17 @@
+.cabecalho{
+    padding: var(--padding-base);
+}
+.cabecalho_nav{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+.cabecalho_nav-list{
+    width: 100%;
+    display: flex;
+    justify-content: space-evenly;
+}
+a{
+    color: white;
+    text-decoration: none;
+}

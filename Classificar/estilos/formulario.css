@@ -1,0 +1,37 @@
+.formulario{
+    padding: var(--padding-base);
+}
+#formulario{
+    padding: 1rem 0rem;
+    background-color: rgba(165, 42, 42, 0.151);
+    border: 1px solid rgba(255, 255, 255, 0.089);
+    border-radius: 1rem;
+    margin: 0 auto;
+    width: 80%;
+    text-align: center;
+    color: white;
+    backdrop-filter: blur(10px);
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+}
+
+fieldset{
+    border: none;
+}
+
+#enviar-id,#limpar-id{
+    margin: 0 auto;
+    background-color: darkred;
+    color: white;
+    border: none;
+    padding: 0rem 1rem;
+    border-radius: 1rem;
+    font-size: 1rem;
+}
+
+input,select {
+    border-radius: 1rem;
+    border: 0;
+    text-align: center;
+}

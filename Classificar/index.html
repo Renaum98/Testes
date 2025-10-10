@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Filmes</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:ital,wght@0,300..800;1,300..800&display=swap" rel="stylesheet">  
+    <link rel="stylesheet" href="reset.css">
+</head>
+<body>
+    <header class="cabecalho">
+        <nav class="cabecalho_nav">
+            <ul class="cabecalho_nav-list">
+                <a href="#">
+                    <li class="cabecalho_nav-list_item">Inicio</li>
+                </a>
+
+                <a href="#">
+                    <li class="cabecalho_nav-list_item">Filmes</li>
+                </a>
+                <a href="#">
+                    <li class="cabecalho_nav-list_item">Top 10</li>
+                </a>
+            </ul>
+        </nav>
+    </header>
+    <section class="formulario">
+        <form action="#" id="formulario">
+            <div class="formulario_campo" id="campo_filme">
+                <label for="filme">Filme</label> <br>
+                <input type="text" name="filme" id="filme-id">
+            </div>
+
+            <fieldset class="formulario_campo">
+                <legend>Onde Assistir</legend>
+                <select name="onde" id="onde-id">
+                    <option value="" selected disabled>Escolha a plataforma</option>
+                    <option value="">Mubi</option>
+                    <option value="">Netflix</option>
+                    <option value="">Prime</option>
+                    <option value="">Mercado Play</option>
+                    <option value="">HBO Max</option>
+                    <option value="">Apple TV+</option>
+                    <option value="">Disney+</option>
+                    <option value="">Não tem ainda ☹️</option>
+                    <option value="">Aluguel</option>
+                </select>
+            </fieldset>
+
+            <fieldset class="formulario_campo">
+                <legend>Gênero</legend>
+                <select name="genero" id="genero-id">
+                    <option value="" selected disable>Escolha o gênero</option>
+                    <option value="">Ação</option>
+                    <option value="">Comédia</option>
+                    <option value="">Suspense</option>
+                    <option value="">Terror</option>
+                    <option value="">Romance</option>
+                    <option value="">Ficção Cientifica</option>
+                    <option value="">Documentario</option>
+                </select>
+            </fieldset>
+            <div class="formulario_botoes">
+                <button id="enviar-id">Enviar</button>
+                <button id="limpar-id">Limpar</button>
+            </div>
+        </form>
+    </section>
+</body>
+</html>
