@@ -2,15 +2,16 @@
     padding: var(--padding-base);
 }
 #formulario{
-    padding: 1rem 0rem;
-    background-color: rgba(165, 42, 42, 0.151);
+    background-color: rgba(214, 214, 214, 0.041);
     border: 1px solid rgba(255, 255, 255, 0.089);
     border-radius: 1rem;
+    padding: 1rem 0rem;
     margin: 0 auto;
     width: 80%;
     text-align: center;
     color: white;
-    backdrop-filter: blur(10px);
+    transform: translateY(50px);
+
     display: flex;
     flex-direction: column;
     gap: 2rem;
@@ -28,10 +29,13 @@ fieldset{
     padding: 0rem 1rem;
     border-radius: 1rem;
     font-size: 1rem;
+    box-shadow:2px 2px rgba(0, 0, 0, 0.274);
 }
 
 input,select {
     border-radius: 1rem;
     border: 0;
     text-align: center;
+    padding: 5px 5px;
+    box-shadow:2px 2px rgba(0, 0, 0, 0.274);
 }
