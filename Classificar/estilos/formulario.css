@@ -20,7 +20,8 @@ fieldset{
     border: none;
 }
 
-#enviar-id,#limpar-id{
+#enviar-id,
+#limpar-id{
     margin: 0 auto;
     background-color: darkred;
     color: white;
@@ -29,6 +30,7 @@ fieldset{
     border-radius: 1rem;
     font-size: 1rem;
     box-shadow:2px 2px rgba(0, 0, 0, 0.274);
+    cursor: pointer;
 }
 
 input,select {
