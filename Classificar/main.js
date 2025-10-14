@@ -145,7 +145,8 @@ document.addEventListener("DOMContentLoaded", async function () {
           <p class="titulo-data">${dataFormatada}</p>
         </div>
 
-        <p class="titulo-media">🎃 Média: <strong>${media}</strong></p>
+        <p class="titulo-media"><img src="imagens/icones/abobora_1.svg" alt="" width="20"> 
+        Média: <strong>${media}</strong></p>
 
         <div class="avaliadores-container">
           ${avaliadoresHTML || "<p class='sem-avaliacoes'>Nenhuma avaliação ainda</p>"}
