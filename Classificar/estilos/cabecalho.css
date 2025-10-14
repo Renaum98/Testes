@@ -1,18 +1,55 @@
 .cabecalho{
     padding: var(--padding-base);
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    border-bottom: 1px solid rgba(255, 255, 255, 0);
+    color: #fff;
+    z-index: 10000;
+    transition: all 0.3s ease;
 }
 .cabecalho_nav{
-    position: sticky;
     display: flex;
     justify-content: center;
     align-items: center;
+    transition: all 0.3s ease;
 }
-.cabecalho_nav-list{
-    width: 100%;
+.cabecalho_nav-list {
     display: flex;
-    justify-content: space-evenly;
+    gap: 40px;
+    margin: 0;
+    padding: 0;
 }
+
+.cabecalho_nav-list_item {
+    color: #fff;
+    font-size: 1.2rem;
+    transition: color 0.2s ease;
+}
+
+.cabecalho_nav-list_item:hover{
+    color: #ffcc00;
+}
+
 a{
     color: white;
     text-decoration: none;
+}
+
+/* ============ ESTILO AO ROLAR (ENCOLHE) ============ */
+.cabecalho.shrink {
+    background-color: #0000002c;
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.24);
+}
+
+.cabecalho.shrink .cabecalho_nav-list_item {
+    font-size: 1rem;
+    transition: font-size .3s;
+}
+
+/* ============ EVITA QUE O CONTEÚDO SUBA POR TRÁS DO CABEÇALHO ============ */
+body {
+    padding-top: 50px; /* altura inicial do cabeçalho */
 }

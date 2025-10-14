@@ -13,12 +13,13 @@
     background-color: rgba(214, 214, 214, 0.041);
     border: 1px solid rgba(255, 255, 255, 0.089);
     border-radius: 1rem;
-    padding: 1rem 0rem;
-    display: flex;
-    flex-direction: column;
     color: white;
-    
+    padding: 1rem 0rem;
+
+    display: flex;
+    flex-direction: column; 
 }
+
 .filme_card-nome{
     display: flex;
     justify-content: center;

@@ -1,20 +1,27 @@
+// ===========================================================
+// 🚀 IMPORTAÇÕES DO FIREBASE
+// ===========================================================
+// Importa os módulos necessários diretamente da CDN oficial do Firebase
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
 import {
-  getFirestore,
-  collection,
-  addDoc,
-  deleteDoc,
-  doc,
-  updateDoc,
-  onSnapshot,
-  query,
-  orderBy,
-  serverTimestamp
+  getFirestore,     // Acesso ao banco de dados Firestore
+  collection,       // Usado para acessar uma coleção dentro do Firestore
+  addDoc,           // Adiciona um novo documento (registro)
+  deleteDoc,        // Exclui um documento existente
+  doc,              // Obtém a referência de um documento específico
+  updateDoc,        // Atualiza campos dentro de um documento
+  onSnapshot,       // Escuta mudanças em tempo real no Firestore
+  query,            // Cria uma consulta (por exemplo, com filtros e ordenação)
+  orderBy,          // Ordena resultados de uma consulta
+  serverTimestamp   // Gera uma data/hora do servidor Firebase (sincronizada)
 } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
 
-// ============================
-// 🔧 Configuração do Firebase
-// ============================
+
+// ===========================================================
+// 🔧 CONFIGURAÇÃO DO FIREBASE
+// ===========================================================
+// Esses dados vêm do painel do Firebase (Configurações do app web).
+// Permitem que seu site se conecte ao projeto correto no Firebase.
 const firebaseConfig = {
   apiKey: "AIzaSyATcKzRQ5IzxRXAGhUvySWLQvsT-858r4g",
   authDomain: "filmes-cb4a9.firebaseapp.com",
@@ -24,34 +31,45 @@ const firebaseConfig = {
   appId: "1:867531338215:web:8cebf9649b83651c6ecd42"
 };
 
+// Inicializa o Firebase e o Firestore (banco de dados)
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-// ======================================
-// 🧠 Função de capitalização
-// ======================================
+
+// ===========================================================
+// 🧠 FUNÇÃO AUXILIAR – CAPITALIZAR PALAVRAS
+// ===========================================================
+// Transforma o texto para deixar a primeira letra de cada palavra em maiúscula.
+// Exemplo: "vingadores guerra infinita" → "Vingadores Guerra Infinita"
 function capitalizarPalavras(texto) {
   return texto
     .toLowerCase()
     .split(" ")
-    .filter(palavra => palavra.trim() !== "")
+    .filter(palavra => palavra.trim() !== "") // Remove espaços extras
     .map(palavra => palavra.charAt(0).toUpperCase() + palavra.slice(1))
     .join(" ");
 }
 
-// ======================================
-// 📋 Manipulação do formulário
-// ======================================
+
+// ===========================================================
+// 📋 LÓGICA PRINCIPAL DO SITE
+// ===========================================================
 document.addEventListener("DOMContentLoaded", async function () {
+
+  // 🔹 Pega os elementos principais do HTML
   const form = document.getElementById("formulario");
   const filmesContainer = document.querySelector(".filmes_container");
   const btnLimpar = document.getElementById("limpar-id");
 
-  // ======================
-  // 🪟 Modal de Avaliação
-  // ======================
+
+  // =======================================================
+  // 🪟 MODAL DE AVALIAÇÃO
+  // =======================================================
+  // Cria dinamicamente uma janela de avaliação quando o usuário clicar em “Assisti”.
   const modal = document.createElement("div");
   modal.classList.add("modal-avaliacao");
+
+  // HTML interno do modal
   modal.innerHTML = `
     <div class="modal-conteudo">
       <label for="avaliador-nome">Seu nome:</label>
@@ -74,34 +92,43 @@ document.addEventListener("DOMContentLoaded", async function () {
   `;
   document.body.appendChild(modal);
 
-  let filmeSelecionadoId = null;
+  let filmeSelecionadoId = null; // Guarda o ID do filme que o usuário está avaliando
 
-  // -------------------------------
-  // 🔹 Exibir um filme na tela
-  // -------------------------------
+
+  // =======================================================
+  // 🎬 FUNÇÃO: EXIBIR UM FILME NA TELA
+  // =======================================================
   function adicionarFilmeNaTela(id, nome, filme, onde, genero, dataFirestore, avaliacoes = {}) {
+
     const filmeItem = document.createElement("div");
     filmeItem.classList.add("filmes_container-item");
     filmeItem.setAttribute("data-id", id);
 
-    // 🔹 Formata a data do Firestore
+    // 🔹 Converte o timestamp do Firestore para data legível
     let dataFormatada = "Data desconhecida";
     if (dataFirestore && dataFirestore.toDate) {
       const dataJS = dataFirestore.toDate();
-      dataFormatada = dataJS.toLocaleDateString("pt-BR") + " " + dataJS.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
+      dataFormatada = dataJS.toLocaleDateString("pt-BR") + " " +
+                      dataJS.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
     }
 
+    // 🔹 Calcula média das avaliações
     const notas = Object.values(avaliacoes);
     const media = notas.length ? (notas.reduce((a, b) => a + b, 0) / notas.length).toFixed(1) : "–";
 
+    // 🔹 Mostra as fotos de quem avaliou
     const avaliadoresHTML = Object.entries(avaliacoes)
       .map(([avaliador, nota]) => `
         <div class="avaliador">
-          <img src="imagens/perfil_${avaliador.toLowerCase()}.png" alt="${avaliador}" title="${avaliador}: ${nota}⭐" class="avaliador-foto">
+          <img src="imagens/perfil_${avaliador.toLowerCase()}.png"
+               alt="${avaliador}"
+               title="${avaliador}: ${nota}⭐"
+               class="avaliador-foto">
         </div>
       `)
       .join("");
 
+    // 🔹 Monta o HTML completo de um card de filme
     filmeItem.innerHTML = `
       <div class="filme_card-nome">
         <img src="imagens/perfil_${nome.toLowerCase()}.png" alt="${nome}" width="50" class="imagem_perfil">
@@ -131,32 +158,51 @@ document.addEventListener("DOMContentLoaded", async function () {
       </div>
     `;
 
-    // 🗑️ Excluir
+
+    // =======================================================
+    // 🗑️ EVENTO: EXCLUIR UM FILME
+    // =======================================================
     const btnExcluir = filmeItem.querySelector(".btn-excluir");
     btnExcluir.addEventListener("click", async () => {
-      if (confirm(`Deseja realmente excluir "${filme}"?`)) {
-        await deleteDoc(doc(db, "filmes", id));
-      }
-    });
+    if (confirm(`Deseja realmente excluir "${filme}"?`)) {
+      // 💫 Aplica a animação de sumir
+      filmeItem.style.transition = "opacity 0.5s ease, transform 0.5s ease";
+      filmeItem.style.opacity = "0";
+      filmeItem.style.transform = "translateY(-10px)";
 
-    // 🎬 Assisti
+      // Espera a animação terminar antes de deletar do Firestore
+      setTimeout(async () => {
+        await deleteDoc(doc(db, "filmes", id));
+      }, 500);
+  }
+});
+
+
+    // =======================================================
+    // 🎥 EVENTO: AVALIAR UM FILME
+    // =======================================================
     const btnAssisti = filmeItem.querySelector(".btn-assisti");
     btnAssisti.addEventListener("click", () => {
-      filmeSelecionadoId = id;
-      modal.style.display = "flex";
+      filmeSelecionadoId = id; // guarda o ID do filme
+      modal.style.display = "flex"; // abre o modal
     });
 
-    filmesContainer.prepend(filmeItem);
+    filmesContainer.prepend(filmeItem); // adiciona o card no topo
   }
 
-  // ---------------------------------
-  // 🔹 Listener em tempo real
-  // ---------------------------------
+
+  // =======================================================
+  // 🔁 ESCUTA EM TEMPO REAL (onSnapshot)
+  // =======================================================
+  // Cria uma consulta que ordena os filmes pelo campo "data" em ordem decrescente
   const filmesRef = collection(db, "filmes");
   const q = query(filmesRef, orderBy("data", "desc"));
 
+  // onSnapshot() fica "ouvindo" alterações na coleção:
+  // sempre que alguém adicionar, editar ou excluir um filme,
+  // essa função é executada automaticamente.
   onSnapshot(q, (snapshot) => {
-    filmesContainer.innerHTML = "";
+    filmesContainer.innerHTML = ""; // limpa a lista
     snapshot.forEach((docSnap) => {
       const dados = docSnap.data();
       adicionarFilmeNaTela(
@@ -171,37 +217,42 @@ document.addEventListener("DOMContentLoaded", async function () {
     });
   });
 
-  // ---------------------------------
-  // 🔹 Enviar novo filme
-  // ---------------------------------
+
+  // =======================================================
+  // ➕ ENVIO DE NOVO FILME
+  // =======================================================
   form.addEventListener("submit", async function (e) {
     e.preventDefault();
 
+    // Coleta os valores do formulário
     const nome = document.getElementById("nome-id").value;
     const filme = capitalizarPalavras(document.getElementById("filme-id").value);
     const onde = document.getElementById("onde-id").value;
     const genero = document.getElementById("genero-id").value;
 
+    // Validação simples
     if (!nome || !filme || !onde || !genero) {
       alert("Por favor, preencha todos os campos!");
       return;
     }
 
+    // Adiciona o documento ao Firestore
     await addDoc(collection(db, "filmes"), {
       nome,
       filme,
       onde,
       genero,
-      data: serverTimestamp(), // ⏰ salva como timestamp
+      data: serverTimestamp(), // 🔹 Data automática do servidor
       avaliacoes: {}
     });
 
-    form.reset();
+    form.reset(); // limpa o formulário
   });
 
-  // ---------------------------------
-  // 🔹 Enviar Avaliação (Modal)
-  // ---------------------------------
+
+  // =======================================================
+  // ⭐ ENVIO DE AVALIAÇÃO (DO MODAL)
+  // =======================================================
   modal.querySelector("#enviar-avaliacao").addEventListener("click", async () => {
     const nomeAvaliador = modal.querySelector("#avaliador-nome").value;
     const nota = parseInt(modal.querySelector("#nota-avaliacao").value);
@@ -211,24 +262,45 @@ document.addEventListener("DOMContentLoaded", async function () {
       return;
     }
 
+    // Atualiza apenas o campo da avaliação do avaliador
     const docRef = doc(db, "filmes", filmeSelecionadoId);
     await updateDoc(docRef, {
       [`avaliacoes.${nomeAvaliador}`]: nota
     });
 
+    // Fecha o modal e limpa os campos
     modal.style.display = "none";
     modal.querySelector("#avaliador-nome").value = "";
     modal.querySelector("#nota-avaliacao").value = "";
   });
 
-  // Fechar modal
+
+  // =======================================================
+  // ❌ FECHAR MODAL
+  // =======================================================
   modal.querySelector("#fechar-modal").addEventListener("click", () => {
     modal.style.display = "none";
   });
 
-  // Limpar formulário
+
+  // =======================================================
+  // 🧹 LIMPAR FORMULÁRIO
+  // =======================================================
   btnLimpar.addEventListener("click", e => {
     e.preventDefault();
     form.reset();
   });
+});
+
+// ============================
+// 🎢 Efeito de cabeçalho fixo e dinâmico
+// ============================
+window.addEventListener("scroll", () => {
+  const cabecalho = document.querySelector(".cabecalho");
+
+  if (window.scrollY > 50) {
+    cabecalho.classList.add("shrink");
+  } else {
+    cabecalho.classList.remove("shrink");
+  }
 });
