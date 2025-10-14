@@ -9,6 +9,7 @@
     gap: 1rem;
 }
 .filmes_container-item{
+    position: relative;
     background-color: rgba(214, 214, 214, 0.041);
     border: 1px solid rgba(255, 255, 255, 0.089);
     border-radius: 1rem;
@@ -50,8 +51,100 @@
 .titulo_genero-escolhido{
     font-weight: bolder;
 }
-
-.grupo_filho-1{
+.filme_card-acoes{
     display: flex;
-    justify-content: space-evenly;
+}
+
+.dados_filme{
+    background-color: rgba(243, 44, 44, 0.199);
+    width: 90%;
+    text-align: center;
+    margin: 1rem 0;
+    padding: 5px 0;
+    border-radius: 1rem;
+    border: 1px solid rgba(255, 255, 255, 0.096);
+    line-height: 25px;
+    
+
+}
+
+.btn-excluir{
+    position: absolute;
+    width: 20px;
+    height: 20px;
+    border: none;
+    right: 10px;
+    top: 10px;
+    font-weight: bolder;
+    border-radius: 50%;
+    background-color: darkred;
+    box-shadow:2px 2px rgba(0, 0, 0, 0.274);
+    cursor: pointer;
+}
+
+.modal-avaliacao {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0,0,0,0.6);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modal-conteudo {
+    background: #fff;
+    padding: 20px 30px;
+    border-radius: 12px;
+    text-align: center;
+    box-shadow: 0 0 10px rgba(0,0,0,0.3);
+    width: 70%;
+    height: 300px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+.modal-conteudo input,
+.modal-conteudo select {
+    width: 80%;
+    margin: 8px 0;
+    padding: 5px;
+}
+
+.botoes-modal {
+    display: flex;
+    justify-content: space-around;
+    margin-top: 10px;
+    gap: 1rem;
+}
+
+.avaliadores-container {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.avaliador-foto {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 2px solid #ffcc00;
+  object-fit: cover;
+  transition: transform 0.2s;
+}
+
+.avaliador-foto:hover {
+  transform: scale(1.1);
+}
+
+.sem-avaliacoes {
+  font-size: 0.85rem;
+  color: #888;
+  font-style: italic;
 }
