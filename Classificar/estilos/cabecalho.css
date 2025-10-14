@@ -11,12 +11,13 @@
 }
 .cabecalho_nav{
     display: flex;
-    justify-content: center;
     align-items: center;
-    transition: all 0.3s ease;
+    transition: all 0.5s ease;
 }
 .cabecalho_nav-list {
+    width: 100%;
     display: flex;
+    justify-content: space-evenly;
     gap: 40px;
     margin: 0;
     padding: 0;
