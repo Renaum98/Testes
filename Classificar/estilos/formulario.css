@@ -20,24 +20,11 @@ fieldset{
     border: none;
 }
 
-#enviar-id,
-#limpar-id{
-    margin: 0 auto;
-    background-color: darkred;
-    color: white;
-    border: none;
-    padding: 0rem 1rem;
-    border-radius: 1rem;
-    font-size: 1rem;
-    box-shadow:2px 2px rgba(0, 0, 0, 0.274);
-    cursor: pointer;
-}
-
 input,select {
     border-radius: 1rem;
     border: 0;
     text-align: center;
-    padding: 5px 5px;
+    padding: 5px 0px;
     box-shadow: 0 2px 2px rgba(0, 0, 0, 0.301);
     outline: none;
 }

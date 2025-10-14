@@ -23,12 +23,11 @@
     justify-content: center;
     align-items: center;
     gap: 0px 10px;
-    padding: 10px;
     text-shadow: 0 0 20px rgba(255, 0, 0, 0.651),0 0 5px yellow;
 }
 .filme_card-dados{
     font-size: 1rem;
-    padding: 1rem 0rem;
+    padding: 16px 0rem;
     display: flex;
     flex-flow: column;
     align-items: center;
@@ -50,4 +49,9 @@
 .titulo_onde-escolhido,
 .titulo_genero-escolhido{
     font-weight: bolder;
+}
+
+.grupo_filho-1{
+    display: flex;
+    justify-content: space-evenly;
 }
