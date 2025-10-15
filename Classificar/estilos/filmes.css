@@ -51,10 +51,19 @@
     border: 2px solid #ffcc006e;
     object-fit: cover;
 }
+
+.titulo_filme,
+.titulo_onde,
+.titulo_genero,
+.titulo_categoria,
+.toggle-sinopse{
+    font-weight: 100;
+}
+
 .titulo_filme-escolhido,
 .titulo_onde-escolhido,
 .titulo_genero-escolhido,
-.titulo_categoria-escolhido
+.titulo_categoria-escolhido,
 .titulo_sinopse-texto{
     font-weight: bolder;
 }

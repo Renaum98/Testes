@@ -2,10 +2,6 @@ import { db, collection, deleteDoc, doc, updateDoc, onSnapshot, query, orderBy }
 
 document.addEventListener("DOMContentLoaded", () => {
 
-  const filtroGenero = document.getElementById("filtro-genero");
-  const filtroOnde = document.getElementById("filtro-onde");
-  const filtroCategoria = document.getElementById("filtro-categoria");
-
   const filmesContainer = document.querySelector(".filmes_container");
   if (!filmesContainer) return;
 
