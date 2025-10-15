@@ -20,7 +20,6 @@ body{
     background-image: radial-gradient(circle,var(--cor_fundo-1),var(--cor_fundo-2));
     background-repeat: no-repeat;
     background-attachment:fixed;
-    font-size: 1.3rem;
 }
 .botoes{
     margin: 0 auto;

@@ -14,7 +14,6 @@
     width: 60%;
     position: relative;
     background-color: rgba(214, 214, 214, 0.041);
-    
     border-radius: 1rem;
     box-shadow: var(--sombra-caixa);
     color: white;
@@ -33,14 +32,14 @@
 }
 .filme_card-dados{
     font-size: 1rem;
-    padding: 16px 0rem;
+    padding: 8px 0rem;
     display: flex;
     flex-flow: column;
     align-items: center;
     gap: 5px;
 }
 .titulo-usuario{
-    font-size: 2rem;
+    font-size: 1.3rem;
     font-weight: bold;
 }
 .titulo-data{
@@ -55,22 +54,29 @@
 .titulo_filme-escolhido,
 .titulo_onde-escolhido,
 .titulo_genero-escolhido,
-.titulo_categoria-escolhido{
+.titulo_categoria-escolhido
+.titulo_sinopse-texto{
     font-weight: bolder;
+}
+
+.caixa_item-sinopse{
+    display: flex;
+    flex-direction: column;
 }
 .filme_card-acoes{
     display: flex;
 }
 
 .dados_filme{
-    background-color: rgba(243, 44, 44, 0.199);
+    
+    background-color: rgba(0, 0, 0, 0.26);
     width: 90%;
     text-align: center;
     margin: 1rem 0;
     padding: 5px 0;
     border-radius: 1rem;
     border: 1px solid rgba(255, 255, 255, 0.096);
-    line-height: 25px;
+    line-height: 24px;
 }
 
 .btn-excluir{
@@ -165,4 +171,34 @@
     justify-content: center;
     align-items: center;
     gap: 5px;
+}
+.toggle-sinopse{
+    padding: 0rem 1rem;
+    background-color: transparent;
+    color: rgba(255, 255, 255, 0.623);
+    border: 0;
+}
+.titulo_sinopse-texto{
+    text-align: center;
+    padding: 0 8px;
+    color: white;
+    font-weight: 100;
+    font-size: .8rem;
+}
+
+.filtros{
+    margin: 10px auto;
+    width: 80%;
+    display: flex;
+    justify-content: space-around;
+}
+.filtros select,.filtros input{
+    font-size: 10px;
+    width: fit-content;
+    text-align: center;
+    border: none;
+    outline: none;
+    background-color: rgba(139, 0, 0, 0.144);
+    color: var(--cor-texto);
+    cursor: pointer;
 }
