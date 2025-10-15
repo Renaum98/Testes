@@ -98,7 +98,7 @@ document.addEventListener("DOMContentLoaded", async function () {
   // =======================================================
   // 🎬 FUNÇÃO: EXIBIR UM FILME NA TELA
   // =======================================================
-  function adicionarFilmeNaTela(id, nome, filme, onde, genero, dataFirestore, avaliacoes = {}) {
+  function adicionarFilmeNaTela(id, nome, filme, onde, genero, categoria, dataFirestore, avaliacoes = {}) {
 
     const filmeItem = document.createElement("div");
     filmeItem.classList.add("filmes_container-item");
@@ -138,10 +138,9 @@ document.addEventListener("DOMContentLoaded", async function () {
       <div class="filme_card-dados">
         <div class="dados_filme">
           <p class="titulo_filme">Filme: <span class="titulo_filme-escolhido">${filme}</span></p>
-          <div class="grupo_filho-1">
-            <p class="titulo_onde">Onde: <span class="titulo_onde-escolhido">${onde}</span></p>
-            <p class="titulo_genero">Gênero: <span class="titulo_genero-escolhido">${genero}</span></p>
-          </div>
+          <p class="titulo_onde">Onde: <span class="titulo_onde-escolhido">${onde}</span></p>
+          <p class="titulo_genero">Gênero: <span class="titulo_genero-escolhido">${genero}</span></p>
+          <p class="titulo_genero">Categoria: <span class="titulo_categoria-escolhido">${categoria}</span></p>
           <p class="titulo-data">${dataFormatada}</p>
         </div>
 
@@ -212,6 +211,7 @@ document.addEventListener("DOMContentLoaded", async function () {
         dados.filme,
         dados.onde,
         dados.genero,
+        dados.categoria,
         dados.data,
         dados.avaliacoes || {}
       );
@@ -230,10 +230,16 @@ document.addEventListener("DOMContentLoaded", async function () {
     const filme = capitalizarPalavras(document.getElementById("filme-id").value);
     const onde = document.getElementById("onde-id").value;
     const genero = document.getElementById("genero-id").value;
+    const categoria = document.getElementById("categoria-id").value;
+    const nota = document.getElementById("nota-id").value;
 
     // Validação simples
-    if (!nome || !filme || !onde || !genero) {
+    if (!nome || !filme || !onde || !genero || !nota || !categoria) {
       alert("Por favor, preencha todos os campos!");
+      return;
+    }
+    if (nota > 5 || nota < 1){
+      alert("A nota precisa ser de 1 a 5");
       return;
     }
 
@@ -243,10 +249,13 @@ document.addEventListener("DOMContentLoaded", async function () {
       filme,
       onde,
       genero,
+      categoria,
       data: serverTimestamp(), // 🔹 Data automática do servidor
-      avaliacoes: {}
+      avaliacoes: {
+        [nome]: parseFloat(nota)
+      }
     });
-
+    alert(`${categoria} : ${filme} adicionado! por ${nome}`)
     form.reset(); // limpa o formulário
   });
 
@@ -256,15 +265,16 @@ document.addEventListener("DOMContentLoaded", async function () {
   // =======================================================
   modal.querySelector("#enviar-avaliacao").addEventListener("click", async () => {
     const nomeAvaliador = modal.querySelector("#avaliador-nome").value;
-    const nota = parseInt(modal.querySelector("#nota-avaliacao").value);
+    const nota = parseFloat(modal.querySelector("#nota-avaliacao").value);
 
-    if (!nomeAvaliador || isNaN(nota) || nota < 0 || nota > 5) {
+    if (!nomeAvaliador || isNaN(nota) || nota < 1 || nota > 5) {
       alert("Preencha seu nome e uma nota entre 0 e 5!");
       return;
     }
 
     // Atualiza apenas o campo da avaliação do avaliador
     const docRef = doc(db, "filmes", filmeSelecionadoId);
+    console.log("ID do filme selecionado:", filmeSelecionadoId);
     await updateDoc(docRef, {
       [`avaliacoes.${nomeAvaliador}`]: nota
     });

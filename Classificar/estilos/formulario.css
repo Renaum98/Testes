@@ -2,9 +2,11 @@
     padding: var(--padding-base);
 }
 #formulario{
+    min-width: 300px;
+    width: 60%;
     background-color: rgba(214, 214, 214, 0.041);
-    border: 1px solid rgba(255, 255, 255, 0.089);
     border-radius: 1rem;
+    box-shadow: var(--sombra-caixa);
     padding: 1rem 0;
     margin: 0 auto;
     width: 80%;
@@ -21,6 +23,7 @@ fieldset{
 }
 
 input,select {
+    width: 60%;
     border-radius: 1rem;
     border: 0;
     text-align: center;

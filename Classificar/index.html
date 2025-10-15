@@ -15,11 +15,11 @@
     <header class="cabecalho">
         <nav class="cabecalho_nav">
             <ul class="cabecalho_nav-list">
-                <a href="#">
+                <a href="index.html">
                     <li class="cabecalho_nav-list_item">Inicio</li>
                 </a>
 
-                <a href="#filmes">
+                <a href="filmes.html">
                     <li class="cabecalho_nav-list_item">Filmes</li>
                 </a>
                 <a href="#">
@@ -42,7 +42,7 @@
             </fieldset>
 
             <div class="formulario_campo" id="campo_filme">
-                <label for="filme">Filme</label> <br>
+                <label for="filme">Filme ou Série</label> <br>
                 <input type="text" name="filme" id="filme-id" placeholder="Escolha um filme">
             </div>
 
@@ -57,8 +57,8 @@
                     <option value="HBO Max">HBO Max</option>
                     <option value="Apple TV+">Apple TV+</option>
                     <option value="Disney+">Disney+</option>
-                    <option value="Não tem ainda ☹️">Não tem ainda ☹️</option>
                     <option value="Aluguel">Aluguel</option>
+                    <option value="Não tem ainda ☹️">Não tem ainda ☹️</option>
                 </select>
 
             </fieldset>
@@ -74,20 +74,33 @@
                     <option value="Romance">Romance</option>
                     <option value="Ficção Científica">Ficção Científica</option>
                     <option value="Documentário">Documentário</option>
+                    <option value="Animação">Animação</option>
                 </select>
             </fieldset>
+            
+            <fieldset>
+                <legend>Categoria</legend>
+                <select name="categoria" id="categoria-id">
+                    <option value="" disabled selected></option>
+                    <option value="Série">Série</option>
+                    <option value="Filme">Filme</option>
+                </select>
+            </fieldset>
+
+            <div class="formulario_campo" id="campo_nota">
+                <label for="nota">Nota</label> <br>
+                <input type="number" name="nota" id="nota-id" placeholder="Nota de 1 a 5">
+            </div>
+
             <div class="formulario_botoes">
                 <button id="enviar-id" class="botoes">Enviar</button>
                 <button id="limpar-id" class="botoes">Limpar</button>
             </div>
+
         </form>
     </section>
-    <section class="filmes" id="filmes">
-        <div class="filmes_container">
-            <!--os filmes entram aqui com o codigo js-->
-            
-        </div>
-    </section>
-    <script type="module" src="main.js"></script>
+    <script type="module" src="scripts/firebaseConfig.js"></script>
+    <script type="module" src="scripts/addFilme.js"></script>
+    <script type="module" src="scripts/estiloCabecalho.js"></script>
 </body>
 </html>
