@@ -11,6 +11,7 @@
 }
 .filmes_container-item{
     min-width: 300px;
+    max-width: 600px;
     width: 60%;
     position: relative;
     background-color: rgba(214, 214, 214, 0.041);
@@ -150,30 +151,30 @@
 }
 
 .avaliadores-container {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex-wrap: wrap;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
 }
 
 .avaliador-foto {
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  border: 2px solid #ffcc00;
-  object-fit: cover;
-  transition: transform 0.2s;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    border: 2px solid #ffcc00;
+    object-fit: cover;
+    transition: transform 0.2s;
 }
 
 .avaliador-foto:hover {
-  transform: scale(1.1);
+    transform: scale(1.1);
 }
 
 .sem-avaliacoes {
-  font-size: 0.85rem;
-  color: #888;
-  font-style: italic;
-}
+    font-size: 0.85rem;
+    color: #888;
+    font-style: italic;
+    }
 
 .titulo-media{
     display: flex;
@@ -188,7 +189,7 @@
     border: 0;
 }
 .titulo_sinopse-texto{
-    text-align: center;
+    text-align: justify;
     padding: 0 8px;
     color: white;
     font-weight: 100;
