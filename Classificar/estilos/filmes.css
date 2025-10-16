@@ -14,7 +14,7 @@
     max-width: 600px;
     width: 60%;
     position: relative;
-    background-color: rgba(214, 214, 214, 0.041);
+    background-color: var(--cor_fundo-card);
     border-radius: 1rem;
     box-shadow: var(--sombra-caixa);
     color: white;
