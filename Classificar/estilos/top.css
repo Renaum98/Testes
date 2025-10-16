@@ -39,9 +39,11 @@
 .media-id{
     padding: 8px 1rem;
     border-radius: 1rem;
+    font-weight: bolder;
 }
 
-.pos-id{ 
+.pos-id{
+    margin-left: 5px; 
     width: 20px;
     height: 20px;
     padding: 4px;
@@ -60,7 +62,7 @@
     width: 100%;
     height: 100%;
     position: absolute;
-    left: -30px;
+    left: -35px;
     bottom: 0;
     background-image: url(/imagens/icones/star_gold.png);
     background-position: center center;
@@ -78,7 +80,6 @@
     position: relative;
     background-color: silver;
     color: black;
-    border: 1px solid white;
 }
 
 .top_list-item:nth-child(2) .pos-id::after{
