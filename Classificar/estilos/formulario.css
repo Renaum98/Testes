@@ -32,3 +32,38 @@ input,select {
     box-shadow: 0 2px 2px rgba(0, 0, 0, 0.301);
     outline: none;
 }
+
+#campo_filme{
+    position: relative;
+}
+
+#lista-sugestoes {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: rgba(0, 0, 0, 0.185);
+    backdrop-filter: blur(20px);
+    border: 1px solid #ccc;
+    border-radius: 1rem;
+    color: white;
+    list-style: none;
+    padding: 0;
+    margin: 2px 0 0;
+    max-height: 200px;
+    overflow-y: auto;
+    width: 60%;
+    max-width: 300px;
+    display: none; /* escondida até ter sugestões */
+    z-index: 1000;
+}
+
+#lista-sugestoes li {
+  padding: 8px 10px;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+
+#lista-sugestoes li:hover {
+  background: #f0f0f0;
+  color: black;
+}

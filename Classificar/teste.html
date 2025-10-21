@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>Busca de Filmes TMDb</title>
+<style>
+  body { font-family: sans-serif; padding: 20px; }
+  input { width: 300px; padding: 8px; }
+  ul { list-style: none; padding: 0; margin-top: 5px; border: 1px solid #ccc; max-width: 300px; }
+  li { padding: 8px; cursor: pointer; }
+  li:hover { background: #f0f0f0; }
+</style>
+</head>
+<body>
+  <h3>Adicionar Filme</h3>
+  <input type="text" id="movieInput" placeholder="Digite o nome do filme..." autocomplete="off" />
+  <ul id="suggestions"></ul>
+
+<script>
+const apiKey = "80343411a9bb47a166866336ace56f8b";
+const input = document.getElementById("movieInput");
+const suggestions = document.getElementById("suggestions");
+
+let timeout = null;
+
+input.addEventListener("input", () => {
+  clearTimeout(timeout);
+  const query = input.value.trim();
+
+  if (query.length < 2) {
+    suggestions.innerHTML = "";
+    return;
+  }
+
+  // Faz uma pequena pausa antes de buscar (para não sobrecarregar a API)
+  timeout = setTimeout(() => {
+    fetch(`https://api.themoviedb.org/3/search/movie?query=${encodeURIComponent(query)}&api_key=${apiKey}&language=pt-BR`)
+      .then(res => res.json())
+      .then(data => {
+        suggestions.innerHTML = "";
+        data.results.slice(0, 5).forEach(movie => {
+          const li = document.createElement("li");
+          li.textContent = movie.title + (movie.release_date ? ` (${movie.release_date.substring(0, 4)})` : "");
+          li.onclick = () => {
+            input.value = movie.title;
+            suggestions.innerHTML = "";
+          };
+          suggestions.appendChild(li);
+        });
+      });
+  }, 400);
+});
+</script>
+</body>
+</html>

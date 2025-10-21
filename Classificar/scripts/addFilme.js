@@ -4,111 +4,163 @@ import { db, collection, addDoc, serverTimestamp } from "./firebaseConfig.js";
 // Função que transforma a primeira letra de cada palavra em maiúscula
 function capitalizarPalavras(texto) {
   return texto
-    .toLowerCase() // transforma todo o texto em letras minúsculas
-    .split(" ") // divide o texto em um array de palavras
-    .filter(p => p.trim() !== "") // remove elementos vazios (ex: espaços duplos)
-    .map(p => p.charAt(0).toUpperCase() + p.slice(1)) // coloca a primeira letra em maiúscula
-    .join(" "); // junta tudo de volta com espaços
+    .toLowerCase()
+    .split(" ")
+    .filter(p => p.trim() !== "")
+    .map(p => p.charAt(0).toUpperCase() + p.slice(1))
+    .join(" ");
 }
 
 // 🧠 Função assíncrona que busca a sinopse de um filme na API do TMDb
 async function buscarSinopseTMDb(filme) {
-  // Chave da API (necessária para acessar o serviço)
   const apiKey = "80343411a9bb47a166866336ace56f8b";
-  // URL base para buscar filmes pelo nome
   const baseUrl = "https://api.themoviedb.org/3/search/movie";
-  // URL base para buscar detalhes de um filme pelo ID
   const detalhesUrl = "https://api.themoviedb.org/3/movie";
 
   try {
-    // Faz a primeira requisição para procurar o filme pelo nome digitado
     const r1 = await fetch(`${baseUrl}?api_key=${apiKey}&language=pt-BR&query=${encodeURIComponent(filme)}`);
-    // Converte a resposta em JSON
     const data = await r1.json();
 
-    // Verifica se encontrou algum resultado
     if (data.results && data.results.length > 0) {
-      // Pega o primeiro resultado retornado (filme mais relevante)
       const filmeEncontrado = data.results[0];
-      const idFilme = filmeEncontrado.id; // armazena o ID do filme encontrado
+      const idFilme = filmeEncontrado.id;
 
-      // Faz nova requisição para obter detalhes do filme pelo ID
       const r2 = await fetch(`${detalhesUrl}/${idFilme}?api_key=${apiKey}&language=pt-BR`);
-      const detalhes = await r2.json(); // converte a resposta em JSON
+      const detalhes = await r2.json();
 
-      // Retorna um objeto com a sinopse do filme (ou texto padrão se não houver)
       return {
         sinopse: detalhes.overview || "Sinopse não encontrada.",
+        poster: filmeEncontrado.poster_path
+          ? `https://image.tmdb.org/t/p/w500${filmeEncontrado.poster_path}`
+          : null,
       };
     } else {
-      // Caso o filme não seja encontrado
       return { sinopse: "Sinopse não encontrada.", poster: null };
     }
   } catch (erro) {
-    // Caso ocorra algum erro de rede ou resposta inválida
     console.error("Erro ao buscar sinopse:", erro);
     return { sinopse: "Sinopse não encontrada.", poster: null };
   }
 }
 
-// Aguarda o carregamento completo do documento antes de executar o restante
+// 🧩 Função para buscar sugestões conforme o usuário digita
+async function buscarSugestoesTMDb(query) {
+  const apiKey = "80343411a9bb47a166866336ace56f8b";
+  if (!query || query.length < 2) return [];
+
+  try {
+    const resp = await fetch(
+      `https://api.themoviedb.org/3/search/movie?api_key=${apiKey}&language=pt-BR&query=${encodeURIComponent(query)}`
+    );
+    const data = await resp.json();
+    return data.results ? data.results.slice(0, 5) : [];
+  } catch (err) {
+    console.error("Erro ao buscar sugestões:", err);
+    return [];
+  }
+}
+
+// 🧠 Inicialização ao carregar a página
 document.addEventListener("DOMContentLoaded", () => {
-  // Captura o formulário e o botão de limpar pelo ID
   const form = document.getElementById("formulario");
   const btnLimpar = document.getElementById("limpar-id");
+  const inputFilme = document.getElementById("filme-id");
+  const listaSugestoes = document.getElementById("lista-sugestoes"); // usa o UL existente
 
-  // Se o formulário não existir, encerra o script
-  if (!form) return;
+  let timeout = null;
 
-  // Adiciona evento de envio ao formulário
-  form.addEventListener("submit", async (e) => {
-    e.preventDefault(); // impede o comportamento padrão de recarregar a página
+  // 🔍 Evento de digitação no campo de filme
+  inputFilme.addEventListener("input", () => {
+    clearTimeout(timeout);
+    const query = inputFilme.value.trim();
 
-    // Captura os valores digitados nos campos do formulário
-    const nome = document.getElementById("nome-id").value;
-    const filme = capitalizarPalavras(document.getElementById("filme-id").value); // formata o nome do filme
-    const onde = document.getElementById("onde-id").value;
-    const genero = document.getElementById("genero-id").value;
-    const categoria = document.getElementById("categoria-id").value;
-    const nota = document.getElementById("nota-id").value;
-
-    // Verifica se todos os campos estão preenchidos
-    if (!nome || !filme || !onde || !genero || !nota || !categoria) {
-      alert("Por favor, preencha todos os campos!");
+    if (query.length < 2) {
+      listaSugestoes.innerHTML = "";
+      listaSugestoes.style.display = "none";
       return;
     }
 
-    // Verifica se a nota está entre 1 e 5
-    if (nota > 5 || nota < 1) {
-      alert("A nota precisa ser de 1 a 5");
-      return;
-    }
+    timeout = setTimeout(async () => {
+      const sugestoes = await buscarSugestoesTMDb(query);
+      listaSugestoes.innerHTML = "";
 
-    // 🔍 Busca sinopse e poster do filme usando a API TMDb
-    const { sinopse, poster } = await buscarSinopseTMDb(filme);
+      if (sugestoes.length === 0) {
+        listaSugestoes.style.display = "none";
+        return;
+      }
 
-    // Envia os dados do formulário para o Firestore (banco de dados)
-    await addDoc(collection(db, "filmes"), {
-      nome,                // nome do usuário que adicionou
-      filme,               // nome do filme formatado
-      onde,                // onde foi assistido (ex: Netflix, cinema)
-      genero,              // gênero do filme (ex: Ação, Drama)
-      categoria,           // categoria (ex: filme, série, etc)
-      sinopse,             // sinopse obtida da API
-      data: serverTimestamp(), // data e hora do servidor Firebase
-      avaliacoes: { [nome]: parseFloat(nota) } // objeto com a nota atribuída pelo usuário
-    });
+      // Mostra as sugestões no UL já existente
+      sugestoes.forEach(filme => {
+        const li = document.createElement("li");
+        li.textContent = `${filme.title} ${filme.release_date ? `(${filme.release_date.slice(0, 4)})` : ""}`;
+        li.addEventListener("click", () => {
+          inputFilme.value = filme.title;
+          listaSugestoes.innerHTML = "";
+          listaSugestoes.style.display = "none";
+        });
+        listaSugestoes.appendChild(li);
+      });
 
-    // Exibe mensagem de sucesso para o usuário
-    alert(`${categoria}: ${filme} adicionado por ${nome}!`);
-
-    // Limpa todos os campos do formulário
-    form.reset();
+      listaSugestoes.style.display = "block";
+    }, 400);
   });
 
-  // Adiciona funcionalidade ao botão "Limpar"
+  // Fecha a lista se clicar fora
+  document.addEventListener("click", (e) => {
+    if (e.target !== inputFilme) {
+      listaSugestoes.innerHTML = "";
+      listaSugestoes.style.display = "none";
+    }
+  });
+
+  // 🚀 Envio do formulário
+  if (form) {
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+      const nome = document.getElementById("nome-id").value;
+      const filme = capitalizarPalavras(document.getElementById("filme-id").value);
+      const onde = document.getElementById("onde-id").value;
+      const genero = document.getElementById("genero-id").value;
+      const categoria = document.getElementById("categoria-id").value;
+      const nota = document.getElementById("nota-id").value;
+
+      if (!nome || !filme || !onde || !genero || !nota || !categoria) {
+        alert("Por favor, preencha todos os campos!");
+        return;
+      }
+
+      if (nota > 5 || nota < 1) {
+        alert("A nota precisa ser de 1 a 5");
+        return;
+      }
+
+      const { sinopse, poster } = await buscarSinopseTMDb(filme);
+
+      await addDoc(collection(db, "filmes"), {
+        nome,
+        filme,
+        onde,
+        genero,
+        categoria,
+        sinopse,
+        poster,
+        data: serverTimestamp(),
+        avaliacoes: { [nome]: parseFloat(nota) },
+      });
+
+      alert(`${categoria}: ${filme} adicionado por ${nome}!`);
+      form.reset();
+      listaSugestoes.innerHTML = "";
+      listaSugestoes.style.display = "none";
+    });
+  }
+
+  // 🧹 Botão limpar
   btnLimpar.addEventListener("click", (e) => {
-    e.preventDefault(); // evita comportamento padrão do botão
-    form.reset(); // limpa todos os campos do formulário
+    e.preventDefault();
+    form.reset();
+    listaSugestoes.innerHTML = "";
+    listaSugestoes.style.display = "none";
   });
 });
