@@ -7,8 +7,12 @@
 }
 .filmes_container{
     display: grid;
-    grid-template-columns: repeat(4,300px);
+    grid-template-columns: repeat(3,400px);
     gap: 0 1rem;
+
+    @media screen and (max-width: 1251px) {
+        grid-template-columns: repeat(2,400px);
+    }
     @media screen and (max-width: 768px){
         display: flex;
         flex-direction: column;
@@ -34,7 +38,8 @@
     animation-range: cover 0% cover 100%;
 
     @media screen and (max-width: 768px){
-        max-width: 300px;
+        max-width: 400px;
+        width: 350px;
     }
 }
 
@@ -222,7 +227,7 @@
 }
 .titulo_sinopse-texto{
     text-align: justify;
-    padding: 0 8px;
+    padding: 0 1rem;
     color: white;
     font-weight: 100;
     font-size: .8rem;
