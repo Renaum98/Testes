@@ -37,7 +37,7 @@
             <div class="formulario_campo" id="campo_filme">
                 <label for="filme">Filme ou Série</label> <br>
                 <input type="text" name="filme" id="filme-id" placeholder="Escolha um filme" autocomplete="off">
-                <ul id="sugestoes"></ul>
+                <ul id="lista-sugestoes"></ul>
             </div>
 
             <fieldset class="formulario_campo">
@@ -83,7 +83,7 @@
 
             <div class="formulario_campo" id="campo_nota">
                 <label for="nota">Nota</label> <br>
-                <input type="number" name="nota" id="nota-id" placeholder="Nota de 1 a 5">
+                <input type="number" name="nota" id="nota-id" placeholder="Nota de 1 a 5" inputmode="numeric" min="1" max="5">
             </div>
 
             <div class="formulario_botoes">
@@ -93,8 +93,8 @@
 
         </form>
     </section>
-    <script type="module" src="scripts/firebaseConfig.js"></script>
-    <script type="module" src="scripts/addFilme.js"></script>
-    <script type="module" src="scripts/estiloCabecalho.js"></script>
+    <script type="module" src="scripts/firebaseConfig.js" defer></script>
+    <script type="module" src="scripts/addFilme.js" defer></script>
+    <script type="module" src="scripts/estiloCabecalho.js" defer></script>
 </body>
 </html>

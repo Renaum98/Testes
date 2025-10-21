@@ -26,14 +26,14 @@
 
 .filme_card-nome{
     display: flex;
-    justify-content: center;
+    padding: 0 1rem;
     align-items: center;
     gap: 0px 10px;
     text-shadow: 0 0 20px rgba(255, 0, 0, 0.651),0 0 5px yellow;
 }
 .filme_card-dados{
     font-size: 1rem;
-    padding: 8px 0rem;
+    padding: 0rem;
     display: flex;
     flex-flow: column;
     align-items: center;
@@ -46,7 +46,7 @@
     
 }
 .titulo-usuario{
-    font-size: 1.3rem;
+    font-size: 1rem;
     font-weight: bold;
 }
 .titulo-data{
@@ -88,7 +88,7 @@
     background-color: rgba(0, 0, 0, 0.26);
     width: 90%;
     text-align: center;
-    margin: 1rem 0;
+    margin: 8px 0;
     padding: 5px 0;
     border-radius: 1rem;
     border: 1px solid rgba(255, 255, 255, 0.096);

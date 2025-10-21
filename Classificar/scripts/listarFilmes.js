@@ -66,7 +66,7 @@ document.addEventListener("DOMContentLoaded", () => {
     // Monta o HTML do card de filme
     item.innerHTML = `
       <div class="filme_card-nome">
-        <img src="imagens/perfil_${nome.toLowerCase()}.png" width="50" class="imagem_perfil" alt="${nome}">
+        <img src="imagens/perfil_${nome.toLowerCase()}.png" width="30" class="imagem_perfil" alt="${nome}">
         <p class="titulo-usuario">${nome}</p>
       </div>
 

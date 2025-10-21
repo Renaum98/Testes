@@ -16,9 +16,6 @@ document.addEventListener("DOMContentLoaded", () => {
   // Cria uma referência à coleção "filmes" no banco de dados Firebase Firestore
   const filmesRef = collection(db, "filmes");
 
-  // Lista fixa dos avaliadores obrigatórios — esses nomes devem aparecer em cada documento
-  const avaliadoresEsperados = ["Renan", "Bruna", "Fabio", "Cauane"];
-
   // --------------------------------------------------------------------------
   // 🔁 onSnapshot() cria um "listener" em tempo real
   // Ele fica "escutando" as mudanças na coleção "filmes".
@@ -27,7 +24,7 @@ document.addEventListener("DOMContentLoaded", () => {
   // --------------------------------------------------------------------------
   onSnapshot(filmesRef, (snapshot) => {
 
-    // Array vazio que irá armazenar os filmes válidos (aqueles com todas as avaliações)
+    // Array vazio que irá armazenar os filmes válidos (aqueles com avaliações)
     const filmes = [];
 
     // Percorre todos os documentos da coleção "filmes"
@@ -36,35 +33,19 @@ document.addEventListener("DOMContentLoaded", () => {
       // Extrai os dados do documento (filme)
       const data = doc.data();
 
-      // "avaliacoes" deve ser um objeto no formato:
-      // { Renan: 4, Bruna: 5, Fabio: 3, Cauane: 4 }
-      // Caso não exista, usamos um objeto vazio para evitar erro.
+      // Pega o objeto de avaliações (ex: { Renan: 4, Bruna: 5 })
       const avaliacoes = data.avaliacoes || {};
 
-      // --------------------------------------------------------------------------
-      // 🧩 Verifica se todos os avaliadores esperados já avaliaram o filme
-      // A função every() retorna TRUE somente se TODAS as condições forem verdadeiras
-      // Para cada nome da lista avaliadoresEsperados:
-      //   - Verifica se o nome existe no objeto "avaliacoes"
-      //   - E se o valor associado é um número (uma nota)
-      // --------------------------------------------------------------------------
-      const todosAvaliaram = avaliadoresEsperados.every(
-        (nome) => avaliacoes.hasOwnProperty(nome) && typeof avaliacoes[nome] === "number"
-      );
+      // Filtra apenas os valores numéricos válidos (as notas)
+      const notas = Object.values(avaliacoes).filter(n => typeof n === "number");
 
-      // Se nem todos os avaliadores deram nota, o filme é ignorado (não entra no ranking)
-      if (!todosAvaliaram) return;
+      // Se o filme ainda não tiver nenhuma nota, ignora
+      if (notas.length === 0) return;
 
-      // --------------------------------------------------------------------------
-      // 📊 Calcula a média das notas
-      // Object.values(avaliacoes) retorna um array com todas as notas, ex: [4,5,3,4]
-      // reduce() soma todas as notas
-      // Divide o total pelo número de avaliações para obter a média
-      // --------------------------------------------------------------------------
-      const notas = Object.values(avaliacoes);
+      // Calcula a média das notas
       const media = notas.reduce((a, b) => a + b, 0) / notas.length;
 
-      // Cria um objeto com os dados relevantes do filme e adiciona no array final
+      // Adiciona o filme ao array
       filmes.push({
         titulo: data.filme,
         media: media,
@@ -76,9 +57,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // --------------------------------------------------------------------------
     // 🏆 Ordena os filmes em ordem decrescente (da maior média para a menor)
-    // sort() recebe uma função de comparação que retorna:
-    //   > 0 → troca a posição dos itens
-    //   < 0 → mantém a ordem
     // --------------------------------------------------------------------------
     filmes.sort((a, b) => b.media - a.media);
 
@@ -87,46 +65,34 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // --------------------------------------------------------------------------
     // 🧱 Monta visualmente a lista de filmes no HTML
-    // Cria um elemento <ol> (lista ordenada)
     // --------------------------------------------------------------------------
     const lista = document.createElement("ol");
     lista.classList.add("top_list");
 
-    // Percorre o array top10 e cria um <li> para cada filme
     top10.forEach((filme, index) => {
-
-      // Cria um elemento <li> e adiciona a classe CSS correspondente
       const item = document.createElement("li");
       item.classList.add("top_list-item");
 
-      // Define o conteúdo HTML interno do item:
-      // - posição (index + 1)
-      // - nome do filme
-      // - média formatada com uma casa decimal
       item.innerHTML = `
         <p class="pos-id">${index + 1}</p>
         <p class="filme-id">${filme.titulo}</p>
         <p class="media-id">${filme.media.toFixed(1)}</p>
       `;
 
-      // Adiciona o item à lista
       lista.appendChild(item);
     });
 
     // --------------------------------------------------------------------------
     // 🧹 Limpa o conteúdo anterior e insere a nova lista no container
     // --------------------------------------------------------------------------
-    topContainer.innerHTML = ""; // limpa o conteúdo anterior
+    topContainer.innerHTML = "";
 
-    // Se não houver filmes válidos (ninguém foi avaliado por todos ainda)
-    // mostramos uma mensagem de aviso
     if (top10.length === 0) {
       topContainer.innerHTML = `
         <p style="text-align:center; color:#666;">
-          Nenhum filme foi avaliado por todos ainda.
+          Nenhum filme foi avaliado ainda.
         </p>`;
     } else {
-      // Caso existam filmes válidos, adicionamos a lista ao container
       topContainer.appendChild(lista);
     }
   });
