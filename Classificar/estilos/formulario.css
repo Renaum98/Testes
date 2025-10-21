@@ -29,7 +29,7 @@ input,select {
     border: 0;
     text-align: center;
     padding: 5px 5px;
-    box-shadow: 0 2px 2px rgba(0, 0, 0, 0.301);
+    box-shadow: var(--sombra-caixa);
     outline: none;
 }
 

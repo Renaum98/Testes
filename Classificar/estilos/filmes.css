@@ -23,19 +23,19 @@
     display: flex;
     flex-direction: column; 
 
-    animation: border linear both;
+    animation: transicao linear both;
     animation-timeline: view();
     animation-range: cover 0% cover 100%;
 }
 
-@keyframes border {
-    0%,90%{
-        filter: blur(5px);
+@keyframes transicao {
+    0%,100%{
+        opacity: 0;
         scale: 0.7;
     }
     45%,75%{
-        filter: blur(0px);
         scale: 1.0;
+        opacity: 1;
     }
 }
 
@@ -56,9 +56,10 @@
 }
 
 .filme-poster{
-    width: 80%;
+    width: 70%;
     border-radius: 8px;
-    
+    max-width: 300px;
+    object-fit: cover;
 }
 .titulo-usuario{
     font-size: 1rem;
@@ -99,15 +100,15 @@
 }
 
 .dados_filme{
-    overflow: hidden;
     background-color: rgba(0, 0, 0, 0.26);
     width: 90%;
+    overflow: hidden;
     text-align: center;
     margin: 8px 0;
     padding: 5px 0;
     border-radius: 1rem;
-    border: 1px solid rgba(255, 255, 255, 0.096);
     line-height: 24px;
+    box-shadow: inset 2px 2px 5px rgba(255, 255, 255, 0.123), inset -2px -2px 5px rgba(0, 0, 0, 0.336);
 }
 
 .btn-excluir{
@@ -221,7 +222,9 @@
     margin: 10px auto;
     width: 80%;
     display: flex;
-    justify-content: space-around;
+    justify-content: center;
+    align-items: center;
+    gap: 1rem;
 }
 .filtros select,.filtros input{
     font-size: 10px;
@@ -229,7 +232,7 @@
     text-align: center;
     border: none;
     outline: none;
-    background-color: rgba(139, 0, 0, 0.144);
-    color: var(--cor-texto);
+    color: black;
     cursor: pointer;
+    box-shadow: var(--sombra-caixa);
 }

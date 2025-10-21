@@ -10,7 +10,7 @@
     --cor_fundo-1:rgb(146, 0, 0);
     --cor_fundo-2:#420000;
     --cor_fundo-card:rgb(75, 0, 0);
-    --sombra-caixa: 2px 2px 2px rgba(0, 0, 0, 0.137), -2px -2px 2px rgba(255, 255, 255, 0.089);
+    --sombra-caixa: inset 2px 2px 2px rgba(0, 0, 0, 0.137),inset -2px -2px 2px rgba(255, 255, 255, 0.089);
 }
 *{
     margin: 0;
@@ -31,6 +31,10 @@ body{
     padding: 0rem 1rem;
     border-radius: 1rem;
     font-size: 1rem;
-    box-shadow:2px 2px rgba(0, 0, 0, 0.274);
+    box-shadow:var(--sombra-caixa);
     cursor: pointer;
+    &:hover{
+        transform: scale(1.1);
+        transition: .3s;
+    }
 }

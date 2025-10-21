@@ -54,7 +54,7 @@
 .top_list-item:nth-child(1) .pos-id{
     color: black;
     position: relative;
-    background-color: gold ;
+    background-color: gold;
 }
 
 .top_list-item:nth-child(1) .pos-id::after{
@@ -67,6 +67,7 @@
     background-image: url(../imagens/icones/star_gold.png);
     background-position: center center;
     background-size: cover;
+    filter: drop-shadow(0 0 6px gold) drop-shadow(0 0 10px orange);
     z-index: -1;
     animation: rotacao 5s infinite linear;
 }
@@ -92,6 +93,7 @@
     background-image: url(../imagens/icones/star_silver.png);
     background-position: center center;
     background-size: cover;
+    filter: drop-shadow(0 0 6px silver) drop-shadow(0 0 10px gray);
     z-index: -1;
     animation: rotacao 5s infinite linear;
 }
@@ -118,6 +120,7 @@
     background-image: url(../imagens/icones/star_bronze.png);
     background-position: center center;
     background-size: cover;
+    filter: drop-shadow(0 0 6px rgb(204, 123, 49)) drop-shadow(0 0 10px rgb(206, 117, 34));
     z-index: -1;
     animation: rotacao 5s infinite linear;
 }
