@@ -40,9 +40,8 @@ a{
 
 /* ============ ESTILO AO ROLAR (ENCOLHE) ============ */
 .cabecalho.shrink {
-    background-color: #0000002c;
+    background-color: #0000003d;
     backdrop-filter: blur(20px);
-    mix-blend-mode: lighten;
     border-bottom: 1px solid rgba(255, 255, 255, 0.24);
 }
 
