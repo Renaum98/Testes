@@ -229,3 +229,26 @@ document.addEventListener("DOMContentLoaded", () => {
     modal.style.display = "none";
   });
 });
+
+const caixaOnde = document.querySelectorAll(".titulo_onde-escolhido");
+caixaOnde.forEach((caixa) => {
+    switch (caixa.textContent.trim()) {
+        case "PC":
+            caixa.style.backgroundColor = "grey"
+            caixa.style.color = "white"
+            break;
+
+        case "PS5":
+            caixa.style.backgroundColor = "#005499"
+            caixa.style.color = "white"
+            break;
+
+        case "Netflix":
+          caixa.style.backgroundColor = "#107B10"
+          caixa.style.color = "white"
+          break;
+    
+        default:
+            break;
+    }
+})
