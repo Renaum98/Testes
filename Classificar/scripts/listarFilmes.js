@@ -23,7 +23,7 @@ document.addEventListener("DOMContentLoaded", () => {
       </select>
 
       <label for="nota-avaliacao">Nota (0 a 5):</label>
-      <input type="number" id="nota-avaliacao" min="0" max="5" step="1">
+      <input type="number" id="nota-avaliacao" min="0" max="5" step="1" inputmode="numeric">
 
       <div class="botoes-modal">
         <button id="enviar-avaliacao" class="botoes">Enviar</button>
