@@ -64,7 +64,7 @@
     position: absolute;
     left: -30px;
     bottom: 0;
-    background-image: url(/imagens/icones/star_gold.png);
+    background-image: url(../imagens/icones/star_gold.png);
     background-position: center center;
     background-size: cover;
     z-index: -1;
@@ -89,7 +89,7 @@
     position: absolute;
     left: -30px;
     bottom: 0;
-    background-image: url(/imagens/icones/star_silver.png);
+    background-image: url(../imagens/icones/star_silver.png);
     background-position: center center;
     background-size: cover;
     z-index: -1;
@@ -115,7 +115,7 @@
     position: absolute;
     left: -30px;
     bottom: 0;
-    background-image: url(/imagens/icones/star_bronze.png);
+    background-image: url(../imagens/icones/star_bronze.png);
     background-position: center center;
     background-size: cover;
     z-index: -1;
