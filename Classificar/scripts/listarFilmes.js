@@ -41,7 +41,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // 🧩 Função que adiciona um filme na tela (cria o card visual)
   // Recebe todos os dados vindos do Firestore
-  function adicionarFilmeNaTela(id, nome, filme, onde, genero, categoria, dataFirestore, sinopse, avaliacoes = {}) {
+  function adicionarFilmeNaTela(id, nome, filme, onde, genero, categoria, dataFirestore, sinopse, poster, avaliacoes = {}) {
     const item = document.createElement("div"); // cria o card
     item.classList.add("filmes_container-item"); // adiciona a classe CSS
     item.dataset.id = id; // armazena o ID do filme no atributo data-id (útil para exclusão/edição)
@@ -72,6 +72,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
       <div class="filme_card-dados">
         <div class="dados_filme">
+          ${poster ? `<img src="${poster}" alt="Pôster de ${filme}" class="filme-poster">` : ''}
           <p class="titulo_filme">Filme: <span class="titulo_filme-escolhido">${filme}</span></p>
           <p class="titulo_onde">Onde: <span class="titulo_onde-escolhido">${onde}</span></p>
           <p class="titulo_genero">Gênero: <span class="titulo_genero-escolhido">${genero}</span></p>
@@ -150,7 +151,8 @@ document.addEventListener("DOMContentLoaded", () => {
         d.genero,
         d.categoria,
         d.data,
-        d.sinopse,  // ✅ agora também exibe a sinopse
+        d.sinopse, // ✅ agora também exibe a sinopse
+        d.poster,  
         d.avaliacoes || {} // avaliações (ou objeto vazio se não houver)
       );
     });

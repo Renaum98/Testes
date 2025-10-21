@@ -52,9 +52,12 @@ input,select {
     max-height: 200px;
     overflow-y: auto;
     width: 60%;
-    max-width: 300px;
     display: none; /* escondida até ter sugestões */
     z-index: 1000;
+
+    ::-webkit-scrollbar{
+        width: 0;
+    }
 }
 
 #lista-sugestoes li {

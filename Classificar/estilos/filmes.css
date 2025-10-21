@@ -39,6 +39,12 @@
     align-items: center;
     gap: 5px;
 }
+
+.filme-poster{
+    width: 80%;
+    border-radius: 8px;
+    
+}
 .titulo-usuario{
     font-size: 1.3rem;
     font-weight: bold;
@@ -78,7 +84,7 @@
 }
 
 .dados_filme{
-    
+    overflow: hidden;
     background-color: rgba(0, 0, 0, 0.26);
     width: 90%;
     text-align: center;
