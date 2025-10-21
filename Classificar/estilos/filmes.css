@@ -3,16 +3,16 @@
 }
 .filmes_container{
     margin: 0 auto;
-    width: 80%;
+    width: 100%;
     display: flex;
     flex-direction: column;
     align-items: center;
     gap: .5rem;
 }
 .filmes_container-item{
+    width: 80%;
     min-width: 300px;
     max-width: 600px;
-    width: 60%;
     position: relative;
     background-color: var(--cor_fundo-card);
     border-radius: 1rem;
