@@ -102,6 +102,55 @@ document.addEventListener("DOMContentLoaded", () => {
       </div>
     `;
 
+    const caixaOnde = document.querySelectorAll(".titulo_onde-escolhido");
+    caixaOnde.forEach((caixa) => {
+        switch (caixa.textContent.trim()) {
+          case "Mubi":
+            caixa.style.backgroundColor = "#081ca9"
+            caixa.style.color = "white"
+            break;
+
+          case "Disney+":
+            caixa.style.backgroundColor = "#062f41"
+            caixa.style.color = "white"
+            break;
+
+          case "Prime":
+            caixa.style.backgroundColor = "#0d7cff"
+            caixa.style.color = "white"
+            break;
+
+          case "Netflix":
+            caixa.style.backgroundColor = "#e6111b"
+            caixa.style.color = "white"
+            break;
+
+          case "Aluguel":
+            caixa.style.backgroundColor = "Yellow"
+            caixa.style.color = "black"
+            break;
+
+          case "Mercado Play":
+            caixa.style.backgroundColor = "#fee708"
+            caixa.style.color = "black"
+            break;
+
+          case "HBO Max":
+            caixa.style.backgroundColor = "#821c9c"
+            caixa.style.color = "white"
+            break;
+          
+          case "Apple TV+":
+            caixa.style.backgroundColor = "#272727"
+            caixa.style.color = "white"
+            break;
+        
+          default:
+              break;
+        }
+    })
+
+
     // Mostrar/ocultar sinopse
     const toggleButton = item.querySelector(".toggle-sinopse");
     const sinopseTexto = item.querySelector(".titulo_sinopse-texto");
@@ -230,25 +279,3 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 });
 
-const caixaOnde = document.querySelectorAll(".titulo_onde-escolhido");
-caixaOnde.forEach((caixa) => {
-    switch (caixa.textContent.trim()) {
-        case "PC":
-            caixa.style.backgroundColor = "grey"
-            caixa.style.color = "white"
-            break;
-
-        case "PS5":
-            caixa.style.backgroundColor = "#005499"
-            caixa.style.color = "white"
-            break;
-
-        case "Netflix":
-          caixa.style.backgroundColor = "#107B10"
-          caixa.style.color = "white"
-          break;
-    
-        default:
-            break;
-    }
-})

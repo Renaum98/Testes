@@ -13,6 +13,7 @@
     @media screen and (max-width: 1251px) {
         grid-template-columns: repeat(2,400px);
     }
+
     @media screen and (max-width: 768px){
         display: flex;
         flex-direction: column;
@@ -26,6 +27,7 @@
     position: relative;
     background-color: var(--cor_fundo-card);
     border-radius: 1rem;
+    box-shadow: var(--sombra-caixa);
     /*box-shadow: var(--sombra-caixa);*/
     color: white;
     padding: 1rem 0;
@@ -104,6 +106,11 @@
 .titulo_categoria-escolhido,
 .titulo_sinopse-texto{
     font-weight: bolder;
+}
+
+.titulo_onde-escolhido{
+    padding: 0 8px;
+    border-radius: 8px;
 }
 
 .caixa_item-sinopse{
