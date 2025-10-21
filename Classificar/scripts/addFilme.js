@@ -133,7 +133,7 @@ document.addEventListener("DOMContentLoaded", () => {
         return;
       }
 
-      if (nota > 5 || nota < 1) {
+      if (nota > 5 || nota < 0) {
         alert("A nota precisa ser de 1 a 5");
         return;
       }
