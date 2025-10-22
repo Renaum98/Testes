@@ -115,7 +115,7 @@ document.addEventListener("DOMContentLoaded", () => {
             caixa.style.color = "white"
             break;
 
-          case "Prime":
+          case "Prime" || "Amazon Prime Video":
             caixa.style.backgroundColor = "#0d7cff"
             caixa.style.color = "white"
             break;

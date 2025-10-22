@@ -1,7 +1,11 @@
-// Importa do arquivo firebaseConfig.js os módulos necessários para manipular o banco Firestore
+// ==========================================
+// 🔥 Importações do Firebase
+// ==========================================
 import { db, collection, addDoc, serverTimestamp } from "./firebaseConfig.js";
 
-// Função que transforma a primeira letra de cada palavra em maiúscula
+// ==========================================
+// 🔠 Capitalizar
+// ==========================================
 function capitalizarPalavras(texto) {
   return texto
     .toLowerCase()
@@ -11,14 +15,16 @@ function capitalizarPalavras(texto) {
     .join(" ");
 }
 
-// 🔍 Busca sugestões de filmes no TMDb
-async function buscarSugestoesTMDb(query) {
+// ==========================================
+// 🎬 Buscar sugestões de filmes ou séries
+// ==========================================
+async function buscarSugestoesTMDb(query, tipo = "movie") {
   const apiKey = "80343411a9bb47a166866336ace56f8b";
   if (!query || query.length < 2) return [];
 
   try {
     const resp = await fetch(
-      `https://api.themoviedb.org/3/search/movie?api_key=${apiKey}&language=pt-BR&query=${encodeURIComponent(query)}`
+      `https://api.themoviedb.org/3/search/${tipo}?api_key=${apiKey}&language=pt-BR&query=${encodeURIComponent(query)}`
     );
     const data = await resp.json();
     return data.results ? data.results.slice(0, 5) : [];
@@ -28,46 +34,83 @@ async function buscarSugestoesTMDb(query) {
   }
 }
 
-// 🎬 Busca detalhes completos de um filme (sinopse e poster) pelo ID
-async function buscarDetalhesTMDbPorId(idFilme) {
+// ==========================================
+// 📚 Buscar detalhes (Filme ou Série)
+// ==========================================
+async function buscarDetalhesTMDbPorId(id, tipo = "movie") {
   const apiKey = "80343411a9bb47a166866336ace56f8b";
+  const baseUrl = `https://api.themoviedb.org/3/${tipo}`;
+
   try {
-    const resp = await fetch(
-      `https://api.themoviedb.org/3/movie/${idFilme}?api_key=${apiKey}&language=pt-BR`
-    );
+    const resp = await fetch(`${baseUrl}/${id}?api_key=${apiKey}&language=pt-BR`);
     const detalhes = await resp.json();
+
+    // Para séries, o campo do título é diferente
+    const titulo = tipo === "tv" ? detalhes.name : detalhes.title;
+    const sinopse = detalhes.overview || "Sinopse não encontrada.";
+    const poster = detalhes.poster_path
+      ? `https://image.tmdb.org/t/p/w342${detalhes.poster_path}`
+      : null;
+    const genero = detalhes.genres
+    ? detalhes.genres.slice(0, 2).map(g => g.name).join(", ")
+    : "Desconhecido";
+
+    // Filmes têm provedores; séries também, mesmo endpoint
+    const respWatch = await fetch(`${baseUrl}/${id}/watch/providers?api_key=${apiKey}`);
+    const providersData = await respWatch.json();
+    const ondeAssistir = 
+      providersData.results?.BR?.flatrate?.[0]?.provider_name || 
+      providersData.results?.BR?.buy?.[0]?.provider_name || 
+      providersData.results?.BR?.rent?.[0]?.provider_name || 
+      "Não disponível";
+
     return {
-      sinopse: detalhes.overview || "Sinopse não encontrada.",
-      poster: detalhes.poster_path
-        ? `https://image.tmdb.org/t/p/w342${detalhes.poster_path}`
-        : null,
-      titulo: detalhes.title || "",
+      titulo,
+      sinopse,
+      poster,
+      genero,
+      onde: ondeAssistir,
+      categoria: tipo === "tv" ? "Série" : "Filme",
     };
   } catch (erro) {
     console.error("Erro ao buscar detalhes:", erro);
-    return { sinopse: "Sinopse não encontrada.", poster: null, titulo: "" };
+    return {
+      titulo: "",
+      sinopse: "Sinopse não encontrada.",
+      poster: null,
+      genero: "Desconhecido",
+      onde: "Não disponível",
+      categoria: tipo === "tv" ? "Série" : "Filme",
+    };
   }
 }
 
+// ==========================================
 // 🧠 Inicialização
+// ==========================================
 document.addEventListener("DOMContentLoaded", () => {
   const form = document.getElementById("formulario");
   const btnLimpar = document.getElementById("limpar-id");
   const inputFilme = document.getElementById("filme-id");
   const listaSugestoes = document.getElementById("lista-sugestoes");
-
-  if (!inputFilme || !listaSugestoes) {
-    console.error("Elemento de input ou lista de sugestões não encontrado!");
-    return;
-  }
+  const selectCategoria = document.getElementById("categoria-id");
 
   let timeout = null;
-  let filmeSelecionado = null; // 🆕 guarda o filme escolhido (com ID)
+  let filmeSelecionado = null;
 
-  // 🔠 Sugestões automáticas enquanto digita
+  // ==========================================
+  // 🔍 Sugestões automáticas com base na categoria
+  // ==========================================
   inputFilme.addEventListener("input", () => {
     clearTimeout(timeout);
     const query = inputFilme.value.trim();
+    const categoria = selectCategoria.value;
+
+    if (!categoria) {
+      listaSugestoes.innerHTML = "<li>Selecione a categoria primeiro.</li>";
+      listaSugestoes.style.display = "block";
+      return;
+    }
 
     if (query.length < 2) {
       listaSugestoes.innerHTML = "";
@@ -75,36 +118,35 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
+    listaSugestoes.innerHTML = "<li>Carregando sugestões...</li>";
+    listaSugestoes.style.display = "block";
+
     timeout = setTimeout(async () => {
-      const sugestoes = await buscarSugestoesTMDb(query);
+      const tipo = categoria === "Série" ? "tv" : "movie";
+      const sugestoes = await buscarSugestoesTMDb(query, tipo);
+
       listaSugestoes.innerHTML = "";
 
       if (sugestoes.length === 0) {
-        listaSugestoes.style.display = "none";
+        listaSugestoes.innerHTML = "<li>Nenhum resultado encontrado</li>";
         return;
       }
 
-      sugestoes.forEach(filme => {
+      sugestoes.forEach(item => {
+        const nome = tipo === "tv" ? item.name : item.title;
+        const ano = (item.first_air_date || item.release_date || "").slice(0, 4);
         const li = document.createElement("li");
-        li.textContent = `${filme.title} ${
-          filme.release_date ? `(${filme.release_date.slice(0, 4)})` : ""
-        }`;
+        li.textContent = `${nome} ${ano ? `(${ano})` : ""}`;
 
-        // 🆕 Quando clica em uma sugestão, salva ID e nome
         li.addEventListener("click", () => {
-          inputFilme.value = filme.title;
-          filmeSelecionado = {
-            id: filme.id,
-            titulo: filme.title,
-          };
+          inputFilme.value = nome;
+          filmeSelecionado = { id: item.id, titulo: nome, tipo };
           listaSugestoes.innerHTML = "";
           listaSugestoes.style.display = "none";
         });
 
         listaSugestoes.appendChild(li);
       });
-
-      listaSugestoes.style.display = "block";
     }, 400);
   });
 
@@ -116,53 +158,54 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
+  // ==========================================
   // 🚀 Envio do formulário
+  // ==========================================
   if (form) {
     form.addEventListener("submit", async (e) => {
       e.preventDefault();
 
       const nome = document.getElementById("nome-id").value;
-      const onde = document.getElementById("onde-id").value;
-      const genero = document.getElementById("genero-id").value;
-      const categoria = document.getElementById("categoria-id").value;
       const nota = document.getElementById("nota-id").value;
+      const categoria = selectCategoria.value;
       const filmeTitulo = capitalizarPalavras(inputFilme.value);
 
-      if (!nome || !filmeTitulo || !onde || !genero || !nota || !categoria) {
+      if (!nome || !filmeTitulo || !nota || !categoria) {
         alert("Por favor, preencha todos os campos!");
         return;
       }
 
       if (nota > 5 || nota < 0) {
-        alert("A nota precisa ser de 1 a 5");
+        alert("A nota precisa ser de 0 a 5");
         return;
       }
 
-      // 🧠 Se o usuário clicou em uma sugestão, busca os detalhes exatos pelo ID
+      const tipo = categoria === "Série" ? "tv" : "movie";
+
+      // Busca detalhes
       let detalhes;
       if (filmeSelecionado?.id) {
-        detalhes = await buscarDetalhesTMDbPorId(filmeSelecionado.id);
+        detalhes = await buscarDetalhesTMDbPorId(filmeSelecionado.id, tipo);
       } else {
-        // fallback (usuário digitou manualmente)
-        const sugestoes = await buscarSugestoesTMDb(filmeTitulo);
-        if (sugestoes.length > 0)
-          detalhes = await buscarDetalhesTMDbPorId(sugestoes[0].id);
-        else detalhes = { sinopse: "Sinopse não encontrada.", poster: null };
+        const sugestoes = await buscarSugestoesTMDb(filmeTitulo, tipo);
+        detalhes = sugestoes.length > 0
+          ? await buscarDetalhesTMDbPorId(sugestoes[0].id, tipo)
+          : { titulo: filmeTitulo, genero: "Desconhecido", onde: "Não disponível", categoria };
       }
 
       await addDoc(collection(db, "filmes"), {
         nome,
         filme: detalhes.titulo || filmeTitulo,
-        onde,
-        genero,
-        categoria,
+        genero: detalhes.genero,
+        categoria: detalhes.categoria,
+        onde: detalhes.onde,
         sinopse: detalhes.sinopse,
         poster: detalhes.poster,
         data: serverTimestamp(),
         avaliacoes: { [nome]: parseFloat(nota) },
       });
 
-      alert(`${categoria}: ${filmeTitulo} adicionado por ${nome}!`);
+      alert(`✅ ${detalhes.titulo} (${detalhes.categoria}) adicionado por ${nome}!`);
       form.reset();
       listaSugestoes.innerHTML = "";
       listaSugestoes.style.display = "none";
@@ -170,7 +213,9 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // 🧹 Botão limpar
+  // ==========================================
+  // 🧹 Limpar
+  // ==========================================
   btnLimpar?.addEventListener("click", (e) => {
     e.preventDefault();
     form.reset();

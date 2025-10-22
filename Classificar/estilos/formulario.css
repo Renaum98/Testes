@@ -70,3 +70,8 @@ input,select {
   background: #f0f0f0;
   color: black;
 }
+
+
+.formulario_botoes button{
+    margin: 0 10px;
+}

@@ -76,6 +76,7 @@ document.addEventListener("DOMContentLoaded", () => {
       item.innerHTML = `
         <p class="pos-id">${index + 1}</p>
         <p class="filme-id">${filme.titulo}</p>
+        <p class="categoria-id">${filme.categoria}</p>
         <p class="media-id">${filme.media.toFixed(1)}</p>
       `;
 
