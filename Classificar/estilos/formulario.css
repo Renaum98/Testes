@@ -54,11 +54,11 @@ input,select {
     width: 60%;
     display: none; /* escondida até ter sugestões */
     z-index: 1000;
+}
 
-    ::-webkit-scrollbar{
+::-webkit-scrollbar{
         width: 0;
     }
-}
 
 #lista-sugestoes li {
   padding: 8px 10px;
