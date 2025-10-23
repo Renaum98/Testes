@@ -22,8 +22,7 @@
     justify-content: space-between;
     align-items: center;
     gap: 1rem;
-    cursor: pointer;
-    z-index: 10000; 
+    cursor: pointer; 
 }
 @keyframes light {
     0%,100%{

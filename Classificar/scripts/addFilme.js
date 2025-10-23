@@ -51,9 +51,7 @@ async function buscarDetalhesTMDbPorId(id, tipo = "movie") {
     const poster = detalhes.poster_path
       ? `https://image.tmdb.org/t/p/w342${detalhes.poster_path}`
       : null;
-    const genero = detalhes.genres
-    ? detalhes.genres.slice(0, 2).map(g => g.name).join(", ")
-    : "Desconhecido";
+    const genero = detalhes.genres?.[0]?.name || "Desconhecido";
 
     // Filmes têm provedores; séries também, mesmo endpoint
     const respWatch = await fetch(`${baseUrl}/${id}/watch/providers?api_key=${apiKey}`);
@@ -175,8 +173,8 @@ document.addEventListener("DOMContentLoaded", () => {
         return;
       }
 
-      if (nota > 5 || nota < 0) {
-        alert("A nota precisa ser de 0 a 5");
+      if (nota > 5 || nota < 1) {
+        alert("A nota precisa ser de 1 a 5");
         return;
       }
 

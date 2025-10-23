@@ -5,12 +5,12 @@
 @import url(estilos/top.css);
 :root{
     --padding-base: 1rem 0rem;
-    --cor-botao: rgb(19, 3, 88);
+    --cor-botao: rgb(143, 2, 2);
     --cor-texto: white;
     --cor_fundo-1:#272727;
     --cor_fundo-2:#030303;
     --cor_fundo-card:rgb(53, 53, 53);
-    --sombra-caixa: inset 2px 2px 2px rgba(0, 0, 0, 0.137),inset -2px -2px 2px rgba(255, 255, 255, 0.089);
+    --sombra-caixa: inset -2px -2px 2px rgba(0, 0, 0, 0.137),inset 2px 2px 2px rgba(255, 255, 255, 0.089), 2px 2px 2px rgba(0, 0, 0, 0.13);
 }
 *{
     margin: 0;

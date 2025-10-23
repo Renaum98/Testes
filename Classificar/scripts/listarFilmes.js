@@ -22,8 +22,8 @@ document.addEventListener("DOMContentLoaded", () => {
         <option value="Fabio">Fabio</option>
       </select>
 
-      <label for="nota-avaliacao">Nota (0 a 5):</label>
-      <input type="number" id="nota-avaliacao" min="0" max="5" step="1" inputmode="numeric">
+      <label for="nota-avaliacao">Nota (1 a 5):</label>
+      <input type="number" id="nota-avaliacao" min="1" max="5" step="1" inputmode="numeric">
 
       <div class="botoes-modal">
         <button id="enviar-avaliacao" class="botoes">Enviar</button>
@@ -87,7 +87,7 @@ document.addEventListener("DOMContentLoaded", () => {
         </div>
 
         <p class="titulo-media">
-          <img src="imagens/icones/abobora_1.svg" alt="" width="20">
+          <img src="imagens/icones/abobora_1.svg" alt="" width="20" class="icone-media">
           Média: <strong>${media}</strong>
         </p>
 
@@ -102,53 +102,21 @@ document.addEventListener("DOMContentLoaded", () => {
       </div>
     `;
 
-    const caixaOnde = document.querySelectorAll(".titulo_onde-escolhido");
-    caixaOnde.forEach((caixa) => {
-        switch (caixa.textContent.trim()) {
-          case "Mubi":
-            caixa.style.backgroundColor = "#081ca9"
-            caixa.style.color = "white"
-            break;
-
-          case "Disney+":
-            caixa.style.backgroundColor = "#062f41"
-            caixa.style.color = "white"
-            break;
-
-          case "Prime" || "Amazon Prime Video":
-            caixa.style.backgroundColor = "#0d7cff"
-            caixa.style.color = "white"
-            break;
-
-          case "Netflix":
-            caixa.style.backgroundColor = "#e6111b"
-            caixa.style.color = "white"
-            break;
-
-          case "Aluguel":
-            caixa.style.backgroundColor = "Yellow"
-            caixa.style.color = "black"
-            break;
-
-          case "Mercado Play":
-            caixa.style.backgroundColor = "#fee708"
-            caixa.style.color = "black"
-            break;
-
-          case "HBO Max":
-            caixa.style.backgroundColor = "#821c9c"
-            caixa.style.color = "white"
-            break;
-          
-          case "Apple TV+":
-            caixa.style.backgroundColor = "#272727"
-            caixa.style.color = "white"
-            break;
-        
-          default:
-              break;
-        }
-    })
+    const caixa = item.querySelector(".titulo_onde-escolhido");
+    if (caixa) {
+      switch (caixa.textContent.trim()) {
+        case "Mubi": caixa.style.backgroundColor = "#081ca9"; caixa.style.color = "white"; break;
+        case "Disney+": caixa.style.backgroundColor = "#062f41"; caixa.style.color = "white"; break;
+        case "Prime":
+        case "Amazon Prime Video": caixa.style.backgroundColor = "#0d7cff"; caixa.style.color = "white"; break;
+        case "Netflix": caixa.style.backgroundColor = "#e6111b"; caixa.style.color = "white"; break;
+        case "Aluguel": caixa.style.backgroundColor = "yellow"; caixa.style.color = "black"; break;
+        case "Mercado Play": caixa.style.backgroundColor = "#fee708"; caixa.style.color = "black"; break;
+        case "HBO Max": caixa.style.backgroundColor = "#821c9c"; caixa.style.color = "white"; break;
+        case "Apple TV+": caixa.style.backgroundColor = "#272727"; caixa.style.color = "white"; break;
+        case "Telecine Amazon Channel": caixa.style.backgroundColor = "#272727"; caixa.style.color = "white"; break;
+      }
+    }
 
 
     // Mostrar/ocultar sinopse
