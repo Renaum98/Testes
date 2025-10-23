@@ -36,6 +36,10 @@ body{
     cursor: pointer;
     &:hover{
         transform: scale(1.1);
-        transition: .3s;
+        transition: transform 0.3s;
+    }
+    &:active{
+        background-color: var(--cor-texto);
+        color: var(--cor-botao);
     }
 }
