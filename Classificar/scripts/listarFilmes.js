@@ -5,7 +5,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const filmesContainer = document.querySelector(".filmes_container");
   const filtroGenero = document.getElementById("filtro-genero");
   const filtroCategoria = document.getElementById("filtro-categoria");
-  const filtroOnde = document.getElementById("filtro-onde"); // Novo filtro
+  const filtroOnde = document.getElementById("filtro-onde");
 
   if (!filmesContainer) return;
 
