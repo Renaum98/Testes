@@ -100,7 +100,7 @@
 .titulo_genero,
 .titulo_categoria,
 .toggle-sinopse{
-    font-weight: 100;
+    font-weight: 200;
 }
 
 .titulo_filme-escolhido,
@@ -253,7 +253,7 @@
     gap: 1rem;
 }
 .filtros select,.filtros input{
-    font-size: 10px;
+    font-size: 1rem;
     width: fit-content;
     text-align: center;
     border: none;

@@ -97,7 +97,7 @@ document.addEventListener("DOMContentLoaded", () => {
       </div>
 
       <div class="filme_card-acoes">
-        <button class="btn-excluir" title="Excluir">X</button>
+        <button class="btn-excluir" title="Excluir">✖</button>
         <button class="botoes btn-assisti">Assisti</button>
       </div>
     `;
@@ -105,16 +105,21 @@ document.addEventListener("DOMContentLoaded", () => {
     const caixa = item.querySelector(".titulo_onde-escolhido");
     if (caixa) {
       switch (caixa.textContent.trim()) {
-        case "Mubi": caixa.style.backgroundColor = "#081ca9"; caixa.style.color = "white"; break;
+        case "MUBI": caixa.style.backgroundColor = "#081ca9"; caixa.style.color = "white"; break;
         case "Disney+": caixa.style.backgroundColor = "#062f41"; caixa.style.color = "white"; break;
-        case "Prime":
-        case "Amazon Prime Video": caixa.style.backgroundColor = "#0d7cff"; caixa.style.color = "white"; break;
+        case "Amazon Prime Video":
+          caixa.textContent = "Prime Video"
+          caixa.style.backgroundColor = "#0d7cff"; 
+          caixa.style.color = "white";
+          break;
         case "Netflix": caixa.style.backgroundColor = "#e6111b"; caixa.style.color = "white"; break;
         case "Aluguel": caixa.style.backgroundColor = "yellow"; caixa.style.color = "black"; break;
         case "Mercado Play": caixa.style.backgroundColor = "#fee708"; caixa.style.color = "black"; break;
         case "HBO Max": caixa.style.backgroundColor = "#821c9c"; caixa.style.color = "white"; break;
         case "Apple TV+": caixa.style.backgroundColor = "#272727"; caixa.style.color = "white"; break;
-        case "Telecine Amazon Channel": caixa.style.backgroundColor = "#272727"; caixa.style.color = "white"; break;
+        case "Telecine Amazon Channel":
+          caixa.textContent = "Telecine"
+          caixa.style.backgroundColor = "#040435"
       }
     }
 
@@ -125,6 +130,7 @@ document.addEventListener("DOMContentLoaded", () => {
     toggleButton.addEventListener("click", () => {
       const hidden = sinopseTexto.style.display === "none";
       sinopseTexto.style.display = hidden ? "block" : "none";
+      sinopseTexto.style.transition = "0.3s"
       toggleButton.textContent = hidden ? "Sinopse ▲" : "Sinopse ▼";
     });
 
