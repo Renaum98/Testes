@@ -11,6 +11,7 @@
     --cor_fundo-2:#030303;
     --cor_fundo-card:rgb(53, 53, 53);
     --sombra-caixa: inset -2px -2px 2px rgba(0, 0, 0, 0.137),inset 2px 2px 2px rgba(255, 255, 255, 0.089), 2px 2px 2px rgba(0, 0, 0, 0.13);
+    --borda-caixa: 1px solid rgba(255, 255, 255, 0.11);
     --max-width-celular: 768px;
 }
 *{

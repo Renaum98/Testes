@@ -11,6 +11,7 @@
     width: 80%;
     background-color: var(--cor_fundo-card);
     border-radius: 1rem;
+    border: var(--borda-caixa);
     box-shadow: var(--sombra-caixa);
     padding: 1rem 0;
     margin: 0 auto;
