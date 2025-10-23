@@ -26,11 +26,11 @@
 .cabecalho_nav-list_item {
     color: #fff;
     font-size: 1.2rem;
-    transition: color 0.2s ease;
+    transition: .3s;
 }
 
 .cabecalho_nav-list_item:hover{
-    color: #ffcc00;
+    transform: scale(1.1);
 }
 
 a{

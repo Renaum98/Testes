@@ -5,6 +5,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const filmesContainer = document.querySelector(".filmes_container");
   const filtroGenero = document.getElementById("filtro-genero");
   const filtroCategoria = document.getElementById("filtro-categoria");
+  const filtroOnde = document.getElementById("filtro-onde"); // Novo filtro
 
   if (!filmesContainer) return;
 
@@ -108,8 +109,8 @@ document.addEventListener("DOMContentLoaded", () => {
         case "MUBI": caixa.style.backgroundColor = "#081ca9"; caixa.style.color = "white"; break;
         case "Disney+": caixa.style.backgroundColor = "#062f41"; caixa.style.color = "white"; break;
         case "Amazon Prime Video":
-          caixa.textContent = "Prime Video"
-          caixa.style.backgroundColor = "#0d7cff"; 
+          caixa.textContent = "Prime Video";
+          caixa.style.backgroundColor = "#0d7cff";
           caixa.style.color = "white";
           break;
         case "Netflix": caixa.style.backgroundColor = "#e6111b"; caixa.style.color = "white"; break;
@@ -118,11 +119,10 @@ document.addEventListener("DOMContentLoaded", () => {
         case "HBO Max": caixa.style.backgroundColor = "#821c9c"; caixa.style.color = "white"; break;
         case "Apple TV+": caixa.style.backgroundColor = "#272727"; caixa.style.color = "white"; break;
         case "Telecine Amazon Channel":
-          caixa.textContent = "Telecine"
-          caixa.style.backgroundColor = "#040435"
+          caixa.textContent = "Telecine";
+          caixa.style.backgroundColor = "#040435";
       }
     }
-
 
     // Mostrar/ocultar sinopse
     const toggleButton = item.querySelector(".toggle-sinopse");
@@ -130,7 +130,7 @@ document.addEventListener("DOMContentLoaded", () => {
     toggleButton.addEventListener("click", () => {
       const hidden = sinopseTexto.style.display === "none";
       sinopseTexto.style.display = hidden ? "block" : "none";
-      sinopseTexto.style.transition = "0.3s"
+      sinopseTexto.style.transition = "0.3s";
       toggleButton.textContent = hidden ? "Sinopse ▲" : "Sinopse ▼";
     });
 
@@ -156,6 +156,7 @@ document.addEventListener("DOMContentLoaded", () => {
     todosFilmes = [];
     const generosSet = new Set();
     const categoriasSet = new Set();
+    const ondeSet = new Set();
 
     snap.forEach(docSnap => {
       const d = docSnap.data();
@@ -166,16 +167,18 @@ document.addEventListener("DOMContentLoaded", () => {
 
       if (d.genero) generosSet.add(d.genero);
       if (d.categoria) categoriasSet.add(d.categoria);
+      if (d.onde) ondeSet.add(d.onde);
     });
 
-    preencherFiltros([...generosSet], [...categoriasSet]);
+    preencherFiltros([...generosSet], [...categoriasSet], [...ondeSet]);
     atualizarLista();
   });
 
-  // 🧠 Função que preenche dinamicamente os selects de filtro
-  function preencherFiltros(generos, categorias) {
+  // 🧠 Preenche dinamicamente os selects de filtro
+  function preencherFiltros(generos, categorias, ondes) {
     filtroGenero.innerHTML = `<option value="">Todos os Gêneros</option>`;
     filtroCategoria.innerHTML = `<option value="">Todas as Categorias</option>`;
+    filtroOnde.innerHTML = `<option value="">Todas as Plataformas</option>`;
 
     generos.sort().forEach(g => {
       const option = document.createElement("option");
@@ -190,6 +193,13 @@ document.addEventListener("DOMContentLoaded", () => {
       option.textContent = c;
       filtroCategoria.appendChild(option);
     });
+
+    ondes.sort().forEach(o => {
+      const option = document.createElement("option");
+      option.value = o;
+      option.textContent = o;
+      filtroOnde.appendChild(option);
+    });
   }
 
   // 📋 Atualiza lista com base nos filtros
@@ -198,11 +208,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const generoSelecionado = filtroGenero.value;
     const categoriaSelecionada = filtroCategoria.value;
+    const ondeSelecionado = filtroOnde.value;
 
     const filtrados = todosFilmes.filter(f => {
       const generoOK = !generoSelecionado || f.genero === generoSelecionado;
       const categoriaOK = !categoriaSelecionada || f.categoria === categoriaSelecionada;
-      return generoOK && categoriaOK;
+      const ondeOK = !ondeSelecionado || f.onde === ondeSelecionado;
+      return generoOK && categoriaOK && ondeOK;
     });
 
     if (filtrados.length === 0) {
@@ -229,6 +241,7 @@ document.addEventListener("DOMContentLoaded", () => {
   // Eventos dos selects
   filtroGenero.addEventListener("change", atualizarLista);
   filtroCategoria.addEventListener("change", atualizarLista);
+  filtroOnde.addEventListener("change", atualizarLista);
 
   // Enviar avaliação
   modal.querySelector("#enviar-avaliacao").addEventListener("click", async () => {
@@ -252,4 +265,3 @@ document.addEventListener("DOMContentLoaded", () => {
     modal.style.display = "none";
   });
 });
-
