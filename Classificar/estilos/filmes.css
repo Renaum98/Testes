@@ -138,8 +138,8 @@
 
 .btn-excluir{
     position: absolute;
-    width: 30px;
-    height: 30px;
+    width: 25px;
+    height: 25px;
     border: none;
     right: 10px;
     top: 10px;
@@ -248,7 +248,7 @@
 }
 
 .filtros{
-    margin: 10px auto;
+    margin: 1rem auto;
     width: 80%;
     display: flex;
     justify-content: center;
@@ -257,7 +257,7 @@
     gap: 1rem;
 }
 .filtros select,.filtros input{
-    font-size: 0.8rem;
+    font-size: .8rem;
     width: fit-content;
     text-align: center;
     border: none;
@@ -265,6 +265,18 @@
     color: black;
     cursor: pointer;
     box-shadow: var(--sombra-caixa);
+
+    @media screen and (max-width:768px){
+        font-size: .5rem;
+    }
+}
+
+#filtro-buscar{
+    background-color: white;
+    background-image: url(/imagens/icones/icone_lupa.svg);
+    background-repeat: no-repeat;
+    background-position: 10px center;
+    background-size: 18px;
 }
 
 .icone-media{
@@ -272,6 +284,7 @@
     animation: rodar linear both;
     animation-timeline: view();
 }
+
 @keyframes rodar {
     from{
         rotate: 0deg;

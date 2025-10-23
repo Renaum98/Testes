@@ -6,6 +6,8 @@ document.addEventListener("DOMContentLoaded", () => {
   const filtroGenero = document.getElementById("filtro-genero");
   const filtroCategoria = document.getElementById("filtro-categoria");
   const filtroOnde = document.getElementById("filtro-onde");
+  const campoBusca = document.getElementById("filtro-buscar");
+
 
   if (!filmesContainer) return;
 
@@ -39,6 +41,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // 🧩 Função que cria o card de cada filme
   function adicionarFilmeNaTela(id, nome, filme, onde, genero, categoria, dataFirestore, sinopse, poster, avaliacoes = {}) {
+    // Evita duplicar o card se ele já existir
+    if (document.querySelector(`.filmes_container-item[data-id="${id}"]`)) return;
+
     const item = document.createElement("div");
     item.classList.add("filmes_container-item");
     item.dataset.id = id;
@@ -98,7 +103,7 @@ document.addEventListener("DOMContentLoaded", () => {
       </div>
 
       <div class="filme_card-acoes">
-        <button class="btn-excluir" title="Excluir">✖</button>
+        <button class="btn-excluir" title="Excluir">❌</button>
         <button class="botoes btn-assisti">Assisti</button>
       </div>
     `;
@@ -148,30 +153,69 @@ document.addEventListener("DOMContentLoaded", () => {
     filmesContainer.appendChild(item);
   }
 
-  // 🔥 Firebase: escuta mudanças em tempo real
+  // 🔥 Firebase: escuta mudanças em tempo real (melhorado com docChanges)
   const filmesRef = collection(db, "filmes");
   const q = query(filmesRef, orderBy("data", "desc"));
 
-  onSnapshot(q, (snap) => {
-    todosFilmes = [];
+  onSnapshot(q, (snapshot) => {
+    snapshot.docChanges().forEach(change => {
+      const docSnap = change.doc;
+      const d = docSnap.data();
+
+      if (change.type === "added") {
+        todosFilmes.push({ id: docSnap.id, ...d });
+        adicionarFilmeNaTela(
+          docSnap.id,
+          d.nome,
+          d.filme,
+          d.onde,
+          d.genero,
+          d.categoria,
+          d.data,
+          d.sinopse,
+          d.poster,
+          d.avaliacoes || {}
+        );
+      }
+
+      if (change.type === "modified") {
+        const index = todosFilmes.findIndex(f => f.id === docSnap.id);
+        if (index !== -1) todosFilmes[index] = { id: docSnap.id, ...d };
+        const card = filmesContainer.querySelector(`.filmes_container-item[data-id="${docSnap.id}"]`);
+        if (card) card.remove();
+        adicionarFilmeNaTela(
+          docSnap.id,
+          d.nome,
+          d.filme,
+          d.onde,
+          d.genero,
+          d.categoria,
+          d.data,
+          d.sinopse,
+          d.poster,
+          d.avaliacoes || {}
+        );
+      }
+
+      if (change.type === "removed") {
+        todosFilmes = todosFilmes.filter(f => f.id !== docSnap.id);
+        const card = filmesContainer.querySelector(`.filmes_container-item[data-id="${docSnap.id}"]`);
+        if (card) card.remove();
+      }
+    });
+
+    // Atualiza filtros dinamicamente com base nos filmes atuais
     const generosSet = new Set();
     const categoriasSet = new Set();
     const ondeSet = new Set();
 
-    snap.forEach(docSnap => {
-      const d = docSnap.data();
-      todosFilmes.push({
-        id: docSnap.id,
-        ...d
-      });
-
-      if (d.genero) generosSet.add(d.genero);
-      if (d.categoria) categoriasSet.add(d.categoria);
-      if (d.onde) ondeSet.add(d.onde);
+    todosFilmes.forEach(f => {
+      if (f.genero) generosSet.add(f.genero);
+      if (f.categoria) categoriasSet.add(f.categoria);
+      if (f.onde) ondeSet.add(f.onde);
     });
 
     preencherFiltros([...generosSet], [...categoriasSet], [...ondeSet]);
-    atualizarLista();
   });
 
   // 🧠 Preenche dinamicamente os selects de filtro
@@ -209,12 +253,18 @@ document.addEventListener("DOMContentLoaded", () => {
     const generoSelecionado = filtroGenero.value;
     const categoriaSelecionada = filtroCategoria.value;
     const ondeSelecionado = filtroOnde.value;
+    const termoBusca = campoBusca.value.trim().toLowerCase();
 
     const filtrados = todosFilmes.filter(f => {
       const generoOK = !generoSelecionado || f.genero === generoSelecionado;
       const categoriaOK = !categoriaSelecionada || f.categoria === categoriaSelecionada;
       const ondeOK = !ondeSelecionado || f.onde === ondeSelecionado;
-      return generoOK && categoriaOK && ondeOK;
+      
+      const buscaOK = !termoBusca || 
+      f.filme?.toLowerCase().includes(termoBusca) || 
+      f.nome?.toLowerCase().includes(termoBusca);
+
+      return generoOK && categoriaOK && ondeOK && buscaOK;
     });
 
     if (filtrados.length === 0) {
@@ -242,6 +292,7 @@ document.addEventListener("DOMContentLoaded", () => {
   filtroGenero.addEventListener("change", atualizarLista);
   filtroCategoria.addEventListener("change", atualizarLista);
   filtroOnde.addEventListener("change", atualizarLista);
+  campoBusca.addEventListener("input", atualizarLista);
 
   // Enviar avaliação
   modal.querySelector("#enviar-avaliacao").addEventListener("click", async () => {
