@@ -95,19 +95,19 @@ perfilVideo.style.transition = 'filter 0.8s ease, transform 0.8s ease';
 nomeSelect.addEventListener('change', function(){
   // sai pela direita com blur
   
-  perfilVideo.style.transform = 'translateX(60%)';
+  perfilVideo.style.transform = 'translateX(100%)';
   //perfilVideo.style.filter = 'blur(10px)';
 
   setTimeout(() => {
     // troca o vídeo
-    perfilVideo.src = `imagens/perfil_video-${nomeSelect.value}.mp4`;
-    perfilVideo.load();
-    perfilVideo.playbackRate = 1.2;
-    perfilVideo.play();
+    perfilVideo.src = `imagens/perfil_${nomeSelect.value}.png`;
+    //perfilVideo.load();
+    //perfilVideo.playbackRate = 1.2;
+    //perfilVideo.play();
 
     // posiciona fora da tela à esquerda (sem animação)
     perfilVideo.style.transition = 'none';
-    perfilVideo.style.transform = 'translateX(-60%)';
+    perfilVideo.style.transform = 'translateX(-100%)';
 
     // força reflow (reinicia o CSS)
     void perfilVideo.offsetWidth;
