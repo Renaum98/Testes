@@ -84,6 +84,45 @@ async function buscarDetalhesTMDbPorId(id, tipo = "movie") {
 }
 
 // ==========================================
+// 🔍 Mudança de perfil sempre que mudar de nome
+// ==========================================
+const nomeSelect = document.getElementById("nome-id");
+const perfilVideo = document.getElementById('perfil_video');
+
+// define a transição inicial
+perfilVideo.style.transition = 'filter 0.8s ease, transform 0.8s ease';
+
+nomeSelect.addEventListener('change', function(){
+  // sai pela direita com blur
+  
+  perfilVideo.style.transform = 'translateX(100%)';
+  perfilVideo.style.filter = 'blur(10px)';
+
+  setTimeout(() => {
+    // troca o vídeo
+    perfilVideo.src = `imagens/perfil_video-${nomeSelect.value}.mp4`;
+    perfilVideo.load();
+    perfilVideo.playbackRate = 1.2;
+    perfilVideo.play();
+
+    // posiciona fora da tela à esquerda (sem animação)
+    perfilVideo.style.transition = 'none';
+    perfilVideo.style.transform = 'translateX(-100%)';
+
+    // força reflow (reinicia o CSS)
+    void perfilVideo.offsetWidth;
+
+    // agora entra suavemente e tira o blur
+    perfilVideo.style.transition = 'filter 0.8s ease, transform 0.8s ease';
+    perfilVideo.style.filter = 'blur(0px)';
+    perfilVideo.style.transform = 'translateX(0)';
+  }, 600);
+});
+
+
+
+
+// ==========================================
 // 🧠 Inicialização
 // ==========================================
 document.addEventListener("DOMContentLoaded", () => {
@@ -95,6 +134,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
   let timeout = null;
   let filmeSelecionado = null;
+
+
+  // ==========================================
+  // 🔍 Mudança de perfil sempre que mudar de nome
+  // ==========================================
+
 
   // ==========================================
   // 🔍 Sugestões automáticas com base na categoria
