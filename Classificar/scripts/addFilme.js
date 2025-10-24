@@ -101,7 +101,7 @@ nomeSelect.addEventListener('change', function(){
   setTimeout(() => {
     // troca o vídeo
     try {
-      perfilVideo.src = `imagens/perfil-${nomeSelect.value.toLowerCase()}.gif`;
+      perfilVideo.src =  `imagens/perfil-${nomeSelect.value.toLowerCase()}.gif`;
     } catch (error) {
       alert("Não foi possivel carregar perfil",error);
     }
