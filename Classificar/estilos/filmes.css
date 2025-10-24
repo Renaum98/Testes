@@ -259,7 +259,7 @@
     gap: 1rem;
 }
 .filtros select,.filtros input{
-    font-size: .8rem;
+    font-size: 1rem;
     width: fit-content;
     text-align: center;
     border: none;
@@ -269,7 +269,7 @@
     box-shadow: var(--sombra-caixa);
 
     @media screen and (max-width:768px){
-        font-size: .5rem;
+        font-size: .8rem;
     }
 }
 

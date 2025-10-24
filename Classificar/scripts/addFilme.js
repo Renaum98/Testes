@@ -100,7 +100,12 @@ nomeSelect.addEventListener('change', function(){
 
   setTimeout(() => {
     // troca o vídeo
-    perfilVideo.src = `../imagens/perfil_${nomeSelect.value}.png`;
+    try {
+      perfilVideo.src = `imagens/perfil_${nomeSelect.value.toLowerCase()}.png`
+    } catch (error) {
+      alert("Não foi possivel carregar perfil",error)
+    }
+    ;
     //perfilVideo.load();
     //perfilVideo.playbackRate = 1.2;
     //perfilVideo.play();
