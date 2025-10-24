@@ -101,13 +101,10 @@ nomeSelect.addEventListener('change', function(){
   setTimeout(() => {
     // troca o vídeo
     try {
-      perfilVideo.src = `imagens/perfil_video-${nomeSelect.value.toLowerCase()}.mp4`;
+      perfilVideo.src = `imagens/perfil-${nomeSelect.value.toLowerCase()}.gif`;
     } catch (error) {
       alert("Não foi possivel carregar perfil",error);
     }
-    perfilVideo.load()
-    perfilVideo.playbackRate = 1.2;
-    perfilVideo.play();
 
     // posiciona fora da tela à esquerda (sem animação)
     perfilVideo.style.transition = 'none';
