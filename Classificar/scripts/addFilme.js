@@ -84,43 +84,61 @@ async function buscarDetalhesTMDbPorId(id, tipo = "movie") {
 }
 
 // ==========================================
-// 🔍 Mudança de perfil sempre que mudar de nome
+// 🔍 Troca de perfil ao mudar de nome (versão otimizada)
 // ==========================================
+
+// Elementos
 const nomeSelect = document.getElementById("nome-id");
-const perfilVideo = document.getElementById('perfil_video');
+const perfilImg = document.getElementById("perfil_video");
 
-// define a transição inicial
-perfilVideo.style.transition = 'filter 0.8s ease, transform 0.8s ease';
+// Configuração inicial
+perfilImg.style.transition = "filter 0.8s ease, transform 0.8s ease";
 
-nomeSelect.addEventListener('change', function(){
-  // sai pela direita com blur
-  
-  perfilVideo.style.transform = 'translateX(100%)';
-  perfilVideo.style.filter = 'blur(10px)';
+// Função auxiliar: aplica transição
+function aplicarTransicao(transform, blur, transition = true) {
+  perfilImg.style.transition = transition
+    ? "filter 0.8s ease, transform 0.8s ease"
+    : "none";
+  perfilImg.style.transform = transform;
+  perfilImg.style.filter = `blur(${blur}px)`;
+}
 
-  setTimeout(() => {
-    // troca o vídeo
-    try {
-      perfilVideo.src =  `imagens/perfil-${nomeSelect.value.toLowerCase()}.gif`;
-    } catch (error) {
-      alert("Não foi possivel carregar perfil",error);
-    }
+// Função principal: troca de perfil
+nomeSelect.addEventListener("change", async () => {
+  // Sai pela direita com blur
+  aplicarTransicao("translateX(100%)", 10);
 
-    // posiciona fora da tela à esquerda (sem animação)
-    perfilVideo.style.transition = 'none';
-    perfilVideo.style.transform = 'translateX(-100%)';
+  // Aguarda a saída (usando Promise ao invés de setTimeout fixo)
+  await new Promise((resolve) => setTimeout(resolve, 600));
 
-    // força reflow (reinicia o CSS)
-    void perfilVideo.offsetWidth;
+  // Precarrega a nova imagem antes de trocar
+  const nome = nomeSelect.value.toLowerCase();
+  const novoSrc = `imagens/perfil-${nome}.gif`;
+  const novaImg = new Image();
 
-    // agora entra suavemente e tira o blur
-    perfilVideo.style.transition = 'filter 0.8s ease, transform 0.8s ease';
-    perfilVideo.style.filter = 'blur(0px)';
-    perfilVideo.style.transform = 'translateX(0)';
-  }, 600);
+  novaImg.onload = () => {
+    // Troca a imagem
+    perfilImg.src = novoSrc;
+
+    // Posiciona fora da tela à esquerda (sem animação)
+    aplicarTransicao("translateX(-100%)", 10, false);
+
+    // Força reflow (reinicia a animação)
+    perfilImg.offsetWidth;
+
+    // Entra suavemente
+    aplicarTransicao("translateX(0)", 0);
+  };
+
+  novaImg.onerror = () => {
+    console.warn(`❌ Erro ao carregar imagem: ${novoSrc}`);
+    perfilImg.style.filter = "blur(0)";
+    perfilImg.style.transform = "translateX(0)";
+  };
+
+  // Inicia o preload
+  novaImg.src = novoSrc;
 });
-
-
 
 
 // ==========================================
