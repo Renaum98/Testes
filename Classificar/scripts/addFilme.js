@@ -96,19 +96,18 @@ nomeSelect.addEventListener('change', function(){
   // sai pela direita com blur
   
   perfilVideo.style.transform = 'translateX(100%)';
-  //perfilVideo.style.filter = 'blur(10px)';
+  perfilVideo.style.filter = 'blur(10px)';
 
   setTimeout(() => {
     // troca o vídeo
     try {
-      perfilVideo.src = `imagens/perfil_${nomeSelect.value.toLowerCase()}.png`
+      perfilVideo.src = `imagens/perfil_video-${nomeSelect.value.toLowerCase()}.mp4`;
     } catch (error) {
-      alert("Não foi possivel carregar perfil",error)
+      alert("Não foi possivel carregar perfil",error);
     }
-    ;
-    //perfilVideo.load();
-    //perfilVideo.playbackRate = 1.2;
-    //perfilVideo.play();
+    perfilVideo.load()
+    perfilVideo.playbackRate = 1.2;
+    perfilVideo.play();
 
     // posiciona fora da tela à esquerda (sem animação)
     perfilVideo.style.transition = 'none';
@@ -119,7 +118,7 @@ nomeSelect.addEventListener('change', function(){
 
     // agora entra suavemente e tira o blur
     perfilVideo.style.transition = 'filter 0.8s ease, transform 0.8s ease';
-    //perfilVideo.style.filter = 'blur(0px)';
+    perfilVideo.style.filter = 'blur(0px)';
     perfilVideo.style.transform = 'translateX(0)';
   }, 600);
 });
