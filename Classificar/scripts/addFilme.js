@@ -95,8 +95,8 @@ perfilVideo.style.transition = 'filter 0.8s ease, transform 0.8s ease';
 nomeSelect.addEventListener('change', function(){
   // sai pela direita com blur
   
-  perfilVideo.style.transform = 'translateX(100%)';
-  perfilVideo.style.filter = 'blur(10px)';
+  perfilVideo.style.transform = 'translateX(60%)';
+  //perfilVideo.style.filter = 'blur(10px)';
 
   setTimeout(() => {
     // troca o vídeo
@@ -107,14 +107,14 @@ nomeSelect.addEventListener('change', function(){
 
     // posiciona fora da tela à esquerda (sem animação)
     perfilVideo.style.transition = 'none';
-    perfilVideo.style.transform = 'translateX(-100%)';
+    perfilVideo.style.transform = 'translateX(-60%)';
 
     // força reflow (reinicia o CSS)
     void perfilVideo.offsetWidth;
 
     // agora entra suavemente e tira o blur
     perfilVideo.style.transition = 'filter 0.8s ease, transform 0.8s ease';
-    perfilVideo.style.filter = 'blur(0px)';
+    //perfilVideo.style.filter = 'blur(0px)';
     perfilVideo.style.transform = 'translateX(0)';
   }, 600);
 });
