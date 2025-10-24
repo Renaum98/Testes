@@ -100,7 +100,7 @@ nomeSelect.addEventListener('change', function(){
 
   setTimeout(() => {
     // troca o vídeo
-    perfilVideo.src = `imagens/perfil_${nomeSelect.value}.png`;
+    perfilVideo.src = `./imagens/perfil_${nomeSelect.value}.png`;
     //perfilVideo.load();
     //perfilVideo.playbackRate = 1.2;
     //perfilVideo.play();
