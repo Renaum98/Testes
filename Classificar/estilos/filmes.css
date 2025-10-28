@@ -267,7 +267,7 @@
     border: none;
     outline: none;
     cursor: pointer;
-    border-radius: 50%;
+    border-radius: 50px;
     position: relative;
     z-index: 0;
 
@@ -280,7 +280,7 @@
         top: 0;
         left: 0;
         background-color: #272727;
-        border-radius: 50%;
+        border-radius: 50px;
     }
 
     &::before{
@@ -302,7 +302,7 @@
         filter: blur(5px);
         animation: glowing 30s linear infinite;
         transition: opacity .3s ease-in-out;
-        border-radius: 50%;
+        border-radius: 50px;
     }
     &:hover{
         transform: rotate(10deg);
