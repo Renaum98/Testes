@@ -1,0 +1,47 @@
+/*filmes.css*/
+@keyframes transicao {
+    0%,100%{
+        opacity: 0;
+        scale: 0.7;
+    }
+    45%,75%{
+        scale: 1.0;
+        opacity: 1;
+    }
+}
+
+@keyframes glowing{
+    0%,100%{background-position: 0 0 ;}
+    50%{background-position: 400% 0;}
+}
+
+@keyframes surgir {
+    from {
+        transform: scale(0) rotate(0deg);
+        opacity: 0;
+    }
+    to {
+        transform: scale(1) rotate(360deg);
+        opacity: 1;
+    }
+}
+
+@keyframes rodar {
+    from{
+        rotate: 0deg;
+    }
+    to{
+        rotate: 360deg;
+    }
+}
+
+/*top.css*/
+
+@keyframes rotacao{
+    from{
+        rotate: 0;
+    }
+    to{
+        rotate: 360deg;
+    }
+}

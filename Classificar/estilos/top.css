@@ -144,12 +144,3 @@
     box-shadow: inset 0 0 5px rgb(204, 123, 49);
     border-radius: 1rem;
 }
-
-@keyframes rotacao{
-    from{
-        rotate: 0;
-    }
-    to{
-        rotate: 360deg;
-    }
-}

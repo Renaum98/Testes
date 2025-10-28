@@ -7,7 +7,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const filtroCategoria = document.getElementById("filtro-categoria");
   const filtroOnde = document.getElementById("filtro-onde");
   const campoBusca = document.getElementById("filtro-buscar");
-
+  const botaoSortear = document.getElementById("filtro-sortear");
 
   if (!filmesContainer) return;
 
@@ -35,6 +35,17 @@ document.addEventListener("DOMContentLoaded", () => {
     </div>
   `;
   document.body.appendChild(modal);
+
+  // Cria o modal de sorteio
+  const modalSorteio = document.createElement("div");
+  modalSorteio.classList.add("modal-sorteio");
+  modalSorteio.innerHTML = `
+    <div class="modal-conteudo-sorteio">
+      <div id="resultado-sorteio"></div>
+      <button id="fechar-modal-sorteio" class="botoes">Fechar</button>
+    </div>
+  `;
+  document.body.appendChild(modalSorteio);
 
   let filmeSelecionadoId = null;
   let todosFilmes = []; // guarda todos os filmes carregados do Firestore
@@ -288,11 +299,78 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
+  // 🎲 Função para sortear um filme
+  function sortearFilme() {
+    if (todosFilmes.length === 0) {
+      alert("Nenhum filme disponível para sortear!");
+      return;
+    }
+
+    // Filtra os filmes visíveis (aplicando os filtros atuais)
+    const filmesFiltrados = todosFilmes.filter(filme => {
+      const generoSelecionado = filtroGenero.value;
+      const categoriaSelecionada = filtroCategoria.value;
+      const ondeSelecionado = filtroOnde.value;
+      const termoBusca = campoBusca.value.trim().toLowerCase();
+
+      const generoOK = !generoSelecionado || filme.genero === generoSelecionado;
+      const categoriaOK = !categoriaSelecionada || filme.categoria === categoriaSelecionada;
+      const ondeOK = !ondeSelecionado || filme.onde === ondeSelecionado;
+      
+      const buscaOK = !termoBusca || 
+          filme.filme?.toLowerCase().includes(termoBusca) || 
+          filme.nome?.toLowerCase().includes(termoBusca);
+
+      return generoOK && categoriaOK && ondeOK && buscaOK;
+    });
+
+    if (filmesFiltrados.length === 0) {
+      alert("Nenhum filme encontrado com os filtros atuais!");
+      return;
+    }
+
+    // Sorteia um filme aleatório
+    const indiceSorteado = Math.floor(Math.random() * filmesFiltrados.length);
+    const filmeSorteado = filmesFiltrados[indiceSorteado];
+
+    // Mostra o resultado no modal e destaca o filme
+    mostrarResultadoSorteio(filmeSorteado);
+    destacarFilmeSorteado(filmeSorteado.id);
+  }
+
+  // 🎯 Função para mostrar o resultado do sorteio no modal
+  function mostrarResultadoSorteio(filme) {
+    const resultadoDiv = document.getElementById("resultado-sorteio");
+    
+    // Calcula a média das avaliações
+    const notas = Object.values(filme.avaliacoes || {});
+    const media = notas.length ? (notas.reduce((a, b) => a + b, 0) / notas.length).toFixed(1) : "Sem avaliações";
+    
+    resultadoDiv.innerHTML = `
+      <div class="filme-sorteado-info">
+        <h3>${filme.filme}</h3>
+        ${filme.poster ? `<img src="${filme.poster}" alt="Pôster de ${filme.filme}" class="poster-sorteio">` : ''}
+        <div class="info-sorteio">
+          <p><strong>🎬 Indicado por:</strong> ${filme.nome}</p>
+          <p><strong>📺 Plataforma:</strong> ${filme.onde}</p>
+          <p><strong>🎭 Gênero:</strong> ${filme.genero}</p>
+          <p><strong>📊 Categoria:</strong> ${filme.categoria || "-"}</p>
+        </div>
+      </div>
+    `;
+    
+    modalSorteio.style.display = "flex";
+  }
+
+
   // Eventos dos selects
   filtroGenero.addEventListener("change", atualizarLista);
   filtroCategoria.addEventListener("change", atualizarLista);
   filtroOnde.addEventListener("change", atualizarLista);
   campoBusca.addEventListener("input", atualizarLista);
+
+  // Event listener para o botão de sortear
+  botaoSortear.addEventListener("click", sortearFilme);
 
   // Enviar avaliação
   modal.querySelector("#enviar-avaliacao").addEventListener("click", async () => {
@@ -311,8 +389,23 @@ document.addEventListener("DOMContentLoaded", () => {
     modal.style.display = "none";
   });
 
-  // Fechar modal
+  // Fechar modal de avaliação
   modal.querySelector("#fechar-modal").addEventListener("click", () => {
     modal.style.display = "none";
+  });
+
+  // Fechar modal de sorteio
+  document.getElementById("fechar-modal-sorteio").addEventListener("click", () => {
+    modalSorteio.style.display = "none";
+  });
+
+  // Fechar modais ao clicar fora
+  window.addEventListener("click", (e) => {
+    if (e.target === modal) {
+      modal.style.display = "none";
+    }
+    if (e.target === modalSorteio) {
+      modalSorteio.style.display = "none";
+    }
   });
 });

@@ -3,6 +3,7 @@
 @import url(estilos/formulario.css);
 @import url(estilos/filmes.css);
 @import url(estilos/top.css);
+@import url(estilos/animacoes.css);
 :root{
     --padding-base: 1rem 0rem;
     --cor-botao: rgb(143, 2, 2);
