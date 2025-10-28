@@ -302,7 +302,7 @@
         z-index: -1;
         width: calc(100% + 4px);
         height: calc(100% + 4px);
-        filter: blur(10px);
+        /*filter: blur(10px);*/
         animation: glowing 30s linear infinite;
         border-radius: 50%;
     }
