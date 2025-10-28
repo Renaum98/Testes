@@ -257,7 +257,7 @@
     cursor: pointer;
     box-shadow: var(--sombra-caixa);
 
-    @media screen and (max-width:768px){
+    @media (max-width:768px){
         font-size: .8rem;
     }
 }
@@ -284,6 +284,11 @@
         left: 0;
         background-color: #272727;
         border-radius: 50%;
+        opacity: 1;
+        transition: opacity .3s ease-in-out;
+    }
+    &:active:after{
+        opacity: 0;
     }
 
     &::before{
@@ -302,9 +307,13 @@
         z-index: -1;
         width: calc(100% + 4px);
         height: calc(100% + 4px);
-        /*filter: blur(10px);*/
+        filter: blur(10px);
         animation: glowing 30s linear infinite;
         border-radius: 50%;
+
+        @media (max-width:768px) {
+            filter: none;
+        }
     }
     &:hover{
         transform: rotate(10deg);
@@ -351,7 +360,7 @@
     max-width: 500px;
     text-align: center;
     box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-    animation: surgir 2s ease-out;
+    animation: surgir 1s ease-out;
     transform-origin: center center;
 }
 

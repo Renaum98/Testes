@@ -104,7 +104,7 @@ document.addEventListener("DOMContentLoaded", () => {
         </div>
 
         <p class="titulo-media">
-          <img src="imagens/icones/abobora_1.svg" alt="" width="20" class="icone-media">
+          <img src="imagens/icones/estrela.svg" alt="" width="20" class="icone-media">
           Média: <strong>${media}</strong>
         </p>
 
@@ -335,7 +335,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Mostra o resultado no modal e destaca o filme
     mostrarResultadoSorteio(filmeSorteado);
-    destacarFilmeSorteado(filmeSorteado.id);
   }
 
   // 🎯 Função para mostrar o resultado do sorteio no modal
@@ -351,7 +350,7 @@ document.addEventListener("DOMContentLoaded", () => {
         <h3>${filme.filme}</h3>
         ${filme.poster ? `<img src="${filme.poster}" alt="Pôster de ${filme.filme}" class="poster-sorteio">` : ''}
         <div class="info-sorteio">
-          <p><strong>🎬 Indicado por:</strong> ${filme.nome}</p>
+          <p><strong> Indicado por:</strong> ${filme.nome}</p>
           <p><strong>📺 Plataforma:</strong> ${filme.onde}</p>
           <p><strong>🎭 Gênero:</strong> ${filme.genero}</p>
           <p><strong>📊 Categoria:</strong> ${filme.categoria || "-"}</p>
