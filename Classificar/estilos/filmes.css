@@ -263,11 +263,13 @@
 }
 #filtro-sortear{
     font-size: 1.5rem;
+    width: 40px;
+    height: 40px;
     padding: 2px;
     border: none;
     outline: none;
     cursor: pointer;
-    border-radius: 50px;
+    border-radius: 50%;
     position: relative;
     z-index: 0;
     background-color: transparent;
@@ -281,7 +283,7 @@
         top: 0;
         left: 0;
         background-color: #272727;
-        border-radius: 50px;
+        border-radius: 50%;
     }
 
     &::before{
@@ -302,7 +304,7 @@
         height: calc(100% + 4px);
         filter: blur(10px);
         animation: glowing 30s linear infinite;
-        border-radius: 50px;
+        border-radius: 50%;
     }
     &:hover{
         transform: rotate(10deg);
