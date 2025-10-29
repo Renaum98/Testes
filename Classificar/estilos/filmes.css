@@ -29,7 +29,6 @@
     border-radius: 1rem;
     border: var(--borda-caixa);
     box-shadow: var(--sombra-caixa);
-    /*box-shadow: var(--sombra-caixa);*/
     color: white;
     padding: 1rem 0;
     
@@ -124,7 +123,7 @@
     border: var(--borda-caixa);
     border-radius: 1rem;
     line-height: 24px;
-    box-shadow: inset 2px 2px 5px rgba(255, 255, 255, 0.123), inset -2px -2px 5px rgba(0, 0, 0, 0.336);
+    box-shadow: inset -2px -2px 5px rgba(255, 255, 255, 0.123), inset 2px 2px 5px rgba(0, 0, 0, 0.336);
 }
 
 .btn-excluir{
