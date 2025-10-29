@@ -32,6 +32,21 @@
     }
 }
 
+.container-titulo{
+    padding: 1rem 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+.titulo{
+    background-image: radial-gradient(circle, gold,rgb(102, 87, 0));
+    font-family:'Montserrat';
+    font-size: 3rem;
+    font-weight: 700;
+    background-clip: text;
+    color: transparent;
+}
+
 .filme-id {
     flex: 1 1 150px;
     padding: 8px 12px;

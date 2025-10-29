@@ -50,6 +50,32 @@ document.addEventListener("DOMContentLoaded", () => {
   let filmeSelecionadoId = null;
   let todosFilmes = []; // guarda todos os filmes carregados do Firestore
 
+  // 🆕 Função para atualizar avaliações sem recriar o card
+  function atualizarAvaliacoesNoCard(card, novasAvaliacoes) {
+    // Calcula nova média
+    const notas = Object.values(novasAvaliacoes);
+    const media = notas.length ? (notas.reduce((a, b) => a + b, 0) / notas.length).toFixed(1) : "–";
+    
+    // Atualiza elemento da média
+    const mediaElement = card.querySelector('.titulo-media strong');
+    if (mediaElement) {
+      mediaElement.textContent = media;
+    }
+    
+    // Atualiza fotos dos avaliadores
+    const avaliadoresHTML = Object.entries(novasAvaliacoes)
+      .map(([a, n]) => `
+        <div class="avaliador">
+          <img src="imagens/perfil_${a.toLowerCase()}.png" title="${a}: ${n}⭐" class="avaliador-foto">
+        </div>`)
+      .join("");
+    
+    const avaliadoresContainer = card.querySelector('.avaliadores-container');
+    if (avaliadoresContainer) {
+      avaliadoresContainer.innerHTML = avaliadoresHTML || "<p class='sem-avaliacoes'>Nenhuma avaliação ainda</p>";
+    }
+  }
+
   // 🧩 Função que cria o card de cada filme
   function adicionarFilmeNaTela(id, nome, filme, onde, genero, categoria, dataFirestore, sinopse, poster, avaliacoes = {}) {
     // Evita duplicar o card se ele já existir
@@ -122,8 +148,12 @@ document.addEventListener("DOMContentLoaded", () => {
     const caixa = item.querySelector(".titulo_onde-escolhido");
     if (caixa) {
       switch (caixa.textContent.trim()) {
-        case "MUBI": caixa.style.backgroundColor = "#081ca9"; caixa.style.color = "white"; break;
-        case "Disney+": caixa.style.backgroundColor = "#062f41"; caixa.style.color = "white"; break;
+        case "MUBI": caixa.style.backgroundColor = "#081ca9"; caixa.style.color = "white"; break; 
+        case "Disney Plus":
+          caixa.textContent = "Disney+"
+          caixa.style.backgroundColor = "#062f41"; 
+          caixa.style.color = "white";     
+          break;
         case "Amazon Prime Video":
           caixa.textContent = "Prime Video";
           caixa.style.backgroundColor = "#0d7cff";
@@ -189,23 +219,30 @@ document.addEventListener("DOMContentLoaded", () => {
         );
       }
 
+      // ✅ CORREÇÃO APLICADA: Atualiza apenas as avaliações sem remover o card
       if (change.type === "modified") {
         const index = todosFilmes.findIndex(f => f.id === docSnap.id);
         if (index !== -1) todosFilmes[index] = { id: docSnap.id, ...d };
+        
         const card = filmesContainer.querySelector(`.filmes_container-item[data-id="${docSnap.id}"]`);
-        if (card) card.remove();
-        adicionarFilmeNaTela(
-          docSnap.id,
-          d.nome,
-          d.filme,
-          d.onde,
-          d.genero,
-          d.categoria,
-          d.data,
-          d.sinopse,
-          d.poster,
-          d.avaliacoes || {}
-        );
+        if (card) {
+          // ✅ ATUALIZA APENAS O NECESSÁRIO - SEM REMOVER O CARD
+          atualizarAvaliacoesNoCard(card, d.avaliacoes || {});
+        } else {
+          // Caso raro: se o card não existir, cria um novo
+          adicionarFilmeNaTela(
+            docSnap.id,
+            d.nome,
+            d.filme,
+            d.onde,
+            d.genero,
+            d.categoria,
+            d.data,
+            d.sinopse,
+            d.poster,
+            d.avaliacoes || {}
+          );
+        }
       }
 
       if (change.type === "removed") {
@@ -231,9 +268,16 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // 🧠 Preenche dinamicamente os selects de filtro
   function preencherFiltros(generos, categorias, ondes) {
-    filtroGenero.innerHTML = `<option value="">Todos os Gêneros</option>`;
     filtroCategoria.innerHTML = `<option value="">Todas as Categorias</option>`;
+    filtroGenero.innerHTML = `<option value="">Todos os Gêneros</option>`;
     filtroOnde.innerHTML = `<option value="">Todas as Plataformas</option>`;
+
+    categorias.sort().forEach(c => {
+      const option = document.createElement("option");
+      option.value = c;
+      option.textContent = c;
+      filtroCategoria.appendChild(option);
+    });
 
     generos.sort().forEach(g => {
       const option = document.createElement("option");
@@ -242,12 +286,6 @@ document.addEventListener("DOMContentLoaded", () => {
       filtroGenero.appendChild(option);
     });
 
-    categorias.sort().forEach(c => {
-      const option = document.createElement("option");
-      option.value = c;
-      option.textContent = c;
-      filtroCategoria.appendChild(option);
-    });
 
     ondes.sort().forEach(o => {
       const option = document.createElement("option");
@@ -261,8 +299,8 @@ document.addEventListener("DOMContentLoaded", () => {
   function atualizarLista() {
     filmesContainer.innerHTML = "";
 
-    const generoSelecionado = filtroGenero.value;
     const categoriaSelecionada = filtroCategoria.value;
+    const generoSelecionado = filtroGenero.value;
     const ondeSelecionado = filtroOnde.value;
     const termoBusca = campoBusca.value.trim().toLowerCase();
 
@@ -275,7 +313,7 @@ document.addEventListener("DOMContentLoaded", () => {
       f.filme?.toLowerCase().includes(termoBusca) || 
       f.nome?.toLowerCase().includes(termoBusca);
 
-      return generoOK && categoriaOK && ondeOK && buscaOK;
+      return categoriaOK && generoOK && ondeOK && buscaOK;
     });
 
     if (filtrados.length === 0) {
@@ -360,7 +398,6 @@ document.addEventListener("DOMContentLoaded", () => {
     
     modalSorteio.style.display = "flex";
   }
-
 
   // Eventos dos selects
   filtroGenero.addEventListener("change", atualizarLista);
