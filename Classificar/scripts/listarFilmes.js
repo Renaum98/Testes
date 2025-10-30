@@ -140,7 +140,7 @@ document.addEventListener("DOMContentLoaded", () => {
       </div>
 
       <div class="filme_card-acoes">
-        <button class="btn-excluir" title="Excluir">❌</button>
+        <button class="btn-excluir" title="Excluir">X</button>
         <button class="botoes btn-assisti">Assisti</button>
       </div>
     `;
