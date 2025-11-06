@@ -260,7 +260,9 @@
     }
 }
 @property --angle{
-    
+    syntax: "<angle>";
+    initial-value: 0deg;
+    inherits: false;
 }
 #filtro-sortear{
     font-size: 1.5rem;
@@ -297,22 +299,17 @@
 
     &::before{
         content:"";
-        background-image: linear-gradient(
-                    45deg,
-                    #FF0000, #FF7300, #FFFB00, #48FF00,
-                    #00FFD5, #002BFF, #FF00C8, #FF0000
-                    );
+        background-image: conic-gradient(from var(--angle), red, orange, yellow, green, blue,purple,red);
         position: absolute;
         border: 0;
         outline: 0;
         top: -2px;
         left: -2px;
-        background-size: 600%;
         z-index: -1;
         width: calc(100% + 4px);
         height: calc(100% + 4px);
-        filter: blur(10px);
-        animation: glowing 30s linear infinite;
+        filter: blur(5px);
+        animation: glowing 5s linear infinite;
         border-radius: 50%;
 
         @media (max-width:768px) {
