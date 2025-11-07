@@ -34,6 +34,22 @@
             <!--os filmes entram aqui com o codigo js-->
         </div>
     </section>
+    <svg style="display: none">
+        <filter id="liquidglass" x="-50%" y="-60%" width="200%" height="200%">
+            <feImage x="0" y="0" result="imagemSVG" xlink:href="data:image/svg+xml;utf8,
+                <svg xmlns='http://www.w3.org/2000/svg' width='300' height='300'>
+                    <radialGradient id='mapaGradiente' cx='50%' cy='50%' r='50%'>
+                        <stop offset='0%' stop-color='rgb(128,128,255)'/>
+                        <stop offset='100%' stop-color='rgb(255,255,255)'/>
+                    </radialGradient>
+                </svg>" />
+            <feDisplacementMap in="SourceGraphic" in2="imagemSVG" scale="-60" 
+                xChannelSelector="R" yChannelSelector="G" result="imagemDistorcida" />
+            <feMerge>
+                <feMergeNode in="imagemDistorcida"/>
+            </feMerge>
+        </filter>
+    </svg>
     <script type="module" src="scripts/firebaseConfig.js" defer></script>
     <script type="module" src="scripts/listarFilmes.js" defer></script>
     <script type="module" src="scripts/estiloCabecalho.js" defer></script>
