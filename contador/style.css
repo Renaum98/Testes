@@ -1,0 +1,43 @@
+@charset "UTF-8";
+
+*{
+    margin: 0;
+    padding: 0;
+}
+
+body{
+    height: 98vh;
+    background-color: rgb(200, 255, 255);
+    background-image: url(fundo\ praia.jpg);
+    background-size: cover;
+    background-position: center center;
+    background-repeat: no-repeat;
+}
+.contador_container{
+    background-color: rgba(255, 255, 255, 0.144);
+    width: 80%;
+    padding: 1rem 0;
+    text-align: center;
+    border-radius: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.274);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    box-shadow: 
+    inset 5px 5px 5px rgba(255, 255, 255, 0.144), 
+    inset -5px -5px 5px rgba(0, 0, 0, 0.144),
+    -5px -5px 10px rgba(0, 0, 0, 0.123);
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%,-50%);
+}
+.contador_texto{
+    font-size: 2rem;
+    font-family: 'Poppins';
+    font-weight: 200;
+    
+}
+#contador{
+    color: red;
+    font-weight: 800;
+}
