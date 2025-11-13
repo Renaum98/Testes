@@ -16,7 +16,7 @@ body{
 
 .caixa-geral{
     margin-top: 10px;
-    background-image: url(/imagens/fundo_praia.jpg);
+    background-image: url(imagens/fundo_praia.jpg);
     background-position: center center;
     background-repeat: no-repeat;
     background-size: cover;
@@ -102,4 +102,25 @@ body{
 }
 .praias_imagem{
     width: 100%;
+}
+
+.praias_distancia{
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+}
+
+.material-symbols-outlined {
+  font-size: 1rem !important;   /* tamanho do ícone */
+  font-variation-settings:
+    'FILL' 1,           /* 0 = contorno, 1 = preenchido */
+    'wght' 700,         /* peso (espessura) */
+    'GRAD' 0,           /* gradiente */
+    'opsz' 48;          /* tamanho ótico */
+}
+
+.distancia_tempo{
+    font-weight: 300;
 }
