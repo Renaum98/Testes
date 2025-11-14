@@ -1,28 +1,62 @@
-const contador = document.getElementById("contador");
+document.addEventListener("DOMContentLoaded", () => {
 
-function atualizarDias() {
-    const dataHoje = new Date();
-    const dataViagem = new Date('2026-04-07');
+    /* ============================
+       CONTADOR DE DIAS
+    ============================= */
+    const contador = document.getElementById("contador");
 
-    // Zera a hora das duas datas pra comparar apenas o "dia"
-    dataHoje.setHours(0, 0, 0, 0);
-    dataViagem.setHours(0, 0, 0, 0);
+    function atualizarDias() {
+        const hoje = new Date();
+        const viagem = new Date(2026, 3, 7); // 7 de abril (mês começa em 0)
 
-    const diferencaMs = dataViagem - dataHoje;
-    const umDiaMs = 1000 * 60 * 60 * 24;
+        hoje.setHours(0, 0, 0, 0);
+        viagem.setHours(0, 0, 0, 0);
 
-    const diasFaltando = Math.ceil(diferencaMs / umDiaMs);
+        const msPorDia = 1000 * 60 * 60 * 24;
+        const diferenca = viagem - hoje;
 
-    if (diasFaltando <= 10) {
-        contador.style.color = 'green'
+        const diasFaltando = Math.ceil(diferenca / msPorDia);
+
+        if (contador) {
+            contador.textContent = diasFaltando;
+            contador.style.color = diasFaltando <= 10 ? "green" : "";
+        }
     }
 
-    contador.textContent = diasFaltando;
-}
+    atualizarDias();
+    setInterval(atualizarDias, 1000 * 60 * 60);
 
-// Atualiza imediatamente ao carregar
-atualizarDias();
 
-// Atualiza a cada 1 hora (não precisa recalcular todo segundo)
-setInterval(atualizarDias, 1000 * 60 * 60);
 
+    /* ============================
+       MODAL DE IMAGEM
+    ============================= */
+    const modal = document.getElementById("modal-imagem");
+    const modalImg = document.getElementById("modal-img");
+    const fechar = document.querySelector(".modal-fechar");
+
+    const imagensCardapio = document.querySelectorAll(".restaurantes_cardapio");
+
+    if (imagensCardapio.length > 0 && modal && modalImg && fechar) {
+
+        // Abrir modal
+        imagensCardapio.forEach(img => {
+            img.addEventListener("click", () => {
+                modal.classList.add("ativo");
+                modalImg.src = img.src;
+            });
+        });
+
+        // Fechar via X
+        fechar.addEventListener("click", () => {
+            modal.classList.remove("ativo");
+        });
+
+        // Fechar clicando fora da imagem
+        modal.addEventListener("click", (e) => {
+            if (e.target === modal) {
+                modal.classList.remove("ativo");
+            }
+        });
+    }
+});
