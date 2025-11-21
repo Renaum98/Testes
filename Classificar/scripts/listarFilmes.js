@@ -317,7 +317,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     if (filtrados.length === 0) {
-      filmesContainer.innerHTML = "<p style='text-align:center;color:#777;'>Nenhum filme encontrado.</p>";
+      filmesContainer.innerHTML = "<p style='text-align:center;color:#777;'>Nenhum filme ou série encontrado.</p>";
       return;
     }
 
@@ -363,7 +363,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     if (filmesFiltrados.length === 0) {
-      alert("Nenhum filme encontrado com os filtros atuais!");
+      alert("Nenhum filme ou serie encontrado com os filtros atuais!");
       return;
     }
 
