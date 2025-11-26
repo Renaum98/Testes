@@ -1,4 +1,6 @@
 .card{
+    margin: 0 auto;
+    width: 80%;
     padding: 1rem 0;
     text-align: center;
     display: flex;
@@ -6,6 +8,8 @@
     gap: 1rem;
     background-color: beige;
 }
-.card_titulo::after{
-    content: url();
+.card_titulo{
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
