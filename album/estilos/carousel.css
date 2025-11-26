@@ -1,0 +1,14 @@
+.carousel{
+    width: min(1000px, 100%) /*largura responsiva*/;
+    margin: 0 auto; /*centraliza o layout*/
+    columns: 2 200px;
+    column-gap: 1em;
+}
+
+.carousel_item{
+    width: 100%; /*faz a automação do tamanho da imagem*/
+    display: block;
+    margin-bottom: 1em;
+    border-radius: 10px;
+    cursor: pointer;
+}

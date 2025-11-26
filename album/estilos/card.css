@@ -1,0 +1,11 @@
+.card{
+    padding: 1rem 0;
+    text-align: center;
+    display: flex;
+    flex-flow: column;
+    gap: 1rem;
+    background-color: beige;
+}
+.card_titulo::after{
+    content: url();
+}
