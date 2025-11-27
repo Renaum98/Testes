@@ -1,5 +1,7 @@
 @import url(estilos/cabecalho.css);
 @import url(estilos/relatos.css);
+@import url(estilos/desaparecidos.css);
+@import url(estilos/secreto.css);
 
 :root{
     --cor-fundo:#0B1E3F;

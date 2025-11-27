@@ -1,12 +1,11 @@
 .relatos{
-    margin: 0 auto;
-    width: 80%;
+    margin: 2rem auto;
+    width: 90%;
     position: relative;
     background: #f5eedb;
-    padding: 30px;
+  
     border-radius: 6px;
     box-shadow: 0 4px 12px rgba(0,0,0,0.35);
-    overflow: hidden;
 }
 .relatos::before{
     content: "";
@@ -22,18 +21,65 @@
     padding: 1rem;
     font-family: var(--fonte-destaque);
 }
-.relatos-lista{
+.relatos-lista {
     list-style: none;
     display: flex;
     gap: 1rem;
-    overflow-y: auto;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    padding: 0;
+    margin: 0;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+
+    /* não deixar cortar conteúdo */
+    overflow-y: visible;
 }
-.relatos-item{
-    background-color: blue;
-    width: 300px;
+.relatos-lista::-webkit-scrollbar{
+    display: none;
 }
+
+.relatos-item {
+    flex: 0 0 min(100%, 300px);
+    background: white;
+    padding: 20px;
+    border-radius: 8px;
+    scroll-snap-align: start;
+
+    /* garante altura livre */
+    height: auto;
+    overflow: visible;
+}
+
+
 .relatos-descricao{
     text-align: justify;
+}
+
+.relatos-numero{
+    text-align: center;
+    margin: 10px 0;
+}
+
+/*chatgpt*/
+.relatos-indicadores {
+    display: flex;
+    gap: 8px;
+    margin: 12px auto 0;
+    justify-content: center;
+}
+
+.relatos-indicador {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--cor-texto-destaque);
+    transition: background 0.3s, transform 0.3s;
+    cursor: pointer;
+}
+
+.relatos-indicador.ativo {
+    background-color:var(--cor-destaque);
+    transform: scale(1.3);
 }
 
 
