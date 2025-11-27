@@ -6,6 +6,25 @@
     background-color: var(--cor-papel);
     box-shadow: 0 4px 12px rgba(0,0,0,0.35);
 }
+.preset{
+    position: absolute;
+    mix-blend-mode: hard-light;
+    
+    width: 200px;
+    top: 50%;
+    animation: surgir ease both;
+    animation-timeline: view();
+    animation-range: entry 0% cover 100%;
+}
+
+@keyframes surgir {
+    0%,100%{
+        transform: translateX(-100%) rotate(0);
+    }
+    45%,65%{
+        transform: translateX(-60%) rotate(30deg);
+    }
+}
 .desaparecidos-titulo{
     text-align: center;
     padding: 1rem 0;
