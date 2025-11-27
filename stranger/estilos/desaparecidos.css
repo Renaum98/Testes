@@ -12,7 +12,7 @@
     
     width: 200px;
     top: 50%;
-    animation: surgir ease both;
+    animation: surgir linear both;
     animation-timeline: view();
     animation-range: entry 0% cover 100%;
 }
@@ -21,7 +21,7 @@
     0%,100%{
         transform: translateX(-100%) rotate(0);
     }
-    45%,65%{
+    50%{
         transform: translateX(-60%) rotate(30deg);
     }
 }
