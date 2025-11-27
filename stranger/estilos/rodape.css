@@ -3,14 +3,14 @@
     color: #eee;
     padding: 2rem 1.2rem;
     font-family: "Roboto Condensed", sans-serif;
-    border-top: 4px solid #d1b000; /* tom dourado policial */
+    border-top: 4px solid var(--cor-destaque); /* tom dourado policial */
 }
 
 .footer-title {
     text-transform: uppercase;
     font-size: 1.4rem;
     margin-bottom: 0.6rem;
-    color: #ffd900;
+    color: var(--cor-destaque);
     letter-spacing: 1px;
 }
 
@@ -21,24 +21,6 @@
     margin-bottom: 1.2rem;
 }
 
-.footer-btn {
-    display: inline-block;
-    background: #101010;
-    border: 2px solid #ffd900;
-    padding: 0.7rem 1rem;
-    font-size: 1rem;
-    text-transform: uppercase;
-    color: #ffd900;
-    text-decoration: none;
-    border-radius: 6px;
-    margin-bottom: 1.5rem;
-    transition: 0.2s;
-}
-
-.footer-btn:hover {
-    background: #ffd900;
-    color: #000;
-}
 
 .footer-map iframe {
     width: 100%;
@@ -50,7 +32,7 @@
 
 .footer-info h4 {
     font-size: 1.1rem;
-    color: #ffd900;
+    color: var(--cor-destaque);
     margin-bottom: 0.4rem;
 }
 
