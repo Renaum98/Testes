@@ -1,6 +1,7 @@
 .relatos{
     margin: 2rem auto;
     width: 90%;
+    max-width: 800px;
     position: relative;
     background: #f5eedb;
   
@@ -19,7 +20,10 @@
 .relatos-titulo{
     text-align: center;
     padding: 1rem;
-    font-family: var(--fonte-destaque);
+    font-family: var(--fonte-texto-arquivo);
+}
+.relatos-lista::-webkit-scrollbar{
+    display: none;
 }
 .relatos-lista {
     list-style: none;
@@ -27,22 +31,18 @@
     gap: 1rem;
     overflow-x: auto;
     scroll-snap-type: x mandatory;
-    padding: 0;
+    padding: 0 1rem;
     margin: 0;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    font-family: var(--fonte-texto);
 
     /* não deixar cortar conteúdo */
     overflow-y: visible;
 }
-.relatos-lista::-webkit-scrollbar{
-    display: none;
-}
 
 .relatos-item {
-    flex: 0 0 min(100%, 300px);
+    flex: 0 0 100%;
     background: white;
     padding: 20px;
-    border-radius: 8px;
     scroll-snap-align: start;
 
     /* garante altura livre */
