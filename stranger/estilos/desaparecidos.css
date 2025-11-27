@@ -8,9 +8,7 @@
 }
 .preset{
     position: absolute;
-    mix-blend-mode: hard-light;
-    
-    width: 200px;
+    width: 300px;
     top: 50%;
     animation: surgir linear both;
     animation-timeline: view();
