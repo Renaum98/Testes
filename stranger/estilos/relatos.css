@@ -3,15 +3,14 @@
     width: 90%;
     max-width: 800px;
     position: relative;
-    background: #f5eedb;
-  
-    border-radius: 6px;
+    background-color: var(--cor-papel);
     box-shadow: 0 4px 12px rgba(0,0,0,0.35);
 }
 .relatos-titulo{
     text-align: center;
     padding: 1rem 0;
     font-family: var(--fonte-texto-arquivo);
+    color: var(--cor-texto-destaque);
 }
 .relatos-lista::-webkit-scrollbar{
     display: none;
@@ -39,7 +38,7 @@
     flex: 0 0 100%;
     background: white;
     padding: 1rem;
-    scroll-snap-align: start;
+    scroll-snap-align: center;
 
     /* garante altura livre */
     height: auto;

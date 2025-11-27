@@ -3,20 +3,24 @@
     width: 90%;
     max-width: 800px;
     position: relative;
-    background: #f5eedb;
-  
-    border-radius: 6px;
+    background-color: var(--cor-papel);
     box-shadow: 0 4px 12px rgba(0,0,0,0.35);
 }
 .desaparecidos-titulo{
     text-align: center;
     padding: 1rem 0;
     font-family: var(--fonte-texto-arquivo);
+    color: var(--cor-texto-destaque);
 }
 
 .desaparecidos-container{
-    width: min(1000px, 100%);
+    width: min(1000px, 80%);
+    margin: 0 auto;
+    columns: 2 200px;
+    column-gap: 10px;
 }
 .desaparecidos-imagem{
     width: 100%;
+    display: block;
+    margin-bottom: 1em;
 }

@@ -2,6 +2,7 @@
 @import url(estilos/relatos.css);
 @import url(estilos/desaparecidos.css);
 @import url(estilos/secreto.css);
+@import url(estilos/rodape.css);
 
 :root{
     --cor-fundo:#0B1E3F;
@@ -31,13 +32,14 @@ body::before {
   pointer-events: none;
   position: fixed;
   inset: 0;
-  z-index: 9999;
+}
 
-  /* O truque do granulado */
-  background-image: 
-    repeating-radial-gradient(circle, rgba(255,255,255,0.05) 0, rgba(255,255,255,0.05) 1px, transparent 1px),
-    repeating-radial-gradient(circle, rgba(0,0,0,0.05) 0, rgba(0,0,0,0.05) 1px, transparent 1px);
 
-  mix-blend-mode: overlay;
-  opacity: 0.25; /* Aumente ou reduza */
+button{
+  margin: 10px auto;
+  display: block;
+  color: var(--cor-texto-destaque);
+  padding: 0 1rem;
+  font-size: 1.5rem;
+  font-family: var(--fonte-destaque);
 }

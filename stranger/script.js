@@ -3,6 +3,8 @@ const carousel = document.querySelector(".relatos-lista");
 const slides = Array.from(document.querySelectorAll(".relatos-item"));
 const indicadoresContainer = document.createElement("div");
 indicadoresContainer.classList.add("relatos-indicadores");
+const btConfidencial = document.querySelector("#botao-confidencial");
+const secreto = document.querySelector(".secreto");
 
 // adiciona após a lista
 carousel.insertAdjacentElement("afterend", indicadoresContainer);
@@ -53,5 +55,13 @@ carousel.addEventListener("scroll", () => {
     if (snapIndex !== index && snapIndex >= 0 && snapIndex < slides.length) {
         index = snapIndex;
         atualizarIndicadores();
+    }
+});
+
+btConfidencial.addEventListener("click", () => {
+    if (secreto.style.display === 'none' || secreto.style.display === '') {
+        secreto.style.display = 'block';
+    } else {
+        secreto.style.display = 'none';
     }
 });
