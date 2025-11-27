@@ -20,8 +20,6 @@ const indicadores = document.querySelectorAll(".relatos-indicador");
 
 // estado
 let index = 0;
-let autoplay;
-let retomada;
 
 // --- FUNÇÃO PARA ATUALIZAR BOLINHAS --- //
 function atualizarIndicadores() {
@@ -39,43 +37,17 @@ function irParaSlide(i) {
     atualizarIndicadores();
 }
 
-// --- AUTOPLAY --- //
-function startAutoplay() {
-    autoplay = setInterval(() => {
-        index = (index + 1) % slides.length;
-        irParaSlide(index);
-    }, 3000);
-}
-
-function stopAutoplay() {
-    clearInterval(autoplay);
-    clearTimeout(retomada);
-
-    // retomada inteligente após 5 segundos sem interação
-    retomada = setTimeout(() => {
-        startAutoplay();
-    }, 5000);
-}
-
-// inicia autoplay
-startAutoplay();
-
-// --- EVENTOS PARA PAUSAR O AUTOPLAY --- //
-["wheel", "touchstart", "mousedown"].forEach(evt => {
-    carousel.addEventListener(evt, stopAutoplay);
-});
-
 // --- CLIQUE NAS BOLINHAS --- //
 indicadores.forEach(ind => {
     ind.addEventListener("click", () => {
-        stopAutoplay();
         irParaSlide(Number(ind.dataset.index));
     });
 });
 
-// --- AJUSTA BOLINHAS QUANDO O USUÁRIO PASSA MANUALMENTE --- //
+// --- ATUALIZA INDICADORES QUANDO O USUÁRIO PASSA MANUALMENTE --- //
 carousel.addEventListener("scroll", () => {
-    const slideWidth = slides[0].offsetWidth + 16; // 16px de gap
+    const slideWidth = slides[0].offsetWidth + 16; // 16px = seu gap
+
     const snapIndex = Math.round(carousel.scrollLeft / slideWidth);
 
     if (snapIndex !== index && snapIndex >= 0 && snapIndex < slides.length) {

@@ -1,0 +1,22 @@
+.desaparecidos{
+    margin: 2rem auto;
+    width: 90%;
+    max-width: 800px;
+    position: relative;
+    background: #f5eedb;
+  
+    border-radius: 6px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.35);
+}
+.desaparecidos-titulo{
+    text-align: center;
+    padding: 1rem 0;
+    font-family: var(--fonte-texto-arquivo);
+}
+
+.desaparecidos-container{
+    width: min(1000px, 100%);
+}
+.desaparecidos-imagem{
+    width: 100%;
+}
