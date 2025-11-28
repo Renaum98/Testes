@@ -2,6 +2,7 @@
     margin: 1rem auto;
     width: 90%;
     max-width: 800px;
+    border-radius: 6px;
     position: relative;
     background-color: var(--cor-papel);
     box-shadow: 0 4px 12px rgba(0,0,0,0.35);

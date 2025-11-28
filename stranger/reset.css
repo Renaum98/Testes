@@ -35,11 +35,50 @@ body::before {
 }
 
 #botao-confidencial{
+  background-color: var(--cor-papel);
+  width: fit-content;
   cursor: pointer;
   margin: 10px auto;
-  display: block;
   color: var(--cor-texto-destaque);
   padding: 0 1rem;
   font-size: 1rem;
+  border-radius: 10px;
   font-family: var(--fonte-destaque);
+  position: relative;
+  &::after, &::before{
+    content: "";
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    top: 50%;
+    left: 50%;
+    transform:translate(-50%, -50%);
+    background-image: conic-gradient(from var(--angle), transparent 10%, rgb(255, 0, 0));
+    z-index: -1;
+    padding: 2px;
+    border-radius: 10px;
+    animation: spin 5s linear infinite;
+  }
+  &::before{
+      filter: blur(5rem);
+      opacity: 0.5;
+  }
 }
+
+@keyframes spin {
+  from{
+      --angle:0deg;
+  }
+  to{
+      --angle:360deg;
+  }
+}
+
+
+@property --angle{
+  syntax: "<angle>";
+  initial-value: 0deg;
+  inherits: false;
+}
+
+
