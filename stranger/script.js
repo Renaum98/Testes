@@ -65,3 +65,44 @@ btConfidencial.addEventListener("click", () => {
         secreto.style.display = 'none';
     }
 });
+
+const elemento = document.getElementById("demoSurgir");
+
+// cria o overlay (fundo preto)
+const overlay = document.createElement("div");
+overlay.style.position = "fixed";
+overlay.style.inset = "0";
+overlay.style.background = "black";
+overlay.style.opacity = "0";
+overlay.style.transition = "opacity 0.2s linear";
+overlay.style.pointerEvents = "none";
+overlay.style.zIndex = "998";
+
+document.body.appendChild(overlay);
+
+const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+        const v = entry.intersectionRatio; // 0 → 1
+
+        let opacidade;
+
+        if (v < 0.5) {
+            // antes de 50% → escurece de 0 até 1
+            opacidade = v / 0.5;
+        } else {
+            // depois de 50% → clareia de 1 até 0
+            opacidade = (1 - v) / 0.5;
+        }
+
+        // garante que fica entre 0 e 1
+        overlay.style.opacity = Math.max(0, Math.min(opacidade, 1));
+    });
+}, {
+    threshold: Array.from({ length: 100 }, (_, i) => i / 100)
+});
+
+observer.observe(elemento);
+
+
+
+
