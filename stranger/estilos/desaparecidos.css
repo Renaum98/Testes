@@ -12,6 +12,7 @@
     width: 300px;
     top: 50%;
     animation: surgir linear both;
+    -webkit-animation: surgir linear both;
     animation-timeline: view();
     animation-range: entry 0% cover 100%;
 }

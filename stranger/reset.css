@@ -58,6 +58,7 @@ body::before {
     padding: 2px;
     border-radius: 10px;
     animation: spin 5s linear infinite;
+    -webkit-animation: spin 5s linear infinite;
   }
   &::before{
       filter: blur(5rem);
