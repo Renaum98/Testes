@@ -68,11 +68,11 @@ btConfidencial.addEventListener("click", () => {
 
 const elemento = document.getElementById("demoSurgir");
 
-// cria o overlay (fundo preto)
+// cria o overlay (fundo com gradiente radial)
 const overlay = document.createElement("div");
 overlay.style.position = "fixed";
 overlay.style.inset = "0";
-overlay.style.background = "black";
+overlay.style.background = "radial-gradient(circle, black, red)";
 overlay.style.opacity = "0";
 overlay.style.transition = "opacity 0.2s linear";
 overlay.style.pointerEvents = "none";
@@ -87,14 +87,13 @@ const observer = new IntersectionObserver((entries) => {
         let opacidade;
 
         if (v < 0.5) {
-            // antes de 50% → escurece de 0 até 1
+            // antes de 50% → escurece até o máximo no meio
             opacidade = v / 0.5;
         } else {
-            // depois de 50% → clareia de 1 até 0
+            // depois de 50% → clareia de volta
             opacidade = (1 - v) / 0.5;
         }
 
-        // garante que fica entre 0 e 1
         overlay.style.opacity = Math.max(0, Math.min(opacidade, 1));
     });
 }, {
@@ -102,6 +101,8 @@ const observer = new IntersectionObserver((entries) => {
 });
 
 observer.observe(elemento);
+
+
 
 
 
