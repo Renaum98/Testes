@@ -1,0 +1,31 @@
+.card-contador_container{
+    margin-top: 10px;
+    background-image: url(../../assets/images/fundo_praia.jpg);
+    background-position: center center;
+    background-repeat: no-repeat;
+    background-size: cover;
+    border-radius: 1rem;
+    
+    height: 600px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+.card-contador_item{
+    background-color: rgba(255, 255, 255, 0.144);
+    width: 80%;
+    padding: 1rem 0;
+    text-align: center;
+    border-radius: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.274);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    box-shadow: 
+    inset 5px 5px 5px rgba(255, 255, 255, 0.144), 
+    inset -5px -5px 5px rgba(0, 0, 0, 0.144),
+    -5px -5px 10px rgba(0, 0, 0, 0.123);
+}
+.card-contador_item p{
+    font-weight: 700;
+    font-size: 2rem;
+}
