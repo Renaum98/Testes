@@ -1,0 +1,10 @@
+{
+  "name": "Classificador",
+  "short_name": "App",
+  "description": "Aplicativo de classificar e adicionar filmes",
+  "start_url": "Testes/Classificar/",
+  "scope": "Testes/Classificar/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#000000"
+}
