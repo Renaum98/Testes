@@ -32,7 +32,7 @@ function capitalizarPalavras(texto) {
  */
 async function buscarSugestoesTMDb(query, tipo = "movie") {
   const apiKey = "80343411a9bb47a166866336ace56f8b";
-  
+
   // 🔍 Validação: precisa ter pelo menos 2 caracteres para buscar
   if (!query || query.length < 2) return [];
 
@@ -42,7 +42,7 @@ async function buscarSugestoesTMDb(query, tipo = "movie") {
       `https://api.themoviedb.org/3/search/${tipo}?api_key=${apiKey}&language=pt-BR&query=${encodeURIComponent(query)}`
     );
     const data = await resp.json();
-    
+
     // ✅ Retorna até 5 resultados ou array vazio se não encontrar
     return data.results ? data.results.slice(0, 5) : [];
   } catch (err) {
@@ -81,9 +81,9 @@ async function buscarDetalhesTMDbPorId(id, tipo = "movie") {
     // 📺 BUSCA ONDE ASSISTIR (SERVICOS DE STREAMING NO BRASIL)
     const respWatch = await fetch(`${baseUrl}/${id}/watch/providers?api_key=${apiKey}`);
     const providersData = await respWatch.json();
-    
+
     // 🎯 PRIORIDADE: streaming → compra → aluguel → não disponível
-    const ondeAssistir = 
+    const ondeAssistir =
       providersData.results?.BR?.flatrate?.[0]?.provider_name ||    // Streaming (Netflix, Prime, etc)
       providersData.results?.BR?.buy?.[0]?.provider_name ||         // Compra digital
       providersData.results?.BR?.rent?.[0]?.provider_name ||        // Aluguel digital
@@ -195,7 +195,7 @@ document.addEventListener("DOMContentLoaded", () => {
   inputFilme.addEventListener("input", () => {
     // 🚫 CANCELA BUSCA ANTERIOR SE USUÁRIO AINDA ESTIVER DIGITANDO
     clearTimeout(timeout);
-    
+
     const query = inputFilme.value.trim();
     const categoria = selectCategoria.value;
 
@@ -241,10 +241,10 @@ document.addEventListener("DOMContentLoaded", () => {
         // 🖱️ EVENTO DE CLIQUE NA SUGESTÃO
         li.addEventListener("click", () => {
           inputFilme.value = nome; // Preenche o campo com o nome selecionado
-          filmeSelecionado = { 
+          filmeSelecionado = {
             id: item.id,           // Salva ID para buscar detalhes depois
-            titulo: nome, 
-            tipo 
+            titulo: nome,
+            tipo
           };
           listaSugestoes.innerHTML = ""; // Esconde lista
           listaSugestoes.style.display = "none";
@@ -293,7 +293,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
       // 🔍 CONFIGURA TIPO PARA API (movie/tv)
       const tipo = categoria === "Série" ? "tv" : "movie";
-      
+
       // 🎬 BUSCA DETALHES DO FILME/SÉRIE
       let detalhes;
       if (filmeSelecionado?.id) {
@@ -304,13 +304,13 @@ document.addEventListener("DOMContentLoaded", () => {
         const sugestoes = await buscarSugestoesTMDb(filmeTitulo, tipo);
         detalhes = sugestoes.length > 0
           ? await buscarDetalhesTMDbPorId(sugestoes[0].id, tipo) // Pega primeiro resultado
-          : { 
-              // 🎭 FALLBACK: usa dados básicos se não encontrou na API
-              titulo: filmeTitulo, 
-              genero: "Desconhecido", 
-              onde: "Não disponível", 
-              categoria 
-            };
+          : {
+            // 🎭 FALLBACK: usa dados básicos se não encontrou na API
+            titulo: filmeTitulo,
+            genero: "Desconhecido",
+            onde: "Não disponível",
+            categoria
+          };
       }
 
       // 💾 SALVA NO FIREBASE FIRESTORE
@@ -323,14 +323,14 @@ document.addEventListener("DOMContentLoaded", () => {
         sinopse: detalhes.sinopse,      // Sinopse completa
         poster: detalhes.poster,        // URL do pôster
         data: serverTimestamp(),        // ⏰ TIMESTAMP DO SERVIDOR (evita problemas de fuso)
-        avaliacoes: { 
+        avaliacoes: {
           [nome]: parseFloat(nota)      // 🎯 PRIMEIRA AVALIAÇÃO (do usuário atual)
         },
       });
 
       // 🎉 FEEDBACK DE SUCESSO
       alert(`✅ ${detalhes.titulo} (${detalhes.categoria}) adicionado por ${nome}!`);
-      
+
       // 🧹 LIMPEZA E RESET DO FORMULÁRIO
       form.reset();
       listaSugestoes.innerHTML = "";
@@ -344,7 +344,7 @@ document.addEventListener("DOMContentLoaded", () => {
   // ==========================================
   btnLimpar?.addEventListener("click", (e) => {
     e.preventDefault(); // 🚫 IMPEDE COMPORTAMENTO PADRÃO
-    
+
     // 🔄 RESETA TUDO
     form.reset();
     listaSugestoes.innerHTML = "";

@@ -1,4 +1,4 @@
-.cabecalho{
+.cabecalho {
     padding: var(--padding-base);
     position: fixed;
     top: 0;
@@ -9,11 +9,13 @@
     z-index: 10000;
     transition: all 0.3s ease;
 }
-.cabecalho_nav{
+
+.cabecalho_nav {
     display: flex;
     align-items: center;
     transition: all 0.5s ease;
 }
+
 .cabecalho_nav-list {
     width: 100%;
     display: flex;
@@ -29,11 +31,11 @@
     transition: .3s;
 }
 
-.cabecalho_nav-list_item:hover{
+.cabecalho_nav-list_item:hover {
     transform: scale(1.1);
 }
 
-a{
+a {
     color: white;
     text-decoration: none;
 }
@@ -52,5 +54,6 @@ a{
 
 /* ============ EVITA QUE O CONTEÚDO SUBA POR TRÁS DO CABEÇALHO ============ */
 body {
-    padding-top: 50px; /* altura inicial do cabeçalho */
+    padding-top: 50px;
+    /* altura inicial do cabeçalho */
 }

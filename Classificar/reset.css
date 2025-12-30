@@ -4,29 +4,33 @@
 @import url(estilos/filmes.css);
 @import url(estilos/top.css);
 @import url(estilos/animacoes.css);
-:root{
+
+:root {
     --padding-base: 1rem 0rem;
     --cor-botao: rgb(143, 2, 2);
     --cor-texto: white;
-    --cor_fundo-1:#272727;
-    --cor_fundo-2:#030303;
-    --cor_fundo-card:rgb(53, 53, 53);
-    --sombra-caixa: inset -2px -2px 2px rgba(0, 0, 0, 0.137),inset 2px 2px 2px rgba(255, 255, 255, 0.089), 2px 2px 2px rgba(0, 0, 0, 0.13);
+    --cor_fundo-1: #272727;
+    --cor_fundo-2: #030303;
+    --cor_fundo-card: rgb(53, 53, 53);
+    --sombra-caixa: inset -2px -2px 2px rgba(0, 0, 0, 0.137), inset 2px 2px 2px rgba(255, 255, 255, 0.089), 2px 2px 2px rgba(0, 0, 0, 0.13);
     --borda-caixa: 1px solid rgba(255, 255, 255, 0.11);
     --width-celular: 768px;
 }
-*{
+
+* {
     margin: 0;
     padding: 0;
     font-family: 'Poppins';
     list-style: none;
 }
-body{
-    background-image: radial-gradient(circle,var(--cor_fundo-1),var(--cor_fundo-2));
+
+body {
+    background-image: radial-gradient(circle, var(--cor_fundo-1), var(--cor_fundo-2));
     background-repeat: no-repeat;
-    background-attachment:fixed;
+    background-attachment: fixed;
 }
-.botoes{
+
+.botoes {
     margin: 0 auto;
     background-color: var(--cor-botao);
     color: var(--cor-texto);
@@ -34,13 +38,15 @@ body{
     padding: 4px 1rem;
     border-radius: 1rem;
     font-size: 1rem;
-    box-shadow:var(--sombra-caixa);
+    box-shadow: var(--sombra-caixa);
     cursor: pointer;
-    &:hover{
+
+    &:hover {
         transform: scale(1.1);
         transition: transform 0.3s;
     }
-    &:active{
+
+    &:active {
         background-color: var(--cor-texto);
         color: var(--cor-botao);
     }

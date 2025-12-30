@@ -1,4 +1,4 @@
-.top_container{
+.top_container {
     padding: var(--padding-base);
 }
 
@@ -26,21 +26,23 @@
     gap: 0.5rem;
     cursor: pointer;
     flex-wrap: wrap;
-    &:hover{
+
+    &:hover {
         scale: 1.1;
         transition: 0.6s;
     }
 }
 
-.container-titulo{
+.container-titulo {
     padding: 1rem 0;
     display: flex;
     justify-content: center;
     align-items: center;
 }
-.titulo{
-    background-image: radial-gradient(circle, gold,rgb(102, 87, 0));
-    font-family:'Montserrat';
+
+.titulo {
+    background-image: radial-gradient(circle, gold, rgb(102, 87, 0));
+    font-family: 'Montserrat';
     font-size: 3rem;
     font-weight: 700;
     background-clip: text;
@@ -58,10 +60,11 @@
     display: -webkit-box;
     -webkit-box-orient: vertical;
     line-height: 1.3;
-    max-height: 2.6em; /* 2 linhas * 1.3 line-height */
+    max-height: 2.6em;
+    /* 2 linhas * 1.3 line-height */
 }
 
-.media-id{
+.media-id {
     padding: 6px 10px;
     border-radius: 1rem;
     font-weight: bolder;
@@ -69,8 +72,8 @@
     white-space: nowrap;
 }
 
-.pos-id{
-    margin-left: 5px; 
+.pos-id {
+    margin-left: 5px;
     width: 24px;
     height: 24px;
     padding: 4px;
@@ -83,7 +86,7 @@
     flex-shrink: 0;
 }
 
-.categoria-id{
+.categoria-id {
     font-size: 10px;
     white-space: nowrap;
     padding: 4px 8px;
@@ -119,7 +122,7 @@
 }
 
 /* Estilos dos primeiros lugares (otimizados para mobile) */
-.top_list-item:nth-child(1) .pos-id{
+.top_list-item:nth-child(1) .pos-id {
     color: black;
     position: relative;
     width: 28px;
@@ -128,13 +131,13 @@
     font-weight: 600;
 }
 
-.top_list-item:nth-child(1){
+.top_list-item:nth-child(1) {
     color: black;
     border-radius: 1rem;
-    background-image: radial-gradient(circle,gold, rgb(143, 121, 0));
+    background-image: radial-gradient(circle, gold, rgb(143, 121, 0));
 }
 
-.top_list-item:nth-child(2) .pos-id{
+.top_list-item:nth-child(2) .pos-id {
     position: relative;
     color: black;
     width: 26px;
@@ -143,13 +146,13 @@
     font-weight: 600;
 }
 
-.top_list-item:nth-child(2){
+.top_list-item:nth-child(2) {
     color: black;
     border-radius: 1rem;
-    background-image: radial-gradient(circle,silver, rgb(97, 97, 97));
+    background-image: radial-gradient(circle, silver, rgb(97, 97, 97));
 }
 
-.top_list-item:nth-child(3) .pos-id{
+.top_list-item:nth-child(3) .pos-id {
     color: black;
     position: relative;
     width: 26px;
@@ -158,9 +161,9 @@
     font-weight: 600;
 }
 
-.top_list-item:nth-child(3){
+.top_list-item:nth-child(3) {
     color: black;
-    background-image: radial-gradient(circle,rgb(204, 123, 49),rgb(95, 58, 23));
+    background-image: radial-gradient(circle, rgb(204, 123, 49), rgb(95, 58, 23));
     border-radius: 1rem;
 }
 
@@ -171,45 +174,45 @@
     .top_container {
         padding: 1rem;
     }
-    
+
     .top_list {
         width: 100%;
         gap: 0.8rem;
     }
-    
+
     .top_list-item {
         padding: 10px 6px;
         gap: 0.4rem;
         min-height: 55px;
     }
-    
+
     .filme-id {
         font-size: 0.85rem;
         padding: 6px 10px;
         flex: 1 1 120px;
     }
-    
+
     .media-id {
         font-size: 0.8rem;
         padding: 5px 8px;
     }
-    
+
     .pos-id {
         width: 22px;
         height: 22px;
         font-size: 0.75rem;
         margin-left: 3px;
     }
-    
+
     .avaliadores-container {
         max-width: 100px;
     }
-    
+
     .avaliador-foto {
         width: 22px;
         height: 22px;
     }
-    
+
     .categoria-id {
         font-size: 9px;
         padding: 3px 6px;
@@ -221,11 +224,11 @@
     .top_container {
         padding: 0.5rem;
     }
-    
+
     .top_list {
         gap: 0.6rem;
     }
-    
+
     .top_list-item {
         padding: 8px 4px;
         gap: 0.3rem;
@@ -233,26 +236,26 @@
         flex-wrap: nowrap;
         overflow-x: auto;
     }
-    
+
     .filme-id {
         font-size: 0.8rem;
         padding: 5px 8px;
         flex: 1 1 100px;
         min-width: 80px;
     }
-    
+
     .media-id {
         font-size: 0.75rem;
         padding: 4px 6px;
     }
-    
+
     .pos-id {
         width: 20px;
         height: 20px;
         font-size: 0.7rem;
         margin-left: 2px;
     }
-    
+
     /* Ajustes específicos para os primeiros lugares em mobile muito pequeno */
     .top_list-item:nth-child(1) .pos-id,
     .top_list-item:nth-child(2) .pos-id,
@@ -261,27 +264,27 @@
         height: 22px;
         font-size: 0.8rem;
     }
-    
+
     .top_list-item:nth-child(1) .pos-id::after,
     .top_list-item:nth-child(2) .pos-id::after,
     .top_list-item:nth-child(3) .pos-id::after {
         left: -20px;
     }
-    
+
     .avaliadores-container {
         max-width: 80px;
     }
-    
+
     .avaliador-foto {
         width: 20px;
         height: 20px;
     }
-    
+
     .categoria-id {
         font-size: 8px;
         padding: 2px 4px;
     }
-    
+
     .filme-stats {
         gap: 5px;
     }
@@ -292,22 +295,22 @@
     .top_list-item {
         padding: 6px 3px;
     }
-    
+
     .filme-id {
         font-size: 0.75rem;
         padding: 4px 6px;
         flex: 1 1 80px;
     }
-    
+
     .media-id {
         font-size: 0.7rem;
         padding: 3px 5px;
     }
-    
+
     .avaliadores-container {
         max-width: 70px;
     }
-    
+
     .avaliador-foto {
         width: 18px;
         height: 18px;
@@ -323,24 +326,24 @@
         padding: 10px;
         gap: 0.5rem;
     }
-    
+
     .filme-id {
         order: 1;
         flex: none;
         width: 100%;
         text-align: center;
     }
-    
+
     .filme-stats {
         order: 2;
         justify-content: center;
         width: 100%;
     }
-    
+
     .categoria-id {
         order: 3;
     }
-    
+
     .pos-id {
         order: 0;
         align-self: flex-start;
@@ -353,7 +356,7 @@
         scale: 1;
         animation: none;
     }
-    
+
     .top_list-item:active {
         scale: 0.98;
         transition: scale 0.1s;

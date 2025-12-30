@@ -1,103 +1,91 @@
 <!DOCTYPE html>
 <html lang="pt-br">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Filmes</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap"
-      rel="stylesheet"
-    />
-    <link rel="stylesheet" href="reset.css" />
-    <link rel="shortcut icon" href="imagens/favicon.ico" type="image/x-icon" />
 
-    <!--Aqui esta configurado para app PWA-->
-    <link rel="manifest" href="/Testes/classificar/manifest.json" />
-    <meta name="theme-color" content="#000000" />
-  </head>
-  <body>
-    <header class="cabecalho">
-      <nav class="cabecalho_nav">
-        <ul class="cabecalho_nav-list">
-          <li class="cabecalho_nav-list_item">
-            <a href="index.html">Início</a>
-          </li>
-          <li class="cabecalho_nav-list_item">
-            <a href="filmes.html">Filmes</a>
-          </li>
-          <li class="cabecalho_nav-list_item"><a href="top.html">Top 10</a></li>
-        </ul>
-      </nav>
-    </header>
-    <section class="formulario">
-      <form action="#" id="formulario">
-        <div class="video_container">
-          <img id="perfil_video" />
-        </div>
-        <fieldset class="formulario_campo">
-          <legend>Nome</legend>
-          <select name="nome" id="nome-id">
-            <option value="" selected disabled></option>
-            <option value="Renan">Renan</option>
-            <option value="Bruna">Bruna</option>
-            <option value="Cauane">Cauane</option>
-            <option value="Fabio">Fabio</option>
-          </select>
-        </fieldset>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Filmes</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap"
+    rel="stylesheet" />
+  <link rel="stylesheet" href="reset.css" />
+  <link rel="shortcut icon" href="imagens/favicon.ico" type="image/x-icon" />
 
-        <fieldset>
-          <legend>Categoria</legend>
-          <select name="categoria" id="categoria-id">
-            <option value="" disabled selected></option>
-            <option value="Série">Série</option>
-            <option value="Filme">Filme</option>
-          </select>
-        </fieldset>
+  <!--Aqui esta configurado para app PWA-->
+  <link rel="manifest" href="/Testes/classificar/manifest.json" />
+  <meta name="theme-color" content="#000000" />
+</head>
 
-        <div class="formulario_campo" id="campo_filme">
-          <label for="filme">Filme ou Série</label> <br />
-          <input
-            type="text"
-            name="filme"
-            id="filme-id"
-            placeholder="Escolha um filme"
-            autocomplete="off"
-          />
-          <ul id="lista-sugestoes"></ul>
-        </div>
+<body>
+  <header class="cabecalho">
+    <nav class="cabecalho_nav">
+      <ul class="cabecalho_nav-list">
+        <li class="cabecalho_nav-list_item">
+          <a href="index.html">Início</a>
+        </li>
+        <li class="cabecalho_nav-list_item">
+          <a href="filmes.html">Filmes</a>
+        </li>
+        <li class="cabecalho_nav-list_item"><a href="top.html">Top 10</a></li>
+      </ul>
+    </nav>
+  </header>
+  <section class="formulario">
+    <form action="#" id="formulario">
+      <div class="video_container">
+        <img id="perfil_video" />
+      </div>
+      <fieldset class="formulario_campo">
+        <legend>Nome</legend>
+        <select name="nome" id="nome-id">
+          <option value="" selected disabled></option>
+          <option value="Renan">Renan</option>
+          <option value="Bruna">Bruna</option>
+          <option value="Cauane">Cauane</option>
+          <option value="Fabio">Fabio</option>
+        </select>
+      </fieldset>
 
-        <div class="formulario_campo" id="campo_nota">
-          <label for="nota">Nota</label> <br />
-          <input
-            type="number"
-            name="nota"
-            id="nota-id"
-            placeholder="Nota de 1 a 5"
-            inputmode="numeric"
-            min="1"
-            max="5"
-            pattern="[1-5]"
-          />
-        </div>
+      <fieldset>
+        <legend>Categoria</legend>
+        <select name="categoria" id="categoria-id">
+          <option value="" disabled selected></option>
+          <option value="Série">Série</option>
+          <option value="Filme">Filme</option>
+        </select>
+      </fieldset>
 
-        <div class="formulario_botoes">
-          <button id="enviar-id" class="botoes">Enviar</button>
-          <button id="limpar-id" class="botoes">Limpar</button>
-        </div>
-      </form>
-    </section>
-    <script type="module" src="scripts/firebaseConfig.js"></script>
-    <script type="module" src="scripts/addFilme.js"></script>
-    <script type="module" src="scripts/estiloCabecalho.js"></script>
-    <script>
-      if ("serviceWorker" in navigator) {
-        navigator.serviceWorker
-          .register("/Testes/classificar/service-worker.js")
-          .then((reg) => console.log("✅ Service Worker registrado!"))
-          .catch((err) => console.error("❌ Erro:", err));
-      }
-    </script>
-  </body>
+      <div class="formulario_campo" id="campo_filme">
+        <label for="filme">Filme ou Série</label> <br />
+        <input type="text" name="filme" id="filme-id" placeholder="Escolha um filme" autocomplete="off" />
+        <ul id="lista-sugestoes"></ul>
+      </div>
+
+      <div class="formulario_campo" id="campo_nota">
+        <label for="nota">Nota</label> <br />
+        <input type="number" name="nota" id="nota-id" placeholder="Nota de 1 a 5" inputmode="numeric" min="1" max="5"
+          pattern="[1-5]" />
+      </div>
+
+      <div class="formulario_botoes">
+        <button id="enviar-id" class="botoes">Enviar</button>
+        <button id="limpar-id" class="botoes">Limpar</button>
+      </div>
+    </form>
+  </section>
+  <script type="module" src="scripts/firebaseConfig.js"></script>
+  <script type="module" src="scripts/addFilme.js"></script>
+  <script type="module" src="scripts/estiloCabecalho.js"></script>
+  <script>
+    if ("serviceWorker" in navigator) {
+      navigator.serviceWorker
+        .register("/Testes/classificar/service-worker.js")
+        .then((reg) => console.log("✅ Service Worker registrado!"))
+        .catch((err) => console.error("❌ Erro:", err));
+    }
+  </script>
+</body>
+
 </html>

@@ -55,13 +55,13 @@ document.addEventListener("DOMContentLoaded", () => {
     // Calcula nova média
     const notas = Object.values(novasAvaliacoes);
     const media = notas.length ? (notas.reduce((a, b) => a + b, 0) / notas.length).toFixed(1) : "–";
-    
+
     // Atualiza elemento da média
     const mediaElement = card.querySelector('.titulo-media strong');
     if (mediaElement) {
       mediaElement.textContent = media;
     }
-    
+
     // Atualiza fotos dos avaliadores
     const avaliadoresHTML = Object.entries(novasAvaliacoes)
       .map(([a, n]) => `
@@ -69,7 +69,7 @@ document.addEventListener("DOMContentLoaded", () => {
           <img src="imagens/perfil_${a.toLowerCase()}.png" title="${a}: ${n}⭐" class="avaliador-foto">
         </div>`)
       .join("");
-    
+
     const avaliadoresContainer = card.querySelector('.avaliadores-container');
     if (avaliadoresContainer) {
       avaliadoresContainer.innerHTML = avaliadoresHTML || "<p class='sem-avaliacoes'>Nenhuma avaliação ainda</p>";
@@ -148,11 +148,11 @@ document.addEventListener("DOMContentLoaded", () => {
     const caixa = item.querySelector(".titulo_onde-escolhido");
     if (caixa) {
       switch (caixa.textContent.trim()) {
-        case "MUBI": caixa.style.backgroundColor = "#081ca9"; caixa.style.color = "white"; break; 
+        case "MUBI": caixa.style.backgroundColor = "#081ca9"; caixa.style.color = "white"; break;
         case "Disney Plus":
           caixa.textContent = "Disney+"
-          caixa.style.backgroundColor = "#062f41"; 
-          caixa.style.color = "white";     
+          caixa.style.backgroundColor = "#062f41";
+          caixa.style.color = "white";
           break;
         case "Amazon Prime Video":
           caixa.textContent = "Prime Video";
@@ -223,7 +223,7 @@ document.addEventListener("DOMContentLoaded", () => {
       if (change.type === "modified") {
         const index = todosFilmes.findIndex(f => f.id === docSnap.id);
         if (index !== -1) todosFilmes[index] = { id: docSnap.id, ...d };
-        
+
         const card = filmesContainer.querySelector(`.filmes_container-item[data-id="${docSnap.id}"]`);
         if (card) {
           // ✅ ATUALIZA APENAS O NECESSÁRIO - SEM REMOVER O CARD
@@ -308,10 +308,10 @@ document.addEventListener("DOMContentLoaded", () => {
       const generoOK = !generoSelecionado || f.genero === generoSelecionado;
       const categoriaOK = !categoriaSelecionada || f.categoria === categoriaSelecionada;
       const ondeOK = !ondeSelecionado || f.onde === ondeSelecionado;
-      
-      const buscaOK = !termoBusca || 
-      f.filme?.toLowerCase().includes(termoBusca) || 
-      f.nome?.toLowerCase().includes(termoBusca);
+
+      const buscaOK = !termoBusca ||
+        f.filme?.toLowerCase().includes(termoBusca) ||
+        f.nome?.toLowerCase().includes(termoBusca);
 
       return categoriaOK && generoOK && ondeOK && buscaOK;
     });
@@ -354,10 +354,10 @@ document.addEventListener("DOMContentLoaded", () => {
       const generoOK = !generoSelecionado || filme.genero === generoSelecionado;
       const categoriaOK = !categoriaSelecionada || filme.categoria === categoriaSelecionada;
       const ondeOK = !ondeSelecionado || filme.onde === ondeSelecionado;
-      
-      const buscaOK = !termoBusca || 
-          filme.filme?.toLowerCase().includes(termoBusca) || 
-          filme.nome?.toLowerCase().includes(termoBusca);
+
+      const buscaOK = !termoBusca ||
+        filme.filme?.toLowerCase().includes(termoBusca) ||
+        filme.nome?.toLowerCase().includes(termoBusca);
 
       return generoOK && categoriaOK && ondeOK && buscaOK;
     });
@@ -378,11 +378,11 @@ document.addEventListener("DOMContentLoaded", () => {
   // 🎯 Função para mostrar o resultado do sorteio no modal
   function mostrarResultadoSorteio(filme) {
     const resultadoDiv = document.getElementById("resultado-sorteio");
-    
+
     // Calcula a média das avaliações
     const notas = Object.values(filme.avaliacoes || {});
     const media = notas.length ? (notas.reduce((a, b) => a + b, 0) / notas.length).toFixed(1) : "Sem avaliações";
-    
+
     resultadoDiv.innerHTML = `
       <div class="filme-sorteado-info">
         <h3>${filme.filme}</h3>
@@ -395,7 +395,7 @@ document.addEventListener("DOMContentLoaded", () => {
         </div>
       </div>
     `;
-    
+
     modalSorteio.style.display = "flex";
   }
 

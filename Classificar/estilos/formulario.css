@@ -1,11 +1,12 @@
-.formulario{
+.formulario {
     padding: var(--padding-base);
 }
-#formulario{
+
+#formulario {
     position: absolute;
     top: 50%;
     left: 50%;
-    transform: translate(-50%,-50%);
+    transform: translate(-50%, -50%);
     min-width: 300px;
     max-width: 600px;
     width: 80%;
@@ -24,11 +25,12 @@
     gap: 1rem;
 }
 
-fieldset{
+fieldset {
     border: none;
 }
 
-input,select {
+input,
+select {
     width: 60%;
     border-radius: 1rem;
     border: 0;
@@ -38,7 +40,7 @@ input,select {
     outline: none;
 }
 
-#campo_filme{
+#campo_filme {
     position: relative;
 }
 
@@ -57,11 +59,12 @@ input,select {
     max-height: 200px;
     overflow-y: auto;
     width: 60%;
-    display: none; /* escondida até ter sugestões */
+    display: none;
+    /* escondida até ter sugestões */
     z-index: 1000;
 }
 
-::-webkit-scrollbar{
+::-webkit-scrollbar {
     width: 0;
 }
 
@@ -77,22 +80,22 @@ input,select {
 }
 
 
-.formulario_botoes button{
+.formulario_botoes button {
     margin: 0 10px;
 }
 
-.video_container{
+.video_container {
     margin: auto;
     width: 150px;
     height: 150px;
     border-radius: 50%;
-    box-shadow: inset 0 0 70px rgba(0, 0, 0, 0.329),2px 2px 2px rgba(0, 0, 0, 0.26),-2px -2px 2px rgba(255, 255, 255, 0.089);
+    box-shadow: inset 0 0 70px rgba(0, 0, 0, 0.329), 2px 2px 2px rgba(0, 0, 0, 0.26), -2px -2px 2px rgba(255, 255, 255, 0.089);
     background-color: #ffffff;
     display: flex;
     overflow: hidden;
 }
 
-#perfil_video{
+#perfil_video {
     width: 100%;
     height: 100%;
     transform: translateX(0);

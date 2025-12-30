@@ -75,12 +75,12 @@ document.addEventListener("DOMContentLoaded", () => {
       if (b.pesoRanking !== a.pesoRanking) {
         return b.pesoRanking - a.pesoRanking;
       }
-      
+
       // 2º Critério: Em caso de empate no peso, prioriza quem tem MAIS avaliações
       if (b.totalAvaliacoes !== a.totalAvaliacoes) {
         return b.totalAvaliacoes - a.totalAvaliacoes;
       }
-      
+
       // 3º Critério: Se ainda empatar, prioriza a MAIOR média
       return b.media - a.media;
     });

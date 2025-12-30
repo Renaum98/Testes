@@ -1,18 +1,27 @@
 /*filmes.css*/
 @keyframes transicao {
-    0%,100%{
+
+    0%,
+    100% {
         opacity: 0;
         scale: 0.7;
     }
-    45%,75%{
+
+    45%,
+    75% {
         scale: 1.0;
         opacity: 1;
     }
 }
 
-@keyframes glowing{
-   from{--angle:0deg}
-   to{--angle:360deg}
+@keyframes glowing {
+    from {
+        --angle: 0deg
+    }
+
+    to {
+        --angle: 360deg
+    }
 }
 
 @keyframes surgir {
@@ -20,6 +29,7 @@
         transform: scale(0) rotate(0deg);
         opacity: 0;
     }
+
     to {
         transform: scale(1) rotate(360deg);
         opacity: 1;
@@ -27,21 +37,23 @@
 }
 
 @keyframes rodar {
-    from{
+    from {
         rotate: 0deg;
     }
-    to{
+
+    to {
         rotate: 360deg;
     }
 }
 
 /*top.css*/
 
-@keyframes rotacao{
-    from{
+@keyframes rotacao {
+    from {
         rotate: 0;
     }
-    to{
+
+    to {
         rotate: 360deg;
     }
 }
