@@ -146,7 +146,7 @@ nomeSelect.addEventListener("change", async () => {
 
   // 3. 📥 PREPARA NOVA IMAGEM DE PERFIL
   const nome = nomeSelect.value.toLowerCase();
-  const novoSrc = `imagens/perfil-${nome}.gif`;
+  const novoSrc = `imagens/perfil-${nome}.png`;
   const novaImg = new Image(); // Cria objeto Image para preload
 
   // ✅ CALLBACK: QUANDO IMAGEM CARREGAR COM SUCESSO
