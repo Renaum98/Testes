@@ -1,6 +1,6 @@
-// ===========================================================
+
 // 🚀 CONFIGURAÇÃO DO FIREBASE (compartilhada entre as páginas)
-// ===========================================================
+
 
 // Importa a função para inicializar o aplicativo Firebase
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
@@ -19,9 +19,9 @@ import {
   serverTimestamp // gera automaticamente a data e hora do servidor
 } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
 
-// ===========================================================
+
 // 🔧 CONFIGURAÇÕES DE CONEXÃO COM O FIREBASE
-// ===========================================================
+
 
 // Objeto com as credenciais e identificadores do projeto Firebase
 const firebaseConfig = {
@@ -33,9 +33,9 @@ const firebaseConfig = {
   appId: "1:867531338215:web:8cebf9649b83651c6ecd42"         // identificador único da aplicação web
 };
 
-// ===========================================================
+
 // 🔥 INICIALIZAÇÃO DO FIREBASE E DO FIRESTORE
-// ===========================================================
+
 
 // Inicializa o app Firebase usando as configurações acima
 const app = initializeApp(firebaseConfig);
@@ -43,9 +43,9 @@ const app = initializeApp(firebaseConfig);
 // Cria uma instância do banco de dados Firestore associada ao app
 const db = getFirestore(app);
 
-// ===========================================================
+
 // 📦 EXPORTAÇÃO DOS MÓDULOS
-// ===========================================================
+
 
 // Exporta o banco (db) e as funções do Firestore para que
 // possam ser usadas em outros arquivos JavaScript do projeto

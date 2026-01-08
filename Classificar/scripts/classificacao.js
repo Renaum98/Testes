@@ -60,7 +60,7 @@ document.addEventListener("DOMContentLoaded", () => {
         genero: data.genero,
         categoria: data.categoria,
         onde: data.onde,
-        // 🔑 Peso combinado: média + bônus por quantidade de avaliações
+        // Peso combinado: média + bônus por quantidade de avaliações
         // Fórmula: média + (log(número_de_avaliações) * fator_importância)
         pesoRanking: media + (Math.log(notas.length) * 0.2)
       });
@@ -109,7 +109,7 @@ document.addEventListener("DOMContentLoaded", () => {
         return `
           <div class="avaliador">
             <img 
-              src="imagens/perfil_${avaliador.toLowerCase()}.png" 
+              src="imagens/perfil-${avaliador.toLowerCase()}.png" 
               title="${avaliador}: ${nota}⭐" 
               class="avaliador-foto"
             >

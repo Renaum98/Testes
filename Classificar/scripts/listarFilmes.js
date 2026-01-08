@@ -23,6 +23,10 @@ document.addEventListener("DOMContentLoaded", () => {
         <option value="Bruna">Bruna</option>
         <option value="Cauane">Cauane</option>
         <option value="Fabio">Fabio</option>
+        <option value="Henrique">Henrique</option>
+        <option value="Marcele">Marcele</option>
+        <option value="Ana">Ana</option>
+        <option value="Pablo">Pablo</option>
       </select>
 
       <label for="nota-avaliacao">Nota (1 a 5):</label>
@@ -66,7 +70,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const avaliadoresHTML = Object.entries(novasAvaliacoes)
       .map(([a, n]) => `
         <div class="avaliador">
-          <img src="imagens/perfil_${a.toLowerCase()}.png" title="${a}: ${n}⭐" class="avaliador-foto">
+          <img src="imagens/perfil-${a.toLowerCase()}.png" title="${a}: ${n}⭐" class="avaliador-foto">
         </div>`)
       .join("");
 
@@ -100,14 +104,14 @@ document.addEventListener("DOMContentLoaded", () => {
     const avaliadores = Object.entries(avaliacoes)
       .map(([a, n]) => `
         <div class="avaliador">
-          <img src="imagens/perfil_${a.toLowerCase()}.png" title="${a}: ${n}⭐" class="avaliador-foto">
+          <img src="imagens/perfil-${a.toLowerCase()}.png" title="${a}: ${n}⭐" class="avaliador-foto">
         </div>`)
       .join("");
 
     // HTML do card
     item.innerHTML = `
       <div class="filme_card-nome">
-        <img src="imagens/perfil_${nome.toLowerCase()}.png" width="30" class="imagem_perfil" alt="${nome}">
+        <img src="imagens/perfil-${nome.toLowerCase()}.png" width="30" class="imagem_perfil" alt="${nome}">
         <p class="titulo-usuario">${nome}</p>
       </div>
 
@@ -140,7 +144,7 @@ document.addEventListener("DOMContentLoaded", () => {
       </div>
 
       <div class="filme_card-acoes">
-        <button class="btn-excluir" title="Excluir">X</button>
+        <!--<button class="btn-excluir" title="Excluir">X</button>-->
         <button class="botoes btn-assisti">Assisti</button>
       </div>
     `;
@@ -181,9 +185,9 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     // Excluir
-    item.querySelector(".btn-excluir").addEventListener("click", async () => {
+    /*item.querySelector(".btn-excluir").addEventListener("click", async () => {
       if (confirm(`Excluir "${filme}"?`)) await deleteDoc(doc(db, "filmes", id));
-    });
+    });*/
 
     // Avaliar
     item.querySelector(".btn-assisti").addEventListener("click", () => {
@@ -219,14 +223,14 @@ document.addEventListener("DOMContentLoaded", () => {
         );
       }
 
-      // ✅ CORREÇÃO APLICADA: Atualiza apenas as avaliações sem remover o card
+      // Atualiza apenas as avaliações sem remover o card
       if (change.type === "modified") {
         const index = todosFilmes.findIndex(f => f.id === docSnap.id);
         if (index !== -1) todosFilmes[index] = { id: docSnap.id, ...d };
 
         const card = filmesContainer.querySelector(`.filmes_container-item[data-id="${docSnap.id}"]`);
         if (card) {
-          // ✅ ATUALIZA APENAS O NECESSÁRIO - SEM REMOVER O CARD
+          // ATUALIZA APENAS O NECESSÁRIO - SEM REMOVER O CARD
           atualizarAvaliacoesNoCard(card, d.avaliacoes || {});
         } else {
           // Caso raro: se o card não existir, cria um novo
@@ -266,7 +270,7 @@ document.addEventListener("DOMContentLoaded", () => {
     preencherFiltros([...generosSet], [...categoriasSet], [...ondeSet]);
   });
 
-  // 🧠 Preenche dinamicamente os selects de filtro
+  // Preenche dinamicamente os selects de filtro
   function preencherFiltros(generos, categorias, ondes) {
     filtroCategoria.innerHTML = `<option value="">Todas as Categorias</option>`;
     filtroGenero.innerHTML = `<option value="">Todos os Gêneros</option>`;
@@ -295,7 +299,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // 📋 Atualiza lista com base nos filtros
+  // Atualiza lista com base nos filtros
   function atualizarLista() {
     filmesContainer.innerHTML = "";
 
@@ -337,7 +341,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // 🎲 Função para sortear um filme
+  // Função para sortear um filme
   function sortearFilme() {
     if (todosFilmes.length === 0) {
       alert("Nenhum filme disponível para sortear!");

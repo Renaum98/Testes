@@ -1,11 +1,8 @@
-// ==========================================
 // 🔥 IMPORTAÇÕES DO FIREBASE
-// ==========================================
 import { db, collection, addDoc, serverTimestamp } from "./firebaseConfig.js";
 
-// ==========================================
 // 🔠 FUNÇÃO: CAPITALIZAR PALAVRAS
-// ==========================================
+
 /**
  * Converte uma string para formato de título (cada palavra com primeira letra maiúscula)
  * @param {string} texto - Texto a ser capitalizado
@@ -21,9 +18,9 @@ function capitalizarPalavras(texto) {
     .join(" ");                         // Junta tudo de volta em string
 }
 
-// ==========================================
+
 // 🎬 FUNÇÃO: BUSCAR SUGESTÕES NA API TMDB
-// ==========================================
+
 /**
  * Busca filmes ou séries na API TMDb baseado no termo de pesquisa
  * @param {string} query - Termo de busca (nome do filme/série)
@@ -52,9 +49,9 @@ async function buscarSugestoesTMDb(query, tipo = "movie") {
   }
 }
 
-// ==========================================
+
 // 📚 FUNÇÃO: BUSCAR DETALHES COMPLETOS NA TMDB
-// ==========================================
+
 /**
  * Busca informações detalhadas de um filme/série por ID
  * @param {number} id - ID do filme/série na API TMDb
@@ -111,9 +108,9 @@ async function buscarDetalhesTMDbPorId(id, tipo = "movie") {
   }
 }
 
-// ==========================================
+
 // 👤 SISTEMA DE TROCA DE PERFIL COM ANIMAÇÃO
-// ==========================================
+
 
 // 🎯 ELEMENTOS DO DOM
 const nomeSelect = document.getElementById("nome-id");
@@ -174,9 +171,9 @@ nomeSelect.addEventListener("change", async () => {
   novaImg.src = novoSrc;
 });
 
-// ==========================================
+
 // 🧠 INICIALIZAÇÃO PRINCIPAL DA APLICAÇÃO
-// ==========================================
+
 document.addEventListener("DOMContentLoaded", () => {
   // 📝 ELEMENTOS DO FORMULÁRIO
   const form = document.getElementById("formulario");
@@ -189,9 +186,9 @@ document.addEventListener("DOMContentLoaded", () => {
   let timeout = null;           // Para debounce das buscas
   let filmeSelecionado = null;  // Armazena filme escolhido das sugestões
 
-  // ==========================================
+
   // 🔍 SISTEMA DE AUTO-COMPLETE COM DEBOUNCE
-  // ==========================================
+
   inputFilme.addEventListener("input", () => {
     // 🚫 CANCELA BUSCA ANTERIOR SE USUÁRIO AINDA ESTIVER DIGITANDO
     clearTimeout(timeout);
@@ -255,9 +252,9 @@ document.addEventListener("DOMContentLoaded", () => {
     }, 400); // ⏱️ TEMPO DE DEBOUNCE: 400ms
   });
 
-  // ==========================================
+
   // 🎯 FECHAMENTO INTELIGENTE DA LISTA DE SUGESTÕES
-  // ==========================================
+
   document.addEventListener("click", (e) => {
     // 🚫 SE CLICOU EM QUALQUER LUGAR EXCETO NO CAMPO DE FILME, FECHA A LISTA
     if (e.target !== inputFilme) {
@@ -266,9 +263,9 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
-  // ==========================================
+
   // 🚀 PROCESSAMENTO DO ENVIO DO FORMULÁRIO
-  // ==========================================
+
   if (form) {
     form.addEventListener("submit", async (e) => {
       e.preventDefault(); // 🚫 IMPEDE COMPORTAMENTO PADRÃO (RECARREGAR PÁGINA)
@@ -339,9 +336,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // ==========================================
   // 🧹 SISTEMA DE LIMPEZA DO FORMULÁRIO
-  // ==========================================
   btnLimpar?.addEventListener("click", (e) => {
     e.preventDefault(); // 🚫 IMPEDE COMPORTAMENTO PADRÃO
 
