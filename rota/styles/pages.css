@@ -1,0 +1,60 @@
+/* Estilos específicos das páginas */
+
+/* Página de Rotas */
+.rotas-list {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.rota-card {
+    background: var(--cor-branco);
+    border-radius: var(--radius-medio);
+    padding: var(--espacamento-medio);
+    box-shadow: var(--sombra-pequena);
+}
+
+.rota-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.rota-data {
+    font-weight: 600;
+    color: var(--cor-texto);
+}
+
+.rota-valor {
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: var(--cor-sucesso);
+}
+
+.rota-info {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--espacamento-pequeno);
+    font-size: 0.9rem;
+    color: var(--cor-texto-secundario);
+    text-align: center; /* Centraliza o texto horizontalmente */
+    justify-items: center; /* Centraliza os itens horizontalmente na célula */
+    align-items: center; /* Centraliza os itens verticalmente na célula */
+}
+
+.info-item {
+    display: flex;
+    flex-direction: column;
+}
+
+.info-label {
+    font-size: 0.75rem;
+    color: var(--cor-texto-terciario);
+    margin-bottom: 2px;
+}
+
+.info-value {
+    font-weight: 600;
+    color: var(--cor-texto);
+}

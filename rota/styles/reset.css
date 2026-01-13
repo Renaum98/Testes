@@ -1,18 +1,24 @@
-*{
-    padding: 0;
+/* Reset CSS */
+* {
     margin: 0;
+    padding: 0;
     box-sizing: border-box;
 }
-body{
-    width: 100vw;
-    height: 100vh;
-    font-family: 'Montserrat',sans-serif;
+
+body {
+    font-family: 'Montserrat', sans-serif;
 }
-ul{
-    list-style-type: none;
+
+ul {
+    list-style: none;
 }
-a{
-    cursor: pointer;
-    color: black;
+
+a {
     text-decoration: none;
+}
+
+button {
+    font-family: 'Montserrat', sans-serif;
+    cursor: pointer;
+    border: none;
 }

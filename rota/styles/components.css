@@ -1,0 +1,365 @@
+/* Componentes Reutilizáveis */
+
+/* Cards */
+.card-inicio {
+    background: var(--cor-branco);
+    border-radius: var(--radius-grande);
+    padding: var(--espacamento-grande);
+    box-shadow: var(--sombra-grande);
+    margin-bottom: var(--espacamento-medio);
+}
+
+.card-inicio_titulo {
+    font-size: 1.2rem;
+    color: var(--cor-texto);
+    margin-bottom: var(--espacamento-medio);
+    font-weight: 500;
+}
+
+.card-inicio_registrar {
+    background: var(--gradiente-principal);
+    color: var(--cor-branco);
+    padding: var(--espacamento-medio);
+    border-radius: var(--radius-medio);
+    text-align: center;
+    font-weight: 600;
+    font-size: 1.1rem;
+    cursor: pointer;
+    transition: transform var(--transicao-rapida), box-shadow var(--transicao-rapida);
+}
+
+.card-inicio_registrar:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--sombra-media);
+}
+
+/* Rota Aberta */
+.card-inicio_rota-aberta {
+    margin-top: var(--espacamento-medio);
+    display: none;
+}
+
+.card-inicio_rota-aberta.active {
+    display: block;
+}
+
+.rota-aberta-info {
+    background: var(--cor-fundo-claro);
+    border-left: 4px solid var(--cor-primaria);
+    padding: var(--espacamento-medio);
+    border-radius: var(--radius-pequeno);
+    cursor: pointer;
+    transition: background var(--transicao-rapida);
+}
+
+.rota-aberta-info:hover {
+    background: var(--cor-fundo-secundario);
+}
+
+.rota-status {
+    display: flex;
+    align-items: center;
+    gap: var(--espacamento-pequeno);
+    margin-bottom: var(--espacamento-pequeno);
+}
+
+.status-indicator {
+    width: 12px;
+    height: 12px;
+    background: var(--cor-sucesso);
+    border-radius: 50%;
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+
+    0%,
+    100% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0.5;
+    }
+}
+
+.rota-detalhes {
+    font-size: 0.9rem;
+    color: var(--cor-texto-secundario);
+    line-height: 1.6;
+}
+
+/* Modal */
+.modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 2000;
+    align-items: center;
+    justify-content: center;
+    padding: var(--espacamento-medio);
+}
+
+.modal.active {
+    display: flex;
+}
+
+.modal-content {
+    background: var(--cor-branco);
+    border-radius: var(--radius-grande);
+    padding: var(--espacamento-grande);
+    max-width: 500px;
+    width: 100%;
+    max-height: 90vh;
+    overflow-y: auto;
+}
+
+.modal-header {
+    margin-bottom: 25px;
+}
+
+.modal-header h2 {
+    color: var(--cor-texto);
+    font-size: 1.5rem;
+}
+
+/* Formulários */
+.form-group {
+    margin-bottom: var(--espacamento-medio);
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 8px;
+    color: var(--cor-texto);
+    font-weight: 500;
+}
+
+.form-group input {
+    width: 100%;
+    padding: 12px;
+    border: 2px solid var(--cor-borda);
+    border-radius: var(--radius-pequeno);
+    font-size: 1rem;
+    font-family: 'Montserrat', sans-serif;
+    transition: border-color var(--transicao-rapida);
+}
+
+.form-group input:focus {
+    outline: none;
+    border-color: var(--cor-primaria);
+}
+
+.modal-actions {
+    display: flex;
+    gap: var(--espacamento-pequeno);
+    margin-top: 25px;
+}
+
+/* Botões */
+.btn {
+    flex: 1;
+    padding: 15px;
+    border-radius: var(--radius-pequeno);
+    font-size: 1rem;
+    font-weight: 600;
+    transition: transform var(--transicao-rapida), box-shadow var(--transicao-rapida);
+}
+
+.btn:hover {
+    transform: translateY(-2px);
+}
+
+.btn-primary {
+    background: var(--gradiente-principal);
+    color: var(--cor-branco);
+}
+
+.btn-secondary {
+    background: var(--cor-borda);
+    color: var(--cor-texto-secundario);
+}
+
+.btn-danger {
+    background: var(--cor-perigo);
+    color: var(--cor-branco);
+}
+
+.btn-success {
+    background: var(--cor-sucesso);
+    color: var(--cor-branco);
+}
+
+/* Empty State */
+.empty-state {
+    text-align: center;
+    padding: 60px var(--espacamento-medio);
+    color: var(--cor-branco);
+}
+
+.empty-state .material-symbols-outlined {
+    font-size: 80px;
+    opacity: 0.5;
+    margin-bottom: var(--espacamento-medio);
+}
+
+.empty-state p {
+    font-size: 1.1rem;
+    opacity: 0.8;
+}
+
+/* Estilos para o modal de veículo */
+.form-select {
+    width: 100%;
+    padding: 12px 15px;
+    border: 2px solid #e5e7eb;
+    border-radius: 10px;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 16px;
+    background-color: white;
+    margin-bottom: 15px;
+}
+
+.form-select:focus {
+    outline: none;
+    border-color: #667eea;
+}
+
+/* Badge do veículo atual */
+.veiculo-badge {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: #667eea;
+    color: white;
+    padding: 8px 15px;
+    border-radius: 20px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+    transition: all 0.3s ease;
+    z-index: 100;
+}
+
+.veiculo-badge:hover {
+    background: #5a67d8;
+    transform: translateY(-2px);
+}
+
+/* CONTAINER PRINCIPAL DO SWIPE */
+.rota-item-container {
+    position: relative;
+    overflow: hidden;
+    border-radius: 12px;
+    margin-bottom: 12px;
+    background: white;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    user-select: none;
+    touch-action: pan-y;
+}
+
+/* CONTEÚDO VISÍVEL DA ROTA */
+.rota-item-content {
+    background: white;
+    transition: transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    position: relative;
+    z-index: 2;
+}
+
+/* ÁREA DE AÇÃO DO SWIPE (ESCONDIDA À DIREITA) */
+.rota-swipe-action {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: 100px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transform: translateX(100%);
+    transition: transform 0.3s ease;
+    z-index: 1;
+}
+
+/* BOTÃO DE EXCLUIR (SWIPE) */
+.delete-action {
+    background: linear-gradient(135deg, #ef4444, #dc2626);
+}
+
+.btn-swipe-delete {
+    background: transparent;
+    border: none;
+    color: white;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    padding: 10px;
+    width: 100%;
+    height: 100%;
+    cursor: pointer;
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 600;
+    font-size: 14px;
+    transition: all 0.2s ease;
+}
+
+.btn-swipe-delete:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.btn-swipe-delete .material-symbols-outlined {
+    font-size: 24px;
+    margin-bottom: 2px;
+}
+
+/* EFEITOS DE SWIPE VISÍVEIS */
+.swipe-active .rota-item-content {
+    transform: translateX(-100px);
+}
+
+.swipe-active .rota-swipe-action {
+    transform: translateX(0);
+}
+
+/* INDICADOR VISUAL DE SWIPE */
+.swipe-hint {
+    position: absolute;
+    right: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #9ca3af;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    pointer-events: none;
+}
+
+.rota-item-container:hover .swipe-hint {
+    opacity: 0.6;
+}
+
+/* PARA DISPOSITIVOS MÓVEIS - MELHOR UX */
+@media (max-width: 768px) {
+    .rota-swipe-action {
+        width: 80px;
+    }
+    
+    .swipe-active .rota-item-content {
+        transform: translateX(-80px);
+    }
+    
+    .btn-swipe-delete {
+        font-size: 12px;
+        padding: 8px;
+    }
+    
+    .btn-swipe-delete .material-symbols-outlined {
+        font-size: 20px;
+    }
+}

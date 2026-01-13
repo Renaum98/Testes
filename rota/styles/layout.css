@@ -1,0 +1,75 @@
+/* Layout Principal */
+body {
+    background: var(--gradiente-principal);
+    min-height: 100vh;
+    padding-bottom: 80px;
+}
+
+.container {
+    max-width: 600px;
+    margin: 0 auto;
+    padding: var(--espacamento-medio);
+}
+
+.logo-site {
+    text-align: center;
+    padding: var(--espacamento-grande) var(--espacamento-medio);
+    color: var(--cor-branco);
+}
+
+.logo-site h1 {
+    font-size: 2.5rem;
+    font-weight: 700;
+    text-shadow: var(--sombra-texto);
+}
+
+/* Sistema de Páginas */
+.page {
+    display: none;
+}
+
+.page.active {
+    display: block;
+}
+
+/* Menu Fixo */
+.footer-menu {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: var(--cor-branco);
+    box-shadow: var(--sombra-menu);
+    z-index: 1000;
+    border-radius: 20px 20px 0 0;
+}
+
+.footer-menu_list {
+    display: flex;
+    justify-content: space-around;
+    padding: var(--espacamento-pequeno) 0;
+}
+
+.footer-menu_item {
+    flex: 1;
+}
+
+.menu-item_link {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+    color: var(--cor-texto-secundario);
+    padding: var(--espacamento-pequeno);
+    transition: color var(--transicao-rapida);
+    font-size: 0.85rem;
+}
+
+.menu-item_link.active,
+.menu-item_link:hover {
+    color: var(--cor-primaria);
+}
+
+.menu-item_link .material-symbols-outlined {
+    font-size: 28px;
+}
