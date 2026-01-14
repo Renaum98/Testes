@@ -1,9 +1,16 @@
 <!DOCTYPE html>
-<html lang="pt-br">
+<html lang="pt-BR">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="Sistema de gerenciamento de rotas para entregadores"
+    />
+    <meta name="theme-color" content="#667eea" />
     <title>RotaTrack - Gerenciador de Rotas</title>
+
+    <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -14,17 +21,42 @@
       rel="stylesheet"
       href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200"
     />
+
+    <!-- Styles -->
     <link rel="stylesheet" href="styles/reset.css" />
     <link rel="stylesheet" href="styles/variables.css" />
     <link rel="stylesheet" href="styles/layout.css" />
     <link rel="stylesheet" href="styles/components.css" />
     <link rel="stylesheet" href="styles/pages.css" />
 
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    <!-- Firebase Scripts -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore-compat.js"></script>
+
+    <!-- Firebase Config -->
+    <script src="scripts/firebase-config.js"></script>
+
+    <!-- Validação de Autenticação -->
+    <script>
+      // Verificar se o usuário está autenticado
+      document.addEventListener("DOMContentLoaded", function () {
+        firebase.auth().onAuthStateChanged(function (user) {
+          if (!user) {
+            // Usuário não está autenticado, redireciona para login
+            window.location.href = "/login.html";
+          } else {
+            // Usuário autenticado, pode exibir a página
+            console.log("Usuário autenticado:", user.email);
+            document.body.style.display = "block";
+          }
+        });
+      });
+    </script>
   </head>
 
-  <body>
+  <body style="display: none">
+    <!-- Página Inicial -->
     <div id="page-inicio" class="page active">
       <div class="logo-site">
         <h1>RotaTrack</h1>
@@ -50,6 +82,7 @@
       </div>
     </div>
 
+    <!-- Página de Rotas -->
     <div id="page-rotas" class="page">
       <div class="logo-site">
         <h1>Histórico de Rotas</h1>
@@ -64,6 +97,7 @@
       </div>
     </div>
 
+    <!-- Modal Iniciar Rota -->
     <div class="modal" id="modalIniciarRota">
       <div class="modal-content">
         <div class="modal-header">
@@ -78,6 +112,7 @@
               step="0.1"
               required
               placeholder="Ex: 12345.5"
+              aria-required="true"
             />
           </div>
           <div class="modal-actions">
@@ -94,6 +129,7 @@
       </div>
     </div>
 
+    <!-- Modal Encerrar Rota -->
     <div class="modal" id="modalEncerrarRota">
       <div class="modal-content">
         <div class="modal-header">
@@ -108,6 +144,7 @@
               step="0.1"
               required
               placeholder="Ex: 12400.0"
+              aria-required="true"
             />
           </div>
           <div class="form-group">
@@ -118,6 +155,7 @@
               step="0.01"
               required
               placeholder="Ex: 150.00"
+              aria-required="true"
             />
           </div>
           <div class="modal-actions">
@@ -129,6 +167,7 @@
         </form>
       </div>
     </div>
+
     <!-- Modal Seleção de Veículo -->
     <div class="modal" id="modalSelecionarVeiculo">
       <div class="modal-content" style="max-width: 400px">
@@ -137,7 +176,7 @@
         </div>
         <div class="form-group">
           <label for="tipoVeiculo">Tipo de Veículo</label>
-          <select id="tipoVeiculo" class="form-select">
+          <select id="tipoVeiculo" class="form-select" aria-required="true">
             <option value="">Selecione uma opção</option>
             <option value="moto_125">Moto 125cc (40 km/L)</option>
             <option value="moto_250">Moto 250cc (30 km/L)</option>
@@ -150,15 +189,15 @@
           </select>
         </div>
 
-        <!-- Campo para consumo personalizado (inicialmente escondido) -->
+        <!-- Campo para consumo personalizado -->
         <div
           class="form-group"
           id="campoConsumoPersonalizado"
           style="display: none"
         >
-          <label for="consumoPersonalizado"
-            >Consumo do seu veículo (km/L)</label
-          >
+          <label for="consumoPersonalizado">
+            Consumo do seu veículo (km/L)
+          </label>
           <input
             type="number"
             id="consumoPersonalizado"
@@ -176,23 +215,22 @@
         </div>
       </div>
     </div>
-    <div style="position: fixed; top: 0; right: 0; z-index: 100">
+
+    <!-- Botão Alterar Veículo -->
+    <div class="header-actions">
       <button
         id="btnAlterarVeiculo"
-        style="
-          background: #667eea;
-          color: white;
-          border: none;
-          padding: 8px 12px;
-          border-radius: 0 0 0 20px;
-          font-size: 12px;
-          cursor: pointer;
-        "
+        class="btn-alterar-veiculo"
+        title="Alterar Veículo"
       >
         Alterar Veículo
       </button>
+      <button id="btnLogout" class="btn-logout" title="Sair">
+        <span class="material-symbols-outlined">logout</span>
+      </button>
     </div>
 
+    <!-- Menu Footer -->
     <div class="footer-menu">
       <ul class="footer-menu_list">
         <li class="footer-menu_item">
@@ -210,7 +248,7 @@
       </ul>
     </div>
 
-    <script src="scripts/firebase-config.js"></script>
+    <!-- App Scripts -->
     <script src="scripts/app-firebase.js"></script>
   </body>
 </html>

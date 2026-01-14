@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Acesso ao sistema RotaTrack" />
+    <meta name="theme-color" content="#667eea" />
+    <title>Login - RotaTrack</title>
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="styles/reset.css" />
+    <link rel="stylesheet" href="styles/variables.css" />
+    <link rel="stylesheet" href="styles/layout.css" />
+    <link rel="stylesheet" href="styles/components.css" />
+    <link rel="stylesheet" href="styles/pages.css" />
+    <link rel="stylesheet" href="styles/login.css" />
+  </head>
+
+  <body class="login-page">
+    <!-- Logo/Título -->
+    <header class="login-header">
+      <h1 class="logo">RotaTrack</h1>
+    </header>
+
+    <!-- Container de Login -->
+    <main class="login-container">
+      <div class="login-box">
+        <h2>Acesso ao sistema</h2>
+
+        <form id="loginForm" novalidate>
+          <div class="input-group">
+            <label for="email" class="sr-only">Email</label>
+            <input
+              id="email"
+              type="email"
+              placeholder="Email"
+              autocomplete="email"
+              required
+              aria-required="true"
+            />
+          </div>
+
+          <div class="input-group">
+            <label for="senha" class="sr-only">Senha</label>
+            <input
+              id="senha"
+              type="password"
+              placeholder="Senha"
+              autocomplete="current-password"
+              required
+              aria-required="true"
+            />
+          </div>
+
+          <button type="submit" id="btnLogin">Entrar</button>
+
+          <p
+            id="loginErro"
+            class="error-message"
+            role="alert"
+            aria-live="polite"
+          ></p>
+        </form>
+      </div>
+    </main>
+
+    <!-- Firebase Scripts (ORDEM CORRETA PARA VERSÃO COMPAT) -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore-compat.js"></script>
+
+    <!-- Firebase Config DEVE vir DEPOIS dos SDKs -->
+    <script src="scripts/firebase-config.js"></script>
+
+    <!-- App Scripts -->
+    <script src="scripts/login.js"></script>
+
+    <!-- Validação de usuário (ATUALIZADA) -->
+    <script>
+      // Aguardar o carregamento do Firebase
+      document.addEventListener("DOMContentLoaded", function () {
+        // Verificar se Firebase foi carregado
+        function verificarFirebase() {
+          if (typeof firebase !== "undefined" && window.firebaseDb) {
+            console.log("Firebase carregado, verificando autenticação...");
+
+            // Verifica se já está autenticado
+            window.firebaseDb
+              .validarUsuario()
+              .then((user) => {
+                console.log("Usuário já autenticado:", user.email);
+                // Usuário já autenticado, redireciona para página principal
+                window.location.href = "/";
+              })
+              .catch((error) => {
+                console.log("Usuário não autenticado ou erro:", error);
+                // Não autenticado, permanece na página de login
+              });
+          } else {
+            // Tentar novamente após 500ms
+            console.log("Aguardando Firebase...");
+            setTimeout(verificarFirebase, 500);
+          }
+        }
+
+        // Iniciar verificação
+        verificarFirebase();
+
+        // Timeout após 10 segundos
+        setTimeout(() => {
+          if (!window.firebaseDb) {
+            console.error("Firebase não carregou após 10 segundos");
+            document.getElementById("loginErro").textContent =
+              "Erro ao carregar o sistema. Recarregue a página.";
+            document.getElementById("loginErro").style.display = "block";
+          }
+        }, 10000);
+      });
+    </script>
+  </body>
+</html>

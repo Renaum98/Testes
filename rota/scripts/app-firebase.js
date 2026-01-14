@@ -1,3 +1,6 @@
+// ============================================
+// VARIÁVEIS GLOBAIS
+// ============================================
 let rotaAtual = null;
 let rotas = [];
 let db = null;
@@ -27,65 +30,145 @@ const CONSUMO_VEICULOS = {
   personalizado: null, // Será definido pelo usuário
 };
 
+// ============================================
+// FUNÇÃO PRINCIPAL DE INICIALIZAÇÃO
+// ============================================
 function inicializarApp() {
-  if (!window.firebaseDb || !window.firebaseDb.db) {
-    mostrarNotificacao("Erro: Firebase não configurado!", "error");
+  console.log("Inicializando aplicação...");
+
+  // Verificar se estamos na página de login
+  if (window.location.pathname.includes("login.html")) {
     return;
   }
 
+  // Verificar se Firebase está configurado
+  if (!window.firebaseDb || !window.firebaseDb.db) {
+    console.error("Firebase não configurado corretamente");
+    mostrarNotificacao(
+      "Firebase não configurado. Usando modo offline.",
+      "warning"
+    );
+
+    // Inicializar modo offline
+    inicializarModoOffline();
+    return;
+  }
+
+  // Configurar db global
   db = window.firebaseDb;
 
+  console.log("Firebase configurado, inicializando...");
+
+  // Inicializar configurações
   inicializarConfiguracaoVeiculo();
   atualizarExibicaoVeiculo();
-
-  // Depois configurar o resto
   configurarEventListeners();
+
+  // Carregar dados
   carregarDados();
 
+  // Configurar atualização periódica
   setInterval(() => {
     if (rotaAtual) {
       atualizarRotaAberta();
     }
   }, 60000);
+
+  console.log("Aplicação inicializada com sucesso");
 }
 
+// ============================================
+// FUNÇÃO DE INICIALIZAÇÃO OFFLINE
+// ============================================
+function inicializarModoOffline() {
+  console.log("Iniciando modo offline...");
+  inicializarConfiguracaoVeiculo();
+  atualizarExibicaoVeiculo();
+  configurarEventListeners();
+  carregarDadosLocal();
+}
+
+// ============================================
+// CARREGAMENTO DE DADOS
+// ============================================
+// Na função carregarDados():
 async function carregarDados() {
   try {
-    const rotaAtualSnapshot = await db.rotaAtual.get();
+    console.log(
+      "Carregando dados do Firebase para usuário:",
+      db.getCurrentUser()?.uid
+    );
+
+    // Atualizar último acesso
+    await db.atualizarAcesso();
+
+    // Carregar rota atual
+    const rotaAtualSnapshot = await db.sistema.rotaAtual.get();
 
     if (rotaAtualSnapshot.exists) {
       rotaAtual = rotaAtualSnapshot.data();
+      console.log("Rota atual encontrada");
       atualizarRotaAberta();
+    } else {
+      console.log("Nenhuma rota atual encontrada");
     }
 
+    // Carregar histórico de rotas
     const rotasSnapshot = await db.rotas.get();
     rotas = [];
 
     rotasSnapshot.forEach((doc) => {
+      const data = doc.data();
       rotas.push({
         id: doc.id,
-        ...doc.data(),
-        horarioFim: doc.data().horarioFim || new Date().toISOString(),
+        ...data,
+        // Converter timestamps do Firestore
+        horarioFim: data.horarioFim
+          ? data.horarioFim.toDate
+            ? data.horarioFim.toDate().toISOString()
+            : data.horarioFim
+          : new Date().toISOString(),
+        horarioInicio: data.horarioInicio
+          ? data.horarioInicio.toDate
+            ? data.horarioInicio.toDate().toISOString()
+            : data.horarioInicio
+          : new Date().toISOString(),
       });
     });
 
-    rotas.sort((a, b) => new Date(b.horarioFim) - new Date(a.horarioFim));
+    console.log(`${rotas.length} rotas carregadas`);
+    rotas.sort(
+      (a, b) =>
+        new Date(b.horarioFim || b.horarioInicio) -
+        new Date(a.horarioFim || a.horarioInicio)
+    );
     atualizarListaRotas();
   } catch (error) {
-    mostrarNotificacao("Erro ao carregar dados", "error");
+    console.error("Erro ao carregar dados:", error);
+    mostrarNotificacao("Usando dados locais", "info");
     carregarDadosLocal();
   }
 }
 
+// ============================================
+// FUNÇÕES DE PERSISTÊNCIA
+// ============================================
 async function salvarRotaAtual() {
   try {
-    if (rotaAtual) {
-      await db.rotaAtual.set(rotaAtual, { merge: true });
+    if (rotaAtual && db) {
+      await db.sistema.rotaAtual.set(rotaAtual, { merge: true });
+      console.log("Rota atual salva no Firebase");
+    } else if (rotaAtual) {
+      localStorage.setItem("rotaAtual", JSON.stringify(rotaAtual));
+      console.log("Rota atual salva localmente");
     } else {
-      await db.rotaAtual.delete();
+      if (db) {
+        await db.sistema.rotaAtual.delete();
+      }
+      localStorage.removeItem("rotaAtual");
     }
-    localStorage.setItem("rotaAtual", JSON.stringify(rotaAtual));
   } catch (error) {
+    console.error("Erro ao salvar rota atual:", error);
     localStorage.setItem("rotaAtual", JSON.stringify(rotaAtual));
   }
 }
@@ -98,19 +181,41 @@ async function salvarRotaFinalizada(rota) {
       ...rota,
       kmPercorridos: rota.kmFinal - rota.kmInicial,
       status: "finalizada",
-      horarioFim: rota.horarioFim || new Date().toISOString(),
+      horarioInicio: firebase.firestore.Timestamp.fromDate(
+        new Date(rota.horarioInicio)
+      ),
+      horarioFim: firebase.firestore.Timestamp.fromDate(new Date()),
+      timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+      userId: window.firebaseDb.auth.currentUser?.uid || "offline",
     };
 
+    delete rotaParaSalvar.id;
+
+    // Salvar usando a nova estrutura
     await db.rotas.doc(docId).set(rotaParaSalvar);
+    console.log("Rota salva no Firebase");
     mostrarNotificacao("Rota salva com sucesso!", "success");
+
+    // Remover rota atual
+    await db.sistema.rotaAtual.delete();
   } catch (error) {
-    mostrarNotificacao("Erro ao salvar rota", "error");
+    console.error("Erro ao salvar rota:", error);
+    mostrarNotificacao("Salvando localmente...", "info");
+
+    // Salvar localmente
     const rotasLocais = JSON.parse(localStorage.getItem("rotas") || "[]");
     rotasLocais.unshift(rota);
     localStorage.setItem("rotas", JSON.stringify(rotasLocais));
+
+    localStorage.removeItem("rotaAtual");
+
+    mostrarNotificacao("Rota salva localmente!", "success");
   }
 }
 
+// ============================================
+// FUNÇÕES DE INTERFACE - MODAIS
+// ============================================
 function abrirModalIniciarRota() {
   if (rotaAtual) {
     mostrarNotificacao("Você já tem uma rota em andamento!", "info");
@@ -131,9 +236,13 @@ function fecharModal(modalId) {
   document.getElementById(modalId).classList.remove("active");
 }
 
+// ============================================
+// FUNÇÕES DE NAVEGAÇÃO
+// ============================================
 function mudarPagina(event, pagina) {
   event.preventDefault();
 
+  // Atualizar páginas
   document
     .querySelectorAll(".page")
     .forEach((p) => p.classList.remove("active"));
@@ -144,11 +253,15 @@ function mudarPagina(event, pagina) {
   document.getElementById("page-" + pagina).classList.add("active");
   event.currentTarget.classList.add("active");
 
+  // Se for para a página de rotas, recarregar dados
   if (pagina === "rotas") {
     carregarDados();
   }
 }
 
+// ============================================
+// FUNÇÕES DE ROTA
+// ============================================
 async function iniciarRota(event) {
   event.preventDefault();
 
@@ -164,6 +277,7 @@ async function iniciarRota(event) {
     kmInicial: kmInicial,
     horarioInicio: new Date().toISOString(),
     status: "aberta",
+    userId: window.firebaseDb.auth.currentUser?.uid || "offline",
   };
 
   await salvarRotaAtual();
@@ -172,33 +286,6 @@ async function iniciarRota(event) {
   document.getElementById("formIniciarRota").reset();
 
   mostrarNotificacao("Rota iniciada com sucesso!", "success");
-}
-
-function atualizarRotaAberta() {
-  const container = document.getElementById("rotaAbertaContainer");
-  const detalhes = document.getElementById("detalhesRotaAberta");
-
-  if (rotaAtual) {
-    const inicio = new Date(rotaAtual.horarioInicio);
-    const agora = new Date();
-    const duracao = Math.floor((agora - inicio) / 60000);
-
-    detalhes.innerHTML = `
-            <div><strong>Início:</strong> ${inicio.toLocaleTimeString(
-              "pt-BR"
-            )}</div>
-            <div><strong>KM Inicial:</strong> ${rotaAtual.kmInicial.toFixed(
-              1
-            )} km</div>
-            <div><strong>Duração:</strong> ${Math.floor(duracao / 60)}h ${
-      duracao % 60
-    }min</div>
-        `;
-
-    container.classList.add("active");
-  } else {
-    container.classList.remove("active");
-  }
 }
 
 async function encerrarRota(event) {
@@ -227,9 +314,10 @@ async function encerrarRota(event) {
     return;
   }
 
-  // CALCULAR CUSTOS COM GASOLINA (usando o veículo selecionado)
+  // Calcular custos
   const kmPercorridos = kmFinal - rotaAtual.kmInicial;
   const custoGasolina = calcularCustoGasolina(kmPercorridos);
+  const lucroLiquido = valorRota - custoGasolina;
 
   const rotaFinalizada = {
     ...rotaAtual,
@@ -238,8 +326,9 @@ async function encerrarRota(event) {
     horarioFim: new Date().toISOString(),
     kmPercorridos: kmPercorridos,
     custoGasolina: custoGasolina,
-    veiculoUtilizado: veiculoSelecionado.tipo, // Salvar qual veículo foi usado
-    consumoUtilizado: veiculoSelecionado.consumo, // Salvar o consumo usado
+    lucroLiquido: lucroLiquido,
+    veiculoUtilizado: veiculoSelecionado.tipo,
+    consumoUtilizado: veiculoSelecionado.consumo,
     status: "finalizada",
   };
 
@@ -253,8 +342,15 @@ async function encerrarRota(event) {
   fecharModal("modalEncerrarRota");
   document.getElementById("formEncerrarRota").reset();
 
-  // Mostrar resumo detalhado
-  const lucroLiquido = valorRota - custoGasolina;
+  // Mostrar resumo
+  mostrarNotificacao(
+    `Rota finalizada! Lucro: R$ ${lucroLiquido.toFixed(
+      2
+    )} (Bruto: R$ ${valorRota.toFixed(
+      2
+    )} - Combustível: R$ ${custoGasolina.toFixed(2)})`,
+    "success"
+  );
 }
 
 async function cancelarRota() {
@@ -265,6 +361,34 @@ async function cancelarRota() {
   atualizarRotaAberta();
   fecharModal("modalEncerrarRota");
   mostrarNotificacao("Rota cancelada", "info");
+}
+
+// ============================================
+// FUNÇÕES DE ATUALIZAÇÃO DA INTERFACE
+// ============================================
+function atualizarRotaAberta() {
+  const container = document.getElementById("rotaAbertaContainer");
+  const detalhes = document.getElementById("detalhesRotaAberta");
+
+  if (rotaAtual) {
+    const inicio = new Date(rotaAtual.horarioInicio);
+    const agora = new Date();
+    const duracao = Math.floor((agora - inicio) / 60000);
+
+    detalhes.innerHTML = `
+      <div><strong>Início:</strong> ${inicio.toLocaleTimeString("pt-BR")}</div>
+      <div><strong>KM Inicial:</strong> ${rotaAtual.kmInicial.toFixed(
+        1
+      )} km</div>
+      <div><strong>Duração:</strong> ${Math.floor(duracao / 60)}h ${
+      duracao % 60
+    }min</div>
+    `;
+
+    container.classList.add("active");
+  } else {
+    container.classList.remove("active");
+  }
 }
 
 function atualizarListaRotas() {
@@ -285,56 +409,59 @@ function atualizarListaRotas() {
       const fim = new Date(rota.horarioFim);
       const duracao = Math.floor((fim - inicio) / 60000);
       const custoGasolina = rota.custoGasolina || 0;
-      const lucroLiquido = rota.valor - custoGasolina;
+      const lucroLiquido = rota.lucroLiquido || rota.valor - custoGasolina;
 
       return `
-            <div class="rota-item-container" data-rota-id="${rota.id}">
-                <div class="rota-item-content">
-                    <div class="rota-card">
-                        <div class="rota-card-header">
-                            <div class="rota-data">${inicio.toLocaleDateString(
-                              "pt-BR"
-                            )}</div>
-                            <div class="rota-valor">R$ ${
-                              rota.valor?.toFixed(2) || "0.00"
-                            }</div>
-                        </div>
-                        <div class="rota-info">
-                            <div class="info-item">
-                                <span class="info-label">Horário</span>
-                                <span class="info-value">${inicio.toLocaleTimeString(
-                                  "pt-BR",
-                                  { hour: "2-digit", minute: "2-digit" }
-                                )} - ${fim.toLocaleTimeString("pt-BR", {
-        hour: "2-digit",
-        minute: "2-digit",
-      })}</span>
-                            </div>
-                            <div class="info-item">
-                                <span class="info-label">KM Percorridos</span>
-                                <span class="info-value">${
-                                  rota.kmPercorridos?.toFixed(1) || "0.0"
-                                } km</span>
-                            </div>
-                            <div class="info-item">
-                                <span class="info-label">Lucro Líquido</span>
-                                <span class="info-value" style="color: #10b981; font-weight: 600;">R$ ${lucroLiquido.toFixed(
-                                  2
-                                )}</span>
-                            </div>
-                        </div>
-                    </div>
+        <div class="rota-item-container" data-rota-id="${rota.id}">
+          <div class="rota-item-content">
+            <div class="rota-card">
+              <div class="rota-card-header">
+                <div class="rota-data">${inicio.toLocaleDateString(
+                  "pt-BR"
+                )}</div>
+                <div class="rota-valor">R$ ${
+                  rota.valor?.toFixed(2) || "0.00"
+                }</div>
+              </div>
+              <div class="rota-info">
+                <div class="info-item">
+                  <span class="info-label">Horário</span>
+                  <span class="info-value">
+                    ${inicio.toLocaleTimeString("pt-BR", {
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })} - 
+                    ${fim.toLocaleTimeString("pt-BR", {
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })}
+                  </span>
                 </div>
-                
-                <!-- ÁREA DE SWIPE (EXCLUIR) -->
-                <div class="rota-swipe-action delete-action">
-                    <button class="btn-swipe-delete" data-id="${rota.id}">
-                        <span class="material-symbols-outlined">delete</span>
-                        <span>Excluir</span>
-                    </button>
+                <div class="info-item">
+                  <span class="info-label">KM Percorridos</span>
+                  <span class="info-value">${
+                    rota.kmPercorridos?.toFixed(1) || "0.0"
+                  } km</span>
                 </div>
+                <div class="info-item">
+                  <span class="info-label">Lucro Líquido</span>
+                  <span class="info-value" style="color: #10b981; font-weight: 600;">
+                    R$ ${lucroLiquido.toFixed(2)}
+                  </span>
+                </div>
+              </div>
             </div>
-        `;
+          </div>
+          
+          <!-- ÁREA DE SWIPE (EXCLUIR) -->
+          <div class="rota-swipe-action delete-action">
+            <button class="btn-swipe-delete" data-id="${rota.id}">
+              <span class="material-symbols-outlined">delete</span>
+              <span>Excluir</span>
+            </button>
+          </div>
+        </div>
+      `;
     })
     .join("");
 
@@ -342,207 +469,23 @@ function atualizarListaRotas() {
   configurarSwipeActions();
 }
 
-async function excluirRota(rotaId) {
-  if (
-    !confirm(
-      "Tem certeza que deseja excluir esta rota?\nEsta ação não pode ser desfeita."
-    )
-  ) {
-    resetarSwipe(); // Fecha o swipe se cancelar
-    return;
-  }
-
-  try {
-    const itemContainer = document.querySelector(
-      `.rota-item-container[data-rota-id="${rotaId}"]`
-    );
-
-    // Animação de exclusão
-    if (itemContainer) {
-      itemContainer.style.transition = "all 0.3s ease";
-      itemContainer.style.transform = "translateX(-100%)";
-      itemContainer.style.opacity = "0";
-      itemContainer.style.height = "0";
-      itemContainer.style.margin = "0";
-      itemContainer.style.padding = "0";
-
-      // Aguardar animação antes de remover
-      setTimeout(async () => {
-        // 1. Excluir do Firebase
-        await db.rotas.doc(rotaId.toString()).delete();
-
-        // 2. Excluir do array local
-        rotas = rotas.filter(
-          (rota) => rota.id.toString() !== rotaId.toString()
-        );
-
-        // 3. Excluir do localStorage
-        const rotasLocais = JSON.parse(localStorage.getItem("rotas") || "[]");
-        const novasRotasLocais = rotasLocais.filter(
-          (rota) => rota.id.toString() !== rotaId.toString()
-        );
-        localStorage.setItem("rotas", JSON.stringify(novasRotasLocais));
-
-        // 4. Remover do DOM
-        itemContainer.remove();
-
-        // 5. Verificar se lista ficou vazia
-        if (rotas.length === 0) {
-          document.getElementById("emptyState").style.display = "block";
-        }
-
-        mostrarNotificacao("✓ Rota excluída com sucesso!", "success");
-      }, 300);
-    } else {
-      // Fallback se não encontrar o elemento
-      await db.rotas.doc(rotaId.toString()).delete();
-      rotas = rotas.filter((rota) => rota.id.toString() !== rotaId.toString());
-      atualizarListaRotas();
-      mostrarNotificacao("Rota excluída com sucesso!", "success");
-    }
-  } catch (error) {
-    console.error("Erro ao excluir rota:", error);
-    mostrarNotificacao("Erro ao excluir rota", "error");
-  }
-}
-
-function carregarDadosLocal() {
-  const rotaAtualSalva = localStorage.getItem("rotaAtual");
-  const rotasSalvas = localStorage.getItem("rotas");
-
-  if (rotaAtualSalva) {
-    rotaAtual = JSON.parse(rotaAtualSalva);
-    atualizarRotaAberta();
-  }
-
-  if (rotasSalvas) {
-    rotas = JSON.parse(rotasSalvas);
-    atualizarListaRotas();
-  }
-}
-
-function configurarEventListeners() {
-  const btnRegistrar = document.getElementById("btnRegistrarRota");
-  if (btnRegistrar) {
-    btnRegistrar.addEventListener("click", abrirModalIniciarRota);
-  }
-
-  const btnRotaAberta = document.getElementById("btnRotaAberta");
-  if (btnRotaAberta) {
-    btnRotaAberta.addEventListener("click", abrirModalEncerrarRota);
-  }
-
-  document.querySelectorAll(".menu-item_link").forEach((link) => {
-    const pagina = link.getAttribute("data-pagina");
-    if (pagina) {
-      link.addEventListener("click", (e) => mudarPagina(e, pagina));
-    }
-  });
-
-  const formIniciar = document.getElementById("formIniciarRota");
-  if (formIniciar) {
-    formIniciar.addEventListener("submit", iniciarRota);
-  }
-
-  const btnCancelarIniciar = document.getElementById("btnCancelarIniciar");
-  if (btnCancelarIniciar) {
-    btnCancelarIniciar.addEventListener("click", () =>
-      fecharModal("modalIniciarRota")
-    );
-  }
-
-  const formEncerrar = document.getElementById("formEncerrarRota");
-  if (formEncerrar) {
-    formEncerrar.addEventListener("submit", encerrarRota);
-  }
-
-  const btnCancelarRota = document.getElementById("btnCancelarRota");
-  if (btnCancelarRota) {
-    btnCancelarRota.addEventListener("click", cancelarRota);
-  }
-
-  document.querySelectorAll(".modal").forEach((modal) => {
-    modal.addEventListener("click", (e) => {
-      if (e.target === modal) {
-        modal.classList.remove("active");
-      }
-    });
-  });
-  const tipoVeiculoSelect = document.getElementById("tipoVeiculo");
-  if (tipoVeiculoSelect) {
-    tipoVeiculoSelect.addEventListener("change", function (e) {
-      const campoPersonalizado = document.getElementById(
-        "campoConsumoPersonalizado"
-      );
-      if (e.target.value === "personalizado") {
-        campoPersonalizado.style.display = "block";
-      } else {
-        campoPersonalizado.style.display = "none";
-      }
-    });
-  }
-
-  // Botão salvar veículo
-  document
-    .getElementById("btnSalvarVeiculo")
-    .addEventListener("click", salvarConfiguracaoVeiculo);
-
-  // Botão alterar veículo
-  document
-    .getElementById("btnAlterarVeiculo")
-    .addEventListener("click", abrirModalSelecionarVeiculo);
-
-  // Fechar modal com ESC
-  document.addEventListener("keydown", function (e) {
-    if (e.key === "Escape") {
-      document
-        .getElementById("modalSelecionarVeiculo")
-        .classList.remove("active");
-    }
-  });
-}
-
-document.addEventListener("DOMContentLoaded", () => {
-  const verificarFirebase = setInterval(() => {
-    if (window.firebaseDb && window.firebaseDb.db) {
-      clearInterval(verificarFirebase);
-      inicializarApp();
-    }
-  }, 100);
-
-  setTimeout(() => {
-    if (!db && window.firebaseDb) {
-      inicializarApp();
-    }
-  }, 5000);
-});
-
-if (!document.querySelector("#notificacao-styles")) {
-  const style = document.createElement("style");
-  style.id = "notificacao-styles";
-  style.textContent = `
-        @keyframes slideIn {
-            from { transform: translateX(400px); opacity: 0; }
-            to { transform: translateX(0); opacity: 1; }
-        }
-        @keyframes slideOut {
-            from { transform: translateX(0); opacity: 1; }
-            to { transform: translateX(400px); opacity: 0; }
-        }
-    `;
-  document.head.appendChild(style);
-}
-
+// ============================================
+// FUNÇÕES DE VEÍCULO
+// ============================================
 function inicializarConfiguracaoVeiculo() {
   // Carregar veículo salvo
   const veiculoSalvo = localStorage.getItem("veiculoConfig");
   if (veiculoSalvo) {
     veiculoSelecionado = JSON.parse(veiculoSalvo);
+    console.log("Veículo carregado:", veiculoSelecionado);
   } else {
-    // Se não tem veículo salvo, mostrar modal
+    // Se não tem veículo salvo, mostrar modal após um tempo
     setTimeout(() => {
-      document.getElementById("modalSelecionarVeiculo").classList.add("active");
-    }, 1000);
+      if (!veiculoSelecionado) {
+        console.log("Nenhum veículo configurado, abrindo modal...");
+        abrirModalSelecionarVeiculo();
+      }
+    }, 1500);
   }
 }
 
@@ -605,6 +548,9 @@ function salvarConfiguracaoVeiculo() {
   // Fechar modal
   document.getElementById("modalSelecionarVeiculo").classList.remove("active");
 
+  // Atualizar exibição
+  atualizarExibicaoVeiculo();
+
   // Mostrar confirmação
   mostrarNotificacao(
     `Veículo configurado: ${veiculoSelecionado.descricao} (${consumo} km/L)`,
@@ -614,6 +560,7 @@ function salvarConfiguracaoVeiculo() {
   // Resetar campos
   document.getElementById("tipoVeiculo").value = "";
   document.getElementById("campoConsumoPersonalizado").style.display = "none";
+  document.getElementById("consumoPersonalizado").value = "";
 }
 
 function obterDescricaoVeiculo(tipo) {
@@ -642,108 +589,250 @@ function calcularCustoGasolina(kmPercorridos) {
   return parseFloat(custo.toFixed(2));
 }
 
-// Mostrar consumo atual em algum lugar da interface
 function atualizarExibicaoVeiculo() {
   const btnAlterarVeiculo = document.getElementById("btnAlterarVeiculo");
-  if (btnAlterarVeiculo && veiculoSelecionado) {
-    btnAlterarVeiculo.textContent = `🚗 ${veiculoSelecionado.descricao} (${veiculoSelecionado.consumo} km/L)`;
-  }
-}
-
-function configurarSwipeActions() {
-  const rotaItems = document.querySelectorAll(".rota-item-container");
-
-  rotaItems.forEach((item) => {
-    // Eventos para mouse (desktop)
-    item.addEventListener("mousedown", iniciarSwipe);
-    item.addEventListener("mousemove", duranteSwipe);
-    item.addEventListener("mouseup", finalizarSwipe);
-    item.addEventListener("mouseleave", cancelarSwipe);
-
-    // Eventos para touch (mobile)
-    item.addEventListener("touchstart", iniciarSwipeTouch);
-    item.addEventListener("touchmove", duranteSwipeTouch);
-    item.addEventListener("touchend", finalizarSwipeTouch);
-    item.addEventListener("touchcancel", cancelarSwipe);
-
-    // Prevenir arrastar imagem/seleção de texto
-    item.addEventListener("dragstart", (e) => e.preventDefault());
-  });
-
-  // Configurar clique no botão de excluir do swipe
-  document.querySelectorAll(".btn-swipe-delete").forEach((btn) => {
-    btn.addEventListener("click", function (e) {
-      e.stopPropagation();
-      const rotaId = this.getAttribute("data-id");
-      solicitarExclusaoRota(rotaId);
-      resetarSwipe(); // Fecha o swipe após clicar
-    });
-  });
-}
-
-// FUNÇÕES PARA MOUSE (DESKTOP)
-function iniciarSwipe(e) {
-  if (e.button !== 0) return; // Só botão esquerdo
-  swipeStartX = e.clientX;
-  swipeStartY = e.clientY;
-  currentSwipeItem = e.currentTarget;
-  isSwiping = false;
-}
-
-function duranteSwipe(e) {
-  if (!currentSwipeItem || !swipeStartX) return;
-
-  swipeCurrentX = e.clientX - swipeStartX;
-  const deltaY = Math.abs(e.clientY - swipeStartY);
-  const deltaX = Math.abs(swipeCurrentX);
-
-  // Só considera swipe se movimento horizontal for maior que vertical
-  if (deltaX > 5 && deltaX > deltaY * 2) {
-    isSwiping = true;
-    e.preventDefault();
-
-    // Limitar swipe para a esquerda apenas
-    if (swipeCurrentX < 0) {
-      const translateX = Math.max(swipeCurrentX, -100); // Limite de 100px
-      currentSwipeItem.querySelector(
-        ".rota-item-content"
-      ).style.transform = `translateX(${translateX}px)`;
-
-      // Mostrar ação de excluir proporcionalmente
-      const progress = Math.min(Math.abs(translateX) / 100, 1);
-      currentSwipeItem.querySelector(
-        ".rota-swipe-action"
-      ).style.transform = `translateX(${100 * (1 - progress)}px)`;
+  if (btnAlterarVeiculo) {
+    if (veiculoSelecionado) {
+      btnAlterarVeiculo.textContent = `🚗 ${veiculoSelecionado.descricao} (${veiculoSelecionado.consumo} km/L)`;
+    } else {
+      btnAlterarVeiculo.textContent = "🚗 Configurar Veículo";
     }
   }
 }
 
-function finalizarSwipe(e) {
-  if (!isSwiping || !currentSwipeItem) {
-    resetarSwipe();
-    return;
+// ============================================
+// FUNÇÕES AUXILIARES E EVENT LISTENERS
+// ============================================
+function configurarEventListeners() {
+  console.log("Configurando event listeners...");
+
+  // Botões principais
+  const btnRegistrar = document.getElementById("btnRegistrarRota");
+  if (btnRegistrar) {
+    btnRegistrar.addEventListener("click", abrirModalIniciarRota);
   }
 
-  // Verificar se passou do threshold
-  if (swipeCurrentX < -swipeThreshold) {
-    // Swipe completo - manter aberto
-    currentSwipeItem.classList.add("swipe-active");
-  } else {
-    // Swipe insuficiente - fechar
+  const btnRotaAberta = document.getElementById("btnRotaAberta");
+  if (btnRotaAberta) {
+    btnRotaAberta.addEventListener("click", abrirModalEncerrarRota);
+  }
+
+  // Navegação
+  document.querySelectorAll(".menu-item_link").forEach((link) => {
+    const pagina = link.getAttribute("data-pagina");
+    if (pagina) {
+      link.addEventListener("click", (e) => mudarPagina(e, pagina));
+    }
+  });
+
+  // Formulários
+  const formIniciar = document.getElementById("formIniciarRota");
+  if (formIniciar) {
+    formIniciar.addEventListener("submit", iniciarRota);
+  }
+
+  const btnCancelarIniciar = document.getElementById("btnCancelarIniciar");
+  if (btnCancelarIniciar) {
+    btnCancelarIniciar.addEventListener("click", () =>
+      fecharModal("modalIniciarRota")
+    );
+  }
+
+  const formEncerrar = document.getElementById("formEncerrarRota");
+  if (formEncerrar) {
+    formEncerrar.addEventListener("submit", encerrarRota);
+  }
+
+  const btnCancelarRota = document.getElementById("btnCancelarRota");
+  if (btnCancelarRota) {
+    btnCancelarRota.addEventListener("click", cancelarRota);
+  }
+
+  // Fechar modais ao clicar fora
+  document.querySelectorAll(".modal").forEach((modal) => {
+    modal.addEventListener("click", (e) => {
+      if (e.target === modal) {
+        modal.classList.remove("active");
+      }
+    });
+  });
+
+  // Configuração de veículo
+  const tipoVeiculoSelect = document.getElementById("tipoVeiculo");
+  if (tipoVeiculoSelect) {
+    tipoVeiculoSelect.addEventListener("change", function (e) {
+      const campoPersonalizado = document.getElementById(
+        "campoConsumoPersonalizado"
+      );
+      campoPersonalizado.style.display =
+        e.target.value === "personalizado" ? "block" : "none";
+    });
+  }
+
+  // Botão salvar veículo
+  const btnSalvarVeiculo = document.getElementById("btnSalvarVeiculo");
+  if (btnSalvarVeiculo) {
+    btnSalvarVeiculo.addEventListener("click", salvarConfiguracaoVeiculo);
+  }
+
+  // Botão alterar veículo
+  const btnAlterarVeiculo = document.getElementById("btnAlterarVeiculo");
+  if (btnAlterarVeiculo) {
+    btnAlterarVeiculo.addEventListener("click", abrirModalSelecionarVeiculo);
+  }
+
+  // Logout
+  const btnLogout = document.getElementById("btnLogout");
+  if (btnLogout) {
+    btnLogout.addEventListener("click", function () {
+      if (confirm("Tem certeza que deseja sair?")) {
+        if (window.firebaseDb && window.firebaseDb.auth) {
+          window.firebaseDb.auth
+            .signOut()
+            .then(() => {
+              window.location.href = "login.html";
+            })
+            .catch((error) => {
+              console.error("Erro ao fazer logout:", error);
+              mostrarNotificacao("Erro ao sair. Tente novamente.", "error");
+            });
+        } else {
+          window.location.href = "login.html";
+        }
+      }
+    });
+  }
+
+  // Fechar modal com ESC
+  document.addEventListener("keydown", function (e) {
+    if (e.key === "Escape") {
+      document.querySelectorAll(".modal.active").forEach((modal) => {
+        modal.classList.remove("active");
+      });
+    }
+  });
+
+  console.log("Event listeners configurados");
+}
+
+// ============================================
+// FUNÇÕES DE DADOS LOCAIS
+// ============================================
+function carregarDadosLocal() {
+  console.log("Carregando dados locais...");
+
+  const rotaAtualSalva = localStorage.getItem("rotaAtual");
+  const rotasSalvas = localStorage.getItem("rotas");
+
+  if (rotaAtualSalva) {
+    try {
+      rotaAtual = JSON.parse(rotaAtualSalva);
+      console.log("Rota atual carregada localmente:", rotaAtual);
+      atualizarRotaAberta();
+    } catch (e) {
+      console.error("Erro ao parsear rota atual:", e);
+    }
+  }
+
+  if (rotasSalvas) {
+    try {
+      rotas = JSON.parse(rotasSalvas);
+      console.log(`${rotas.length} rotas carregadas localmente`);
+      atualizarListaRotas();
+    } catch (e) {
+      console.error("Erro ao parsear rotas:", e);
+      rotas = [];
+    }
+  }
+}
+
+// ============================================
+// FUNÇÕES DE SWIPE (para excluir rotas)
+// ============================================
+function configurarSwipeActions() {
+  const rotaItems = document.querySelectorAll(".rota-item-container");
+
+  if (rotaItems.length === 0) return;
+
+  console.log(`Configurando swipe para ${rotaItems.length} itens`);
+
+  rotaItems.forEach((item) => {
+    // Limpar event listeners antigos
+    const newItem = item.cloneNode(true);
+    item.parentNode.replaceChild(newItem, item);
+
+    // Adicionar novos listeners
+    newItem.addEventListener("touchstart", iniciarSwipeTouch, {
+      passive: false,
+    });
+    newItem.addEventListener("touchmove", duranteSwipeTouch, {
+      passive: false,
+    });
+    newItem.addEventListener("touchend", finalizarSwipeTouch);
+    newItem.addEventListener("touchcancel", cancelarSwipe);
+  });
+
+  // Configurar clique no botão de excluir
+  document.querySelectorAll(".btn-swipe-delete").forEach((btn) => {
+    btn.addEventListener("click", function (e) {
+      e.stopPropagation();
+      const rotaId = this.getAttribute("data-id");
+      if (rotaId) {
+        excluirRota(rotaId);
+      }
+      resetarSwipe();
+    });
+  });
+}
+
+function cancelarSwipe() {
+  if (currentSwipeItem && !isSwiping) {
     resetarSwipeItem(currentSwipeItem);
   }
-
   resetarSwipe();
 }
 
-// FUNÇÕES PARA TOUCH (MOBILE)
+function resetarSwipe() {
+  swipeStartX = 0;
+  swipeStartY = 0;
+  swipeCurrentX = 0;
+  isSwiping = false;
+  currentSwipeItem = null;
+}
+
+function resetarSwipeItem(item) {
+  if (!item) return;
+
+  const content = item.querySelector(".rota-item-content");
+  const action = item.querySelector(".rota-swipe-action");
+
+  if (content) {
+    content.style.transform = "translateX(0)";
+    content.style.transition = "transform 0.3s ease";
+  }
+
+  if (action) {
+    action.style.transform = "translateX(100%)";
+    action.style.transition = "transform 0.3s ease";
+  }
+
+  item.classList.remove("swipe-active");
+
+  // Remover transição após animação
+  setTimeout(() => {
+    if (content) content.style.transition = "";
+    if (action) action.style.transition = "";
+  }, 300);
+}
+
+// Funções de swipe (mantenha as que você já tinha, ajustando apenas o nome)
 function iniciarSwipeTouch(e) {
   if (e.touches.length !== 1) return;
 
   const touch = e.touches[0];
   swipeStartX = touch.clientX;
   swipeStartY = touch.clientY;
-  currentSwipeItem = e.currentTarget.closest(".rota-item-container");
+  currentSwipeItem = e.currentTarget;
   isSwiping = false;
 }
 
@@ -760,15 +849,10 @@ function duranteSwipeTouch(e) {
     e.preventDefault();
 
     if (swipeCurrentX < 0) {
-      const translateX = Math.max(swipeCurrentX, -80); // Limite menor no mobile
+      const translateX = Math.max(swipeCurrentX, -80);
       currentSwipeItem.querySelector(
         ".rota-item-content"
       ).style.transform = `translateX(${translateX}px)`;
-
-      const progress = Math.min(Math.abs(translateX) / 80, 1);
-      currentSwipeItem.querySelector(
-        ".rota-swipe-action"
-      ).style.transform = `translateX(${80 * (1 - progress)}px)`;
     }
   }
 }
@@ -779,9 +863,7 @@ function finalizarSwipeTouch(e) {
     return;
   }
 
-  // Threshold ajustado para mobile
   const mobileThreshold = 30;
-
   if (swipeCurrentX < -mobileThreshold) {
     currentSwipeItem.classList.add("swipe-active");
   } else {
@@ -791,34 +873,11 @@ function finalizarSwipeTouch(e) {
   resetarSwipe();
 }
 
-// FUNÇÕES AUXILIARES
-function cancelarSwipe() {
-  if (currentSwipeItem && !isSwiping) {
-    resetarSwipeItem(currentSwipeItem);
-  }
-  resetarSwipe();
-}
-
 function resetarSwipeItem(item) {
   if (!item) return;
 
   item.querySelector(".rota-item-content").style.transform = "translateX(0)";
-  item.querySelector(".rota-swipe-action").style.transform = "translateX(100%)";
   item.classList.remove("swipe-active");
-
-  // Adicionar transição suave
-  item.querySelector(".rota-item-content").style.transition =
-    "transform 0.3s ease";
-  item.querySelector(".rota-swipe-action").style.transition =
-    "transform 0.3s ease";
-
-  // Remover transição após animação
-  setTimeout(() => {
-    if (item.querySelector(".rota-item-content")) {
-      item.querySelector(".rota-item-content").style.transition = "";
-      item.querySelector(".rota-swipe-action").style.transition = "";
-    }
-  }, 300);
 }
 
 function resetarSwipe() {
@@ -829,51 +888,78 @@ function resetarSwipe() {
   currentSwipeItem = null;
 }
 
-// FECHAR SWIPE AO CLICAR FORA
-document.addEventListener("click", function (e) {
-  const swipeItems = document.querySelectorAll(".swipe-active");
-  const clickedOnSwipe = e.target.closest(".rota-item-container");
+// ============================================
+// FUNÇÃO PARA EXCLUIR ROTA
+// ============================================
+async function excluirRota(rotaId) {
+  if (
+    !confirm(
+      "Tem certeza que deseja excluir esta rota?\nEsta ação não pode ser desfeita."
+    )
+  ) {
+    resetarSwipe();
+    return;
+  }
 
-  swipeItems.forEach((item) => {
-    if (item !== clickedOnSwipe) {
-      resetarSwipeItem(item);
+  try {
+    // 1. Remover do array local
+    rotas = rotas.filter((rota) => rota.id.toString() !== rotaId.toString());
+
+    // 2. Excluir do Firebase se disponível
+    if (db) {
+      await db.rotas.doc(rotaId.toString()).delete();
     }
-  });
-});
 
-// FECHAR SWIPE AO ROLAR A PÁGINA
-let scrollTimeout;
-window.addEventListener("scroll", function () {
-  clearTimeout(scrollTimeout);
-  scrollTimeout = setTimeout(() => {
-    document.querySelectorAll(".swipe-active").forEach(resetarSwipeItem);
-  }, 100);
-});
+    // 3. Excluir do localStorage
+    const rotasLocais = JSON.parse(localStorage.getItem("rotas") || "[]");
+    const novasRotasLocais = rotasLocais.filter(
+      (rota) => rota.id.toString() !== rotaId.toString()
+    );
+    localStorage.setItem("rotas", JSON.stringify(novasRotasLocais));
 
+    // 4. Atualizar interface
+    atualizarListaRotas();
+
+    mostrarNotificacao("Rota excluída com sucesso!", "success");
+  } catch (error) {
+    console.error("Erro ao excluir rota:", error);
+    mostrarNotificacao("Erro ao excluir rota", "error");
+  }
+}
+
+// ============================================
+// FUNÇÃO DE NOTIFICAÇÃO
+// ============================================
 function mostrarNotificacao(mensagem, tipo = "info") {
+  // Remover notificações antigas
+  document.querySelectorAll(".notificacao").forEach((n) => n.remove());
+
   const notificacao = document.createElement("div");
   notificacao.className = `notificacao notificacao-${tipo}`;
   notificacao.textContent = mensagem;
   notificacao.style.cssText = `
-        position: fixed;
-        top: 20px;
-        right: 20px;
-        background: ${
-          tipo === "success"
-            ? "#10b981"
-            : tipo === "error"
-            ? "#ef4444"
-            : "#667eea"
-        };
-        color: white;
-        padding: 15px 20px;
-        border-radius: 10px;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-        z-index: 9999;
-        animation: slideIn 0.3s ease;
-        font-family: 'Montserrat', sans-serif;
-        font-weight: 500;
-    `;
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: ${
+      tipo === "success"
+        ? "#10b981"
+        : tipo === "error"
+        ? "#ef4444"
+        : tipo === "warning"
+        ? "#f59e0b"
+        : "#667eea"
+    };
+    color: white;
+    padding: 15px 20px;
+    border-radius: 10px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    z-index: 9999;
+    animation: slideIn 0.3s ease;
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 500;
+    max-width: 300px;
+  `;
 
   document.body.appendChild(notificacao);
 
@@ -883,6 +969,60 @@ function mostrarNotificacao(mensagem, tipo = "info") {
   }, 3000);
 }
 
-function solicitarExclusaoRota(rotaId) {
-  excluirRota(rotaId);
+// ============================================
+// INICIALIZAÇÃO QUANDO O DOM ESTÁ PRONTO
+// ============================================
+document.addEventListener("DOMContentLoaded", () => {
+  console.log("DOM completamente carregado");
+
+  // Verificar se o usuário está autenticado
+  if (window.firebaseDb && window.firebaseDb.auth) {
+    const user = window.firebaseDb.auth.currentUser;
+
+    if (user) {
+      console.log("Usuário já autenticado, inicializando app...");
+      inicializarApp();
+    } else {
+      // Aguardar autenticação
+      console.log("Aguardando autenticação...");
+      const unsubscribe = window.firebaseDb.auth.onAuthStateChanged((user) => {
+        if (user) {
+          console.log("Usuário autenticado via listener");
+          unsubscribe(); // Parar de ouvir
+          inicializarApp();
+        }
+      });
+
+      // Timeout para caso o Firebase não responda
+      setTimeout(() => {
+        const currentUser = window.firebaseDb.auth.currentUser;
+        if (!currentUser) {
+          console.log("Timeout de autenticação, redirecionando...");
+          window.location.href = "login.html";
+        }
+      }, 5000);
+    }
+  } else {
+    console.error("Firebase não carregado. Usando modo offline.");
+    inicializarModoOffline();
+  }
+});
+
+// ============================================
+// ESTILOS DE ANIMAÇÃO PARA NOTIFICAÇÃO
+// ============================================
+if (!document.querySelector("#notificacao-styles")) {
+  const style = document.createElement("style");
+  style.id = "notificacao-styles";
+  style.textContent = `
+    @keyframes slideIn {
+      from { transform: translateX(400px); opacity: 0; }
+      to { transform: translateX(0); opacity: 1; }
+    }
+    @keyframes slideOut {
+      from { transform: translateX(0); opacity: 1; }
+      to { transform: translateX(400px); opacity: 0; }
+    }
+  `;
+  document.head.appendChild(style);
 }
