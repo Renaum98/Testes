@@ -18,7 +18,7 @@ document.addEventListener("DOMContentLoaded", function () {
   const user = window.firebaseDb.auth.currentUser;
   if (user) {
     console.log("Já autenticado, redirecionando...");
-    window.location.href = "index.html";
+    window.location.href = "inicio.html";
     return;
   }
 
@@ -45,7 +45,7 @@ document.addEventListener("DOMContentLoaded", function () {
       .then((userCredential) => {
         // Login bem-sucedido
         console.log("Login bem-sucedido:", userCredential.user.email);
-        window.location.href = "index.html";
+        window.location.href = "inicio.html";
       })
       .catch((error) => {
         // Tratar erros

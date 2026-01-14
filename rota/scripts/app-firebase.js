@@ -37,7 +37,7 @@ function inicializarApp() {
   console.log("Inicializando aplicação...");
 
   // Verificar se estamos na página de login
-  if (window.location.pathname.includes("login.html")) {
+  if (window.location.pathname.includes("index.html")) {
     return;
   }
 
@@ -690,14 +690,14 @@ function configurarEventListeners() {
           window.firebaseDb.auth
             .signOut()
             .then(() => {
-              window.location.href = "login.html";
+              window.location.href = "index.html";
             })
             .catch((error) => {
               console.error("Erro ao fazer logout:", error);
               mostrarNotificacao("Erro ao sair. Tente novamente.", "error");
             });
         } else {
-          window.location.href = "login.html";
+          window.location.href = "index.html";
         }
       }
     });
@@ -998,7 +998,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const currentUser = window.firebaseDb.auth.currentUser;
         if (!currentUser) {
           console.log("Timeout de autenticação, redirecionando...");
-          window.location.href = "login.html";
+          window.location.href = "index.html";
         }
       }, 5000);
     }
