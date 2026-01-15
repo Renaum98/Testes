@@ -121,9 +121,11 @@ export async function salvarRotaFinalizada(rota) {
   try {
     const docId = rota.id.toString();
 
+    // AQUI ESTAVA O ERRO!
+    // Removemos a linha que recalculava kmPercorridos erradamente.
+    // Agora aceitamos o objeto 'rota' exatamente como ele veio do routes.js
     const rotaParaSalvar = {
       ...rota,
-      kmPercorridos: rota.kmFinal - rota.kmInicial,
       status: "finalizada",
       horarioInicio: firebase.firestore.Timestamp.fromDate(
         new Date(rota.horarioInicio)
@@ -137,7 +139,7 @@ export async function salvarRotaFinalizada(rota) {
 
     // Salvar usando a nova estrutura
     await state.db.rotas.doc(docId).set(rotaParaSalvar);
-    console.log("Rota salva no Firebase");
+    console.log("Rota salva no Firebase com KM:", rota.kmPercorridos); // Log para conferência
     mostrarNotificacao("Rota salva com sucesso!", "success");
 
     // Remover rota atual

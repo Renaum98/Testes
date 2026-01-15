@@ -1,8 +1,6 @@
 /* Layout Principal */
 body {
-    background: var(--gradiente-principal);
-    min-height: 100vh;
-    padding-bottom: 80px;
+    background: rgb(241, 241, 241);
 }
 
 .container {
@@ -12,15 +10,14 @@ body {
 }
 
 .logo-site {
-    text-align: center;
+    text-align: left;
     padding: var(--espacamento-grande) var(--espacamento-medio);
-    color: var(--cor-branco);
+    color: var(--cor-texto);
 }
 
-.logo-site h1 {
-    font-size: 2.5rem;
-    font-weight: 700;
-    text-shadow: var(--sombra-texto);
+.logo-site h2 {
+    font-size: 2rem;
+    font-weight: 500;
 }
 
 /* Sistema de Páginas */
@@ -47,7 +44,6 @@ body {
 .footer-menu_list {
     display: flex;
     justify-content: space-around;
-    padding: var(--espacamento-pequeno) 0;
 }
 
 .footer-menu_item {
@@ -62,7 +58,7 @@ body {
     color: var(--cor-texto-secundario);
     padding: var(--espacamento-pequeno);
     transition: color var(--transicao-rapida);
-    font-size: 0.85rem;
+    font-size: 0.70rem;
 }
 
 .menu-item_link.active,
@@ -71,5 +67,5 @@ body {
 }
 
 .menu-item_link .material-symbols-outlined {
-    font-size: 28px;
+    font-size: 30px;
 }

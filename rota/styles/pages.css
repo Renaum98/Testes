@@ -11,7 +11,8 @@
     background: var(--cor-branco);
     border-radius: var(--radius-medio);
     padding: var(--espacamento-medio);
-    box-shadow: var(--sombra-pequena);
+    box-shadow: var(----sombra-card-leve);
+    border: var(--borda-leve);
 }
 
 .rota-card-header {
@@ -38,9 +39,12 @@
     gap: var(--espacamento-pequeno);
     font-size: 0.9rem;
     color: var(--cor-texto-secundario);
-    text-align: center; /* Centraliza o texto horizontalmente */
-    justify-items: center; /* Centraliza os itens horizontalmente na célula */
-    align-items: center; /* Centraliza os itens verticalmente na célula */
+    text-align: center;
+    /* Centraliza o texto horizontalmente */
+    justify-items: center;
+    /* Centraliza os itens horizontalmente na célula */
+    align-items: center;
+    /* Centraliza os itens verticalmente na célula */
 }
 
 .info-item {
@@ -57,4 +61,310 @@
 .info-value {
     font-weight: 600;
     color: var(--cor-texto);
+}
+
+/*PAGINA CONFIGURAÇÕES*/
+/* Cartão do Perfil (Fundo branco, sombra suave) */
+.config-profile-card {
+    background: #ffffff;
+    border: var(--borda-leve);
+    border-radius: 16px;
+    padding: 30px 20px;
+    text-align: center;
+    box-shadow: var(--sombra-card-leve);
+    margin-bottom: 25px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+/* Círculo do Avatar */
+.config-avatar {
+    width: 80px;
+    height: 80px;
+    background-color: #e0e7ff;
+    /* Azul bem claro */
+    color: #667eea;
+    /* Cor principal do app */
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 15px;
+    transition: transform 0.3s ease;
+}
+
+.config-avatar:hover {
+    transform: scale(1.05);
+}
+
+.config-avatar span {
+    font-size: 40px;
+}
+
+/* Tipografia do Perfil */
+.config-user-name {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #2d3748;
+    margin-bottom: 4px;
+}
+
+.config-user-email {
+    font-size: 0.9rem;
+    color: #718096;
+    /* Cinza médio */
+    margin: 0;
+    word-break: break-all;
+    /* Evita que email longo quebre o layout */
+}
+
+/* Área de Botões */
+.config-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+/* Botão de Logout (Estilo Perigoso/Vermelho) */
+.config-btn-logout {
+    width: 100%;
+    background-image: var(--gradiente-principal);
+    /* Fundo vermelho bem claro */
+    color: var(--cor-branco);
+    border: none;
+    padding: 16px;
+    border-radius: 12px;
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 600;
+    font-size: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 5px rgba(239, 68, 68, 0.1);
+}
+
+.config-btn-logout:active {
+    background-color: #fecaca;
+    transform: scale(0.98);
+}
+
+.config-btn-logout span {
+    font-size: 20px;
+}
+
+/* Rodapé da Versão */
+.config-footer {
+    text-align: center;
+    margin-top: 40px;
+    color: #cbd5e0;
+    font-size: 0.75rem;
+    font-weight: 500;
+    letter-spacing: 1px;
+}
+
+/* =========================================
+   ESTILOS FINANCEIRO (OTIMIZADO MOBILE)
+   ========================================= */
+
+/* --- Container dos Filtros --- */
+.financeiro-filters {
+    background: white;
+    padding: 15px;
+    border-radius: 16px;
+    /* Mais arredondado */
+    display: flex;
+    flex-wrap: wrap;
+    /* Permite quebrar linha */
+    gap: 12px;
+    margin-bottom: 20px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03);
+    align-items: flex-end;
+}
+
+/* Inputs de Data (50% menos um pouquinho para caber 2 na linha) */
+.filter-group {
+    flex: 1 1 40%;
+    /* Cresce, mas base é 40% */
+    min-width: 120px;
+    /* Não fica menor que isso */
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.filter-group label {
+    font-size: 0.75rem;
+    color: #718096;
+    font-weight: 600;
+    margin-left: 4px;
+}
+
+.filter-group input {
+    width: 100%;
+    padding: 10px 12px;
+    /* Área de toque maior */
+    background: #f7fafc;
+    border: 1px solid #edf2f7;
+    border-radius: 10px;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 0.9rem;
+    color: #2d3748;
+    outline: none;
+    transition: border-color 0.2s;
+}
+
+.filter-group input:focus {
+    border-color: #667eea;
+    background: #fff;
+}
+
+/* Botão de Filtro (Botão Grande e Bonito) */
+.btn-filter {
+    flex: 1 1 100%;
+    /* No mobile, ocupa a linha toda abaixo das datas */
+    background: #667eea;
+    color: white;
+    border: none;
+    height: 44px;
+    /* Altura mínima recomendada para mobile */
+    border-radius: 10px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    box-shadow: 0 4px 6px rgba(102, 126, 234, 0.25);
+    transition: transform 0.1s;
+}
+
+.btn-filter:active {
+    transform: scale(0.98);
+}
+
+/* --- Dashboard Grid (Cards) --- */
+.financeiro-dashboard {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    /* 2 colunas */
+    gap: 12px;
+    margin-bottom: 25px;
+}
+
+/* Card Genérico */
+.fin-card {
+    background: white;
+    padding: 16px;
+    border-radius: 16px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    gap: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+    position: relative;
+    overflow: hidden;
+}
+
+/* Card de Lucro (Destaque Total) */
+.card-lucro {
+    grid-column: span 2;
+    /* Ocupa largura total */
+    background: linear-gradient(135deg, #10b981 0%, #047857 100%);
+    color: white;
+    flex-direction: row;
+    /* Ícone na esquerda, texto na direita */
+    align-items: center;
+    padding: 20px;
+}
+
+.card-lucro .fin-icon {
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
+    width: 50px;
+    height: 50px;
+    font-size: 24px;
+}
+
+.card-lucro .fin-info {
+    flex: 1;
+}
+
+.card-lucro span {
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 0.85rem;
+}
+
+.card-lucro h3 {
+    color: white;
+    font-size: 2rem;
+    /* Valor bem grande */
+    margin: 0;
+    line-height: 1.1;
+}
+
+/* Outros Cards */
+.fin-icon {
+    width: 38px;
+    height: 38px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+}
+
+/* Cores dos Ícones */
+.icon-blue {
+    background: #ebf8ff;
+    color: #4299e1;
+}
+
+.icon-red {
+    background: #fff5f5;
+    color: #f56565;
+}
+
+.icon-gray {
+    background: #edf2f7;
+    color: #718096;
+}
+
+/* Tipografia dos Cards Menores */
+.fin-info span {
+    font-size: 0.7rem;
+    color: #718096;
+    text-transform: uppercase;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+}
+
+.fin-info h4 {
+    font-size: 1.1rem;
+    /* Um pouco menor para caber */
+    color: #2d3748;
+    font-weight: 700;
+    margin: 0;
+    margin-top: 4px;
+}
+
+.rota-item-container {
+    padding: 10px 12px;
+}
+
+/* --- Lista de Extrato (Estilo Feed) --- */
+#listaFinanceiro {
+    padding-bottom: 80px;
+    /* Espaço para não ficar atrás do menu footer */
+}
+
+/* Ajuste fino para telas um pouco maiores (Tablets) */
+@media (min-width: 480px) {
+    .btn-filter {
+        flex: 0 0 50px;
+        /* Volta a ser um botão quadrado pequeno ao lado */
+        height: 42px;
+    }
 }

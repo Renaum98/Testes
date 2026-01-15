@@ -5,8 +5,9 @@
   background: var(--cor-branco);
   border-radius: var(--radius-grande);
   padding: var(--espacamento-grande);
-  box-shadow: var(--sombra-grande);
+  box-shadow: var(--sombra-card-leve);
   margin-bottom: var(--espacamento-medio);
+  border: var(--borda-leve);
 }
 
 .card-inicio_titulo {
@@ -23,8 +24,8 @@
   padding: var(--espacamento-medio);
   border-radius: var(--radius-medio);
   text-align: center;
-  font-weight: 600;
-  font-size: 1.1rem;
+  font-weight: 500;
+  font-size: 1rem;
   cursor: pointer;
   transition: transform var(--transicao-rapida),
     box-shadow var(--transicao-rapida);
@@ -140,7 +141,8 @@
   font-weight: 500;
 }
 
-.form-group input {
+.form-group input,
+.form-group select {
   width: 100%;
   padding: 12px;
   border: 2px solid var(--cor-borda);
@@ -153,6 +155,12 @@
 .form-group input:focus {
   outline: none;
   border-color: var(--cor-primaria);
+}
+
+.form-actions{
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
 }
 
 .modal-actions {
@@ -206,7 +214,7 @@
 .empty-state {
   text-align: center;
   padding: 60px var(--espacamento-medio);
-  color: var(--cor-branco);
+  color: var(--cor-texto);
 }
 
 .empty-state .material-symbols-outlined {

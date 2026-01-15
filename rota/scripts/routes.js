@@ -1,82 +1,92 @@
-import { state } from "./state.js";
-import { mostrarNotificacao } from "./utils.js";
-import { fecharModal, atualizarRotaAberta, atualizarListaRotas } from "./ui.js";
-import { salvarRotaAtual, salvarRotaFinalizada } from "./storage.js";
-import {
-  calcularCustoGasolina,
-  abrirModalSelecionarVeiculo,
-} from "./vehicles.js";
+import { state, PRECO_GASOLINA_POR_LITRO } from './state.js';
+import { mostrarNotificacao } from './utils.js';
+import { fecharModal, atualizarRotaAberta, atualizarListaRotas } from './ui.js';
+import { salvarRotaAtual, salvarRotaFinalizada } from './storage.js';
 
 // ============================================
-// GERENCIAMENTO DE ROTAS
+// INICIAR ROTA (Apenas cronômetro)
 // ============================================
 export async function iniciarRota(event) {
-  event.preventDefault();
-
-  const kmInicial = parseFloat(document.getElementById("kmInicial").value);
-
-  if (!kmInicial || kmInicial <= 0) {
-    mostrarNotificacao("Digite uma quilometragem válida!", "error");
+  if (event) event.preventDefault();
+  if (state.rotaAtual) {
+    mostrarNotificacao("Você já tem uma rota em andamento!", "info");
     return;
   }
-
   state.rotaAtual = {
     id: Date.now(),
-    kmInicial: kmInicial,
     horarioInicio: new Date().toISOString(),
     status: "aberta",
     userId: window.firebaseDb.auth.currentUser?.uid || "offline",
   };
-
   await salvarRotaAtual();
   atualizarRotaAberta();
-  fecharModal("modalIniciarRota");
-  document.getElementById("formIniciarRota").reset();
-
-  mostrarNotificacao("Rota iniciada com sucesso!", "success");
+  const modalInicio = document.getElementById("modalIniciarRota");
+  if(modalInicio) modalInicio.classList.remove("active");
+  mostrarNotificacao("Rota iniciada! O tempo está contando.", "success");
 }
 
+// ============================================
+// ENCERRAR ROTA (Salva exatamente o que foi digitado)
+// ============================================
 export async function encerrarRota(event) {
   event.preventDefault();
 
-  // Verificar se veículo está configurado
-  if (!state.veiculoSelecionado) {
-    mostrarNotificacao("Configure seu veículo primeiro!", "error");
-    abrirModalSelecionarVeiculo();
+  // Elementos do DOM
+  const elPlataforma = document.getElementById("plataformaRota");
+  const elKm = document.getElementById("kmPercorridoInput"); // ID TEM QUE SER IGUAL AO DO HTML
+  const elConsumo = document.getElementById("consumoInput");
+  const elValor = document.getElementById("valorRota");
+
+  // Captura valores brutos
+  const plataforma = elPlataforma.value;
+  const kmPercorrido = parseFloat(elKm.value);
+  const consumoVeiculo = parseFloat(elConsumo.value);
+  const valorRecebido = parseFloat(elValor.value);
+
+  // Debug para você ver no console o que está acontecendo
+  console.log("--- FINALIZANDO ROTA ---");
+  console.log("Plataforma:", plataforma);
+  console.log("KM Digitado (Bruto):", elKm.value);
+  console.log("KM Interpretado:", kmPercorrido);
+
+  // Validações
+  if (isNaN(kmPercorrido) || kmPercorrido <= 0) {
+    mostrarNotificacao("Erro: Digite um KM válido!", "error");
+    return;
+  }
+  if (!consumoVeiculo || consumoVeiculo <= 0) {
+    mostrarNotificacao("Digite o consumo médio!", "error");
+    return;
+  }
+  if (isNaN(valorRecebido)) {
+    mostrarNotificacao("Digite o valor da rota!", "error");
     return;
   }
 
-  const kmFinal = parseFloat(document.getElementById("kmFinal").value);
-  const valorRota = parseFloat(document.getElementById("valorRota").value);
+  // CÁLCULO FINANCEIRO APENAS (Não afeta o KM salvo)
+  // Custo = (KM / KmPorLitro) * Preço
+  const litrosGastos = kmPercorrido / consumoVeiculo;
+  const custoGasolina = litrosGastos * PRECO_GASOLINA_POR_LITRO;
+  const lucroLiquido = valorRecebido - custoGasolina;
 
-  if (!kmFinal || kmFinal <= state.rotaAtual.kmInicial) {
-    mostrarNotificacao(
-      "A quilometragem final deve ser maior que a inicial!",
-      "error"
-    );
-    return;
-  }
-
-  if (!valorRota || valorRota <= 0) {
-    mostrarNotificacao("Digite um valor válido!", "error");
-    return;
-  }
-
-  // Calcular custos
-  const kmPercorridos = kmFinal - state.rotaAtual.kmInicial;
-  const custoGasolina = calcularCustoGasolina(kmPercorridos);
-  const lucroLiquido = valorRota - custoGasolina;
+  const horarioFim = new Date().toISOString();
+  const inicio = new Date(state.rotaAtual.horarioInicio);
+  const fim = new Date(horarioFim);
+  const duracaoMinutos = Math.floor((fim - inicio) / 60000);
 
   const rotaFinalizada = {
     ...state.rotaAtual,
-    kmFinal: kmFinal,
-    valor: valorRota,
-    horarioFim: new Date().toISOString(),
-    kmPercorridos: kmPercorridos,
-    custoGasolina: custoGasolina,
-    lucroLiquido: lucroLiquido,
-    veiculoUtilizado: state.veiculoSelecionado.tipo,
-    consumoUtilizado: state.veiculoSelecionado.consumo,
+    horarioFim: horarioFim,
+    duracaoMinutos: duracaoMinutos,
+    plataforma: plataforma,
+    
+    // AQUI: Salva EXATAMENTE o que entrou no input
+    kmPercorridos: kmPercorrido, 
+    
+    consumoUtilizado: consumoVeiculo,
+    valor: valorRecebido,
+    custoGasolina: parseFloat(custoGasolina.toFixed(2)),
+    lucroLiquido: parseFloat(lucroLiquido.toFixed(2)),
     status: "finalizada",
   };
 
@@ -90,20 +100,15 @@ export async function encerrarRota(event) {
   fecharModal("modalEncerrarRota");
   document.getElementById("formEncerrarRota").reset();
 
-  // Mostrar resumo
   mostrarNotificacao(
-    `Rota finalizada! Lucro: R$ ${lucroLiquido.toFixed(
-      2
-    )} (Bruto: R$ ${valorRota.toFixed(
-      2
-    )} - Combustível: R$ ${custoGasolina.toFixed(2)})`,
+    `Rota salva! KM: ${kmPercorrido} | Lucro: R$ ${lucroLiquido.toFixed(2)}`,
     "success"
   );
 }
 
+// ... Manter cancelarRota e excluirRota iguais ...
 export async function cancelarRota() {
-  if (!confirm("Tem certeza que deseja cancelar esta rota?")) return;
-
+  if (!confirm("Tem certeza que deseja cancelar?")) return;
   state.rotaAtual = null;
   await salvarRotaAtual();
   atualizarRotaAberta();
@@ -112,41 +117,19 @@ export async function cancelarRota() {
 }
 
 export async function excluirRota(rotaId) {
-  if (
-    !confirm(
-      "Tem certeza que deseja excluir esta rota?\nEsta ação não pode ser desfeita."
-    )
-  ) {
-    // resetarSwipe() deve ser importado ou tratado no contexto de quem chama,
-    // mas aqui estamos tratando a lógica de exclusão.
-    // resetarSwipe(); // Removido pois é função de UI/Swipe, o clique chama.
-    return;
-  }
-
-  try {
-    // 1. Remover do array local
-    state.rotas = state.rotas.filter(
-      (rota) => rota.id.toString() !== rotaId.toString()
-    );
-
-    // 2. Excluir do Firebase se disponível
-    if (state.db) {
-      await state.db.rotas.doc(rotaId.toString()).delete();
+    if (!confirm("Tem certeza que deseja excluir esta rota?")) return;
+    try {
+      state.rotas = state.rotas.filter((rota) => rota.id.toString() !== rotaId.toString());
+      if (state.db) {
+        await state.db.rotas.doc(rotaId.toString()).delete();
+      }
+      const rotasLocais = JSON.parse(localStorage.getItem("rotas") || "[]");
+      const novasRotasLocais = rotasLocais.filter((rota) => rota.id.toString() !== rotaId.toString());
+      localStorage.setItem("rotas", JSON.stringify(novasRotasLocais));
+      atualizarListaRotas();
+      mostrarNotificacao("Rota excluída com sucesso!", "success");
+    } catch (error) {
+      console.error("Erro ao excluir rota:", error);
+      mostrarNotificacao("Erro ao excluir rota", "error");
     }
-
-    // 3. Excluir do localStorage
-    const rotasLocais = JSON.parse(localStorage.getItem("rotas") || "[]");
-    const novasRotasLocais = rotasLocais.filter(
-      (rota) => rota.id.toString() !== rotaId.toString()
-    );
-    localStorage.setItem("rotas", JSON.stringify(novasRotasLocais));
-
-    // 4. Atualizar interface
-    atualizarListaRotas();
-
-    mostrarNotificacao("Rota excluída com sucesso!", "success");
-  } catch (error) {
-    console.error("Erro ao excluir rota:", error);
-    mostrarNotificacao("Erro ao excluir rota", "error");
-  }
 }
