@@ -44,7 +44,7 @@
         firebase.auth().onAuthStateChanged(function (user) {
           if (!user) {
             // Usuário não está autenticado, redireciona para login
-            window.location.href = "/login.html";
+            window.location.href = "/index.html";
           } else {
             // Usuário autenticado, pode exibir a página
             console.log("Usuário autenticado:", user.email);
@@ -249,6 +249,6 @@
     </div>
 
     <!-- App Scripts -->
-    <script src="scripts/app-firebase.js"></script>
+    <script src="scripts/app.js" type="module"></script>
   </body>
 </html>
