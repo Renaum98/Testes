@@ -1,11 +1,13 @@
 // ============================================
-// VARIÁVEIS GLOBAIS
+// 1. VARIÁVEIS GLOBAIS E CONSTANTES
 // ============================================
+// Armazena estado da aplicação: rota atual, lista de rotas, banco de dados, veículo selecionado
 let rotaAtual = null;
 let rotas = [];
 let db = null;
 let veiculoSelecionado = null;
 
+// Variáveis para controle de swipe (gestos) em dispositivos móveis
 let swipeStartX = 0;
 let swipeStartY = 0;
 let swipeCurrentX = 0;
@@ -13,6 +15,7 @@ let isSwiping = false;
 let currentSwipeItem = null;
 let swipeThreshold = 50;
 
+// Constantes de negócio: preço do combustível e consumo dos veículos
 const PRECO_GASOLINA_POR_LITRO = 6.35;
 const CONSUMO_VEICULOS = {
   // Motos
@@ -31,8 +34,9 @@ const CONSUMO_VEICULOS = {
 };
 
 // ============================================
-// FUNÇÃO PRINCIPAL DE INICIALIZAÇÃO
+// 2. INICIALIZAÇÃO DO APLICATIVO
 // ============================================
+// Função principal que inicializa toda a aplicação
 function inicializarApp() {
   console.log("Inicializando aplicação...");
 
@@ -78,8 +82,9 @@ function inicializarApp() {
 }
 
 // ============================================
-// FUNÇÃO DE INICIALIZAÇÃO OFFLINE
+// 3. FUNCIONALIDADE OFFLINE
 // ============================================
+// Inicializa o aplicativo sem conexão com Firebase
 function inicializarModoOffline() {
   console.log("Iniciando modo offline...");
   inicializarConfiguracaoVeiculo();
@@ -89,9 +94,9 @@ function inicializarModoOffline() {
 }
 
 // ============================================
-// CARREGAMENTO DE DADOS
+// 4. CARREGAMENTO DE DADOS
 // ============================================
-// Na função carregarDados():
+// Carrega dados do Firebase (rotas, configurações)
 async function carregarDados() {
   try {
     console.log(
@@ -151,8 +156,9 @@ async function carregarDados() {
 }
 
 // ============================================
-// FUNÇÕES DE PERSISTÊNCIA
+// 5. PERSISTÊNCIA DE DADOS
 // ============================================
+// Salva a rota atual no Firebase ou localStorage
 async function salvarRotaAtual() {
   try {
     if (rotaAtual && db) {
@@ -173,6 +179,7 @@ async function salvarRotaAtual() {
   }
 }
 
+// Salva uma rota finalizada no Firebase
 async function salvarRotaFinalizada(rota) {
   try {
     const docId = rota.id.toString();
@@ -214,8 +221,9 @@ async function salvarRotaFinalizada(rota) {
 }
 
 // ============================================
-// FUNÇÕES DE INTERFACE - MODAIS
+// 6. GERENCIAMENTO DE MODAIS
 // ============================================
+// Abre modal para iniciar nova rota
 function abrirModalIniciarRota() {
   if (rotaAtual) {
     mostrarNotificacao("Você já tem uma rota em andamento!", "info");
@@ -224,6 +232,7 @@ function abrirModalIniciarRota() {
   document.getElementById("modalIniciarRota").classList.add("active");
 }
 
+// Abre modal para encerrar rota atual
 function abrirModalEncerrarRota() {
   if (!rotaAtual) {
     mostrarNotificacao("Nenhuma rota em andamento!", "info");
@@ -232,13 +241,15 @@ function abrirModalEncerrarRota() {
   document.getElementById("modalEncerrarRota").classList.add("active");
 }
 
+// Fecha um modal específico
 function fecharModal(modalId) {
   document.getElementById(modalId).classList.remove("active");
 }
 
 // ============================================
-// FUNÇÕES DE NAVEGAÇÃO
+// 7. NAVEGAÇÃO ENTRE PÁGINAS
 // ============================================
+// Muda entre as páginas do aplicativo
 function mudarPagina(event, pagina) {
   event.preventDefault();
 
@@ -260,8 +271,9 @@ function mudarPagina(event, pagina) {
 }
 
 // ============================================
-// FUNÇÕES DE ROTA
+// 8. GERENCIAMENTO DE ROTAS
 // ============================================
+// Inicia uma nova rota
 async function iniciarRota(event) {
   event.preventDefault();
 
@@ -288,6 +300,7 @@ async function iniciarRota(event) {
   mostrarNotificacao("Rota iniciada com sucesso!", "success");
 }
 
+// Encerra a rota atual
 async function encerrarRota(event) {
   event.preventDefault();
 
@@ -353,6 +366,7 @@ async function encerrarRota(event) {
   );
 }
 
+// Cancela a rota atual sem salvar
 async function cancelarRota() {
   if (!confirm("Tem certeza que deseja cancelar esta rota?")) return;
 
@@ -364,8 +378,9 @@ async function cancelarRota() {
 }
 
 // ============================================
-// FUNÇÕES DE ATUALIZAÇÃO DA INTERFACE
+// 9. ATUALIZAÇÃO DA INTERFACE DO USUÁRIO
 // ============================================
+// Atualiza a exibição da rota em andamento
 function atualizarRotaAberta() {
   const container = document.getElementById("rotaAbertaContainer");
   const detalhes = document.getElementById("detalhesRotaAberta");
@@ -391,6 +406,7 @@ function atualizarRotaAberta() {
   }
 }
 
+// Atualiza a lista de rotas no histórico
 function atualizarListaRotas() {
   const lista = document.getElementById("rotasList");
   const emptyState = document.getElementById("emptyState");
@@ -470,8 +486,9 @@ function atualizarListaRotas() {
 }
 
 // ============================================
-// FUNÇÕES DE VEÍCULO
+// 10. GERENCIAMENTO DE VEÍCULOS
 // ============================================
+// Inicializa a configuração do veículo
 function inicializarConfiguracaoVeiculo() {
   // Carregar veículo salvo
   const veiculoSalvo = localStorage.getItem("veiculoConfig");
@@ -489,6 +506,7 @@ function inicializarConfiguracaoVeiculo() {
   }
 }
 
+// Abre modal para selecionar/alterar veículo
 function abrirModalSelecionarVeiculo() {
   document.getElementById("modalSelecionarVeiculo").classList.add("active");
 
@@ -505,6 +523,7 @@ function abrirModalSelecionarVeiculo() {
   }
 }
 
+// Salva a configuração do veículo
 function salvarConfiguracaoVeiculo() {
   const tipoSelecionado = document.getElementById("tipoVeiculo").value;
 
@@ -563,6 +582,7 @@ function salvarConfiguracaoVeiculo() {
   document.getElementById("consumoPersonalizado").value = "";
 }
 
+// Retorna a descrição amigável do tipo de veículo
 function obterDescricaoVeiculo(tipo) {
   const descricoes = {
     moto_125: "Moto 125cc",
@@ -577,6 +597,7 @@ function obterDescricaoVeiculo(tipo) {
   return descricoes[tipo] || "Veículo não identificado";
 }
 
+// Calcula o custo da gasolina baseado nos KM percorridos
 function calcularCustoGasolina(kmPercorridos) {
   if (!veiculoSelecionado) {
     mostrarNotificacao("Configure seu veículo primeiro!", "error");
@@ -589,6 +610,7 @@ function calcularCustoGasolina(kmPercorridos) {
   return parseFloat(custo.toFixed(2));
 }
 
+// Atualiza a exibição do veículo selecionado na interface
 function atualizarExibicaoVeiculo() {
   const btnAlterarVeiculo = document.getElementById("btnAlterarVeiculo");
   if (btnAlterarVeiculo) {
@@ -601,8 +623,9 @@ function atualizarExibicaoVeiculo() {
 }
 
 // ============================================
-// FUNÇÕES AUXILIARES E EVENT LISTENERS
+// 11. CONFIGURAÇÃO DE EVENT LISTENERS
 // ============================================
+// Configura todos os event listeners da aplicação
 function configurarEventListeners() {
   console.log("Configurando event listeners...");
 
@@ -716,8 +739,9 @@ function configurarEventListeners() {
 }
 
 // ============================================
-// FUNÇÕES DE DADOS LOCAIS
+// 12. GERENCIAMENTO DE DADOS LOCAIS (OFFLINE)
 // ============================================
+// Carrega dados do localStorage quando offline
 function carregarDadosLocal() {
   console.log("Carregando dados locais...");
 
@@ -747,8 +771,9 @@ function carregarDadosLocal() {
 }
 
 // ============================================
-// FUNÇÕES DE SWIPE (para excluir rotas)
+// 13. FUNCIONALIDADE DE SWIPE (GESTOS)
 // ============================================
+// Configura ações de swipe para excluir rotas
 function configurarSwipeActions() {
   const rotaItems = document.querySelectorAll(".rota-item-container");
 
@@ -785,6 +810,7 @@ function configurarSwipeActions() {
   });
 }
 
+// Cancela ação de swipe
 function cancelarSwipe() {
   if (currentSwipeItem && !isSwiping) {
     resetarSwipeItem(currentSwipeItem);
@@ -792,6 +818,7 @@ function cancelarSwipe() {
   resetarSwipe();
 }
 
+// Reseta variáveis de swipe
 function resetarSwipe() {
   swipeStartX = 0;
   swipeStartY = 0;
@@ -800,6 +827,7 @@ function resetarSwipe() {
   currentSwipeItem = null;
 }
 
+// Reseta a posição do item após swipe
 function resetarSwipeItem(item) {
   if (!item) return;
 
@@ -825,7 +853,7 @@ function resetarSwipeItem(item) {
   }, 300);
 }
 
-// Funções de swipe (mantenha as que você já tinha, ajustando apenas o nome)
+// Inicia detecção de swipe (touch)
 function iniciarSwipeTouch(e) {
   if (e.touches.length !== 1) return;
 
@@ -836,6 +864,7 @@ function iniciarSwipeTouch(e) {
   isSwiping = false;
 }
 
+// Processa movimento durante swipe
 function duranteSwipeTouch(e) {
   if (!currentSwipeItem || !swipeStartX || e.touches.length !== 1) return;
 
@@ -857,6 +886,7 @@ function duranteSwipeTouch(e) {
   }
 }
 
+// Finaliza ação de swipe
 function finalizarSwipeTouch(e) {
   if (!isSwiping || !currentSwipeItem) {
     resetarSwipe();
@@ -873,24 +903,10 @@ function finalizarSwipeTouch(e) {
   resetarSwipe();
 }
 
-function resetarSwipeItem(item) {
-  if (!item) return;
-
-  item.querySelector(".rota-item-content").style.transform = "translateX(0)";
-  item.classList.remove("swipe-active");
-}
-
-function resetarSwipe() {
-  swipeStartX = 0;
-  swipeStartY = 0;
-  swipeCurrentX = 0;
-  isSwiping = false;
-  currentSwipeItem = null;
-}
-
 // ============================================
-// FUNÇÃO PARA EXCLUIR ROTA
+// 14. EXCLUSÃO DE ROTAS
 // ============================================
+// Exclui uma rota do histórico
 async function excluirRota(rotaId) {
   if (
     !confirm(
@@ -928,8 +944,9 @@ async function excluirRota(rotaId) {
 }
 
 // ============================================
-// FUNÇÃO DE NOTIFICAÇÃO
+// 15. SISTEMA DE NOTIFICAÇÕES
 // ============================================
+// Exibe notificações para o usuário
 function mostrarNotificacao(mensagem, tipo = "info") {
   // Remover notificações antigas
   document.querySelectorAll(".notificacao").forEach((n) => n.remove());
@@ -970,8 +987,9 @@ function mostrarNotificacao(mensagem, tipo = "info") {
 }
 
 // ============================================
-// INICIALIZAÇÃO QUANDO O DOM ESTÁ PRONTO
+// 16. INICIALIZAÇÃO APÓS CARREGAMENTO DO DOM
 // ============================================
+// Inicializa a aplicação quando o DOM está pronto
 document.addEventListener("DOMContentLoaded", () => {
   console.log("DOM completamente carregado");
 
@@ -1009,8 +1027,9 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 // ============================================
-// ESTILOS DE ANIMAÇÃO PARA NOTIFICAÇÃO
+// 17. ANIMAÇÕES E ESTILOS DINÂMICOS
 // ============================================
+// Adiciona estilos CSS dinâmicos para animações
 if (!document.querySelector("#notificacao-styles")) {
   const style = document.createElement("style");
   style.id = "notificacao-styles";
