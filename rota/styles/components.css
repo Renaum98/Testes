@@ -75,6 +75,7 @@
 }
 
 @keyframes pulse {
+
   0%,
   100% {
     opacity: 1;
@@ -157,7 +158,7 @@
   border-color: var(--cor-primaria);
 }
 
-.form-actions{
+.form-actions {
   display: flex;
   justify-content: space-around;
   align-items: center;
@@ -275,7 +276,8 @@
   border-radius: 12px;
   margin-bottom: 12px;
   background: white;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  box-shadow: var(--sombra-card-leve);
+  border: var(--borda-leve);
   user-select: none;
   touch-action: pan-y;
 }
@@ -479,6 +481,7 @@
 
 /* Melhorias para touch */
 @media (hover: none) and (pointer: coarse) {
+
   .btn-alterar-veiculo,
   .btn-logout {
     -webkit-tap-highlight-color: transparent;

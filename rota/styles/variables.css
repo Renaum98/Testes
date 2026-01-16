@@ -6,6 +6,7 @@
   --cor-sucesso: #10b981;
   --cor-perigo: #ef4444;
   --cor-texto: #333;
+  --cor-texto-opaco:var(--cor-texto-opaco);
   --cor-texto-secundario: #666;
   --cor-texto-terciario: #999;
   --cor-branco: #ffffff;
@@ -21,10 +22,10 @@
   --sombra-pequena: 0 2px 10px rgba(0, 0, 0, 0.1);
   --sombra-media: 0 5px 20px rgba(0, 0, 0, 0.4);
   --sombra-grande: 0 10px 40px rgba(0, 0, 0, 0.2);
-  --sombra-menu: 0 -5px 10px rgba(0, 0, 0, 0.1);
+  --sombra-card-leve: 0 -5px 10px rgba(0, 0, 0, 0.1);
   --sombra-texto: 2px 2px 4px rgba(0, 0, 0, 0.2);
-  --sombra-card-leve: 3px 3px 5px rgba(0, 0, 0, 0.082),
-    -3px -3px 5px rgba(255, 255, 255, 0.536);
+  --sombra-card-leve: 3px 3px 3px rgba(0, 0, 0, 0.082),
+    -3px -3px 3px rgba(255, 255, 255, 0.288);
 
   /* Espaçamentos */
   --espacamento-pequeno: 10px;

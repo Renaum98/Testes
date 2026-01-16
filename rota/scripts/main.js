@@ -243,6 +243,81 @@ function configurarEventListeners() {
     });
   }
 
+  // ============================================
+  // CONFIGURAÇÃO DA META MENSAL
+  // ============================================
+  // ============================================
+  // CONFIGURAÇÃO DA META MENSAL (COM RESET AUTOMÁTICO)
+  // ============================================
+  const inputMetaDiaria = document.getElementById("inputMetaDiaria");
+  const inputMetaDias = document.getElementById("inputMetaDias");
+
+  if (inputMetaDiaria && inputMetaDias) {
+    // Função auxiliar para saber qual é o "Mês Atual" (Ex: "2026-01")
+    const obterChaveMes = () => {
+      const hoje = new Date();
+      return `${hoje.getFullYear()}-${(hoje.getMonth() + 1).toString().padStart(2, "0")}`;
+    };
+
+    // 1. Carregar e Validar se a meta é "fresca"
+    const metaSalva = localStorage.getItem("metaMensal");
+    const mesAtualKey = obterChaveMes();
+
+    if (metaSalva) {
+      try {
+        const parsed = JSON.parse(metaSalva);
+
+        // A MÁGICA: Compara o mês salvo com o mês atual
+        if (parsed.mesRef === mesAtualKey) {
+          // Se for o mesmo mês, carrega normalmente
+          state.meta = parsed;
+          inputMetaDiaria.value = parsed.diaria || "";
+          inputMetaDias.value = parsed.dias || "";
+        } else {
+          // Se for mês diferente (virou o mês), reseta!
+          console.log("Mês virou. Resetando meta.");
+          state.meta = { diaria: 0, dias: 0, mesRef: mesAtualKey };
+
+          // Limpa o storage antigo
+          localStorage.removeItem("metaMensal");
+
+          // Limpa os inputs visuais
+          inputMetaDiaria.value = "";
+          inputMetaDias.value = "";
+
+          // (Opcional) Avisa o usuário
+          // mostrarNotificacao("Inicie sua meta para este novo mês!", "info");
+        }
+      } catch (e) {
+        console.error("Erro ao ler meta", e);
+      }
+    }
+
+    // 2. Função de Salvar (Agora inclui o mês)
+    const atualizarMeta = () => {
+      const diaria = parseFloat(inputMetaDiaria.value) || 0;
+      const dias = parseFloat(inputMetaDias.value) || 0;
+
+      // Salva os valores + a referência do mês atual
+      state.meta = {
+        diaria,
+        dias,
+        mesRef: obterChaveMes(),
+      };
+
+      localStorage.setItem("metaMensal", JSON.stringify(state.meta));
+
+      import("./ui.js").then((ui) => ui.atualizarGraficoMeta());
+    };
+
+    // 3. Listeners
+    inputMetaDiaria.addEventListener("input", atualizarMeta);
+    inputMetaDias.addEventListener("input", atualizarMeta);
+
+    // 4. Inicializar gráfico
+    import("./ui.js").then((ui) => ui.atualizarGraficoMeta());
+  }
+
   console.log("Event listeners configurados");
 }
 

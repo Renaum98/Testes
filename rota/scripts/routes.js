@@ -1,7 +1,7 @@
-import { state } from './state.js';
-import { mostrarNotificacao } from './utils.js';
-import { fecharModal, atualizarListaRotas } from './ui.js';
-import { salvarRotaFinalizada } from './storage.js';
+import { state } from "./state.js";
+import { mostrarNotificacao } from "./utils.js";
+import { fecharModal, atualizarListaRotas } from "./ui.js";
+import { salvarRotaFinalizada } from "./storage.js";
 
 // ============================================
 // SALVAR NOVA ROTA (DIRETO)
@@ -37,12 +37,12 @@ export async function salvarNovaRota(event) {
 
   // Cálculos Financeiros
   const litrosGastos = kmPercorrido / consumoVeiculo;
-  
+
   // AQUI MUDOU: Usa o preço configurado no state (Input da Home)
   // Se por acaso estiver 0 ou inválido, usa um fallback de segurança (ex: 6.00)
   const precoGasolinaAtual = state.precoGasolina || 0;
   const custoGasolina = litrosGastos * precoGasolinaAtual;
-  
+
   const lucroLiquido = valorRecebido - custoGasolina;
 
   // Data atual
@@ -52,8 +52,8 @@ export async function salvarNovaRota(event) {
   const novaRota = {
     id: Date.now(),
     horarioInicio: agora, // Data do registro
-    horarioFim: agora,    // Data do registro
-    duracaoMinutos: 0,    // Sem timer, duração é irrelevante
+    horarioFim: agora, // Data do registro
+    duracaoMinutos: 0, // Sem timer, duração é irrelevante
     plataforma: plataforma,
     kmPercorridos: kmPercorrido,
     consumoUtilizado: consumoVeiculo,
@@ -67,11 +67,7 @@ export async function salvarNovaRota(event) {
   // Salvar no Banco/Local
   await salvarRotaFinalizada(novaRota);
 
-  // Atualizar Estado Local (Memória)
-  state.rotas.unshift(novaRota);
-
   // UI: Atualizar lista, fechar modal e limpar form
-  atualizarListaRotas();
   fecharModal("modalRegistrarRota");
   document.getElementById("formRegistrarRota").reset();
 
@@ -86,27 +82,19 @@ export async function salvarNovaRota(event) {
 // ============================================
 export async function excluirRota(rotaId) {
   if (!confirm("Tem certeza que deseja excluir esta rota?")) return;
-  
-  try {
-    // 1. Remove do estado local (memória)
-    state.rotas = state.rotas.filter(
-      (rota) => rota.id.toString() !== rotaId.toString()
-    );
 
-    // 2. Remove do Firebase (se online)
+  try {
     if (state.db) {
       await state.db.rotas.doc(rotaId.toString()).delete();
+      // O listener vai detectar que deletou e atualizará a tela sozinho
+    } else {
+      // Fallback offline manual
+      state.rotas = state.rotas.filter(
+        (r) => r.id.toString() !== rotaId.toString()
+      );
+      localStorage.setItem("rotas", JSON.stringify(state.rotas));
+      atualizarListaRotas(); // Importar do ui.js se necessário
     }
-
-    // 3. Remove do LocalStorage (backup offline)
-    const rotasLocais = JSON.parse(localStorage.getItem("rotas") || "[]");
-    const novasRotasLocais = rotasLocais.filter(
-      (rota) => rota.id.toString() !== rotaId.toString()
-    );
-    localStorage.setItem("rotas", JSON.stringify(novasRotasLocais));
-
-    // 4. Atualiza a interface
-    atualizarListaRotas();
 
     mostrarNotificacao("Rota excluída!", "success");
   } catch (error) {

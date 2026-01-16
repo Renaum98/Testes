@@ -176,6 +176,7 @@ export function atualizarListaRotas() {
     .join("");
 
   configurarSwipeActions();
+  atualizarGraficoMeta();
 
   // Atualiza o carrossel de resumo
   if (typeof atualizarCarouselResumo === "function") {
@@ -253,21 +254,32 @@ export function atualizarPaginaFinanceiro() {
   });
 
   // 5. Atualizar DOM (Cards)
-  document.getElementById(
-    "finLucroLiquido"
-  ).textContent = `R$ ${totalLucro.toFixed(2)}`;
-  document.getElementById(
-    "finFaturamento"
-  ).textContent = `R$ ${totalFaturamento.toFixed(2)}`;
-  document.getElementById("finCustos").textContent = `R$ ${totalCustos.toFixed(
-    2
-  )}`;
-  document.getElementById("finKmTotal").textContent = `${totalKm.toFixed(
-    1
-  )} km`;
+  document.getElementById("finLucroLiquido").textContent =
+    `R$ ${totalLucro.toFixed(2)}`;
+  document.getElementById("finFaturamento").textContent =
+    `R$ ${totalFaturamento.toFixed(2)}`;
+  document.getElementById("finCustos").textContent =
+    `R$ ${totalCustos.toFixed(2)}`;
+  document.getElementById("finKmTotal").textContent =
+    `${totalKm.toFixed(1)} km`;
 
-  // 6. Atualizar Lista Filtrada
-  renderizarListaFinanceiro(rotasFiltradas);
+  // --- NOVO CÁLCULO: RENDIMENTO (R$/KM) ---
+  let rendimento = 0;
+  if (totalKm > 0) {
+    rendimento = totalFaturamento / totalKm;
+  }
+
+  const elRendimento = document.getElementById("finRendimento");
+  if (elRendimento) {
+    elRendimento.textContent = `R$ ${rendimento.toFixed(2)}/km`;
+  }
+
+  const elTotalRotas = document.getElementById("finTotalRotasTexto");
+  if (elTotalRotas) {
+    // rotasFiltradas já contém apenas as rotas das datas selecionadas
+    const qtd = rotasFiltradas.length;
+    elTotalRotas.innerHTML = `Viagens realizadas neste período: <strong>${qtd}</strong>`;
+  }
 }
 
 function firstDayFormat(date) {
@@ -275,53 +287,6 @@ function firstDayFormat(date) {
   const month = String(date.getMonth() + 1).padStart(2, "0");
   const day = String(date.getDate()).padStart(2, "0");
   return `${year}-${month}-${day}`;
-}
-
-function renderizarListaFinanceiro(listaRotas) {
-  const container = document.getElementById("listaFinanceiro");
-
-  if (listaRotas.length === 0) {
-    container.innerHTML = `<div style="text-align:center; padding:20px; color:#a0aec0;">Nenhuma rota neste período.</div>`;
-    return;
-  }
-
-  container.innerHTML = listaRotas
-    .map((rota) => {
-      const data = new Date(rota.horarioFim || rota.horarioInicio);
-      const lucro = rota.lucroLiquido || rota.valor - rota.custoGasolina;
-
-      let badge = "";
-      if (rota.plataforma === "shopee")
-        badge = `<span style="color:#ee4d2d; font-weight:bold; font-size:0.7em;">SHOPEE</span>`;
-      if (rota.plataforma === "meli")
-        badge = `<span style="color:#ffe600; font-weight:bold; font-size:0.7em; text-shadow:0 0 1px #999;">MELI</span>`;
-
-      return `
-      <div class="rota-item-container" style="border-bottom: 1px solid #edf2f7; padding: 10px;">
-        <div style="display:flex; justify-content:space-between; align-items:center;">
-          <div>
-            <div style="font-size:0.85rem; color:#2d3748; font-weight:600;">
-              ${data.toLocaleDateString("pt-BR")} ${badge}
-            </div>
-            <div style="font-size:0.75rem; color:#718096;">
-              ${
-                rota.kmPercorridos || 0
-              } km • Gasto: R$ ${rota.custoGasolina?.toFixed(2)}
-            </div>
-          </div>
-          <div style="text-align:right;">
-             <div style="font-size:0.9rem; color:#10b981; font-weight:700;">+ R$ ${lucro.toFixed(
-               2
-             )}</div>
-             <div style="font-size:0.7rem; color:#cbd5e0;">Bruto: ${rota.valor?.toFixed(
-               2
-             )}</div>
-          </div>
-        </div>
-      </div>
-    `;
-    })
-    .join("");
 }
 
 // ============================================
@@ -403,4 +368,148 @@ export function atualizarCarouselResumo() {
       });
     }
   }, 100); // Pequeno delay para garantir que o DOM renderizou
+}
+
+// ============================================
+// LÓGICA DA META MENSAL (KPI)
+// ============================================
+export function atualizarGraficoMeta() {
+  const container = document.getElementById("chartMeta");
+  const elTexto = document.getElementById("metaTextoResumo");
+
+  if (!container) return;
+
+  // 1. Pegar valores da meta
+  const metaDiaria = state.meta.diaria || 0;
+  const diasTrabalho = state.meta.dias || 0;
+  const metaTotal = metaDiaria * diasTrabalho;
+
+  // 2. Calcular Lucro Real do Mês Atual
+  const hoje = new Date();
+  const mesAtual = (hoje.getMonth() + 1).toString().padStart(2, "0");
+  const anoAtual = hoje.getFullYear().toString();
+
+  const lucroAtual = state.rotas
+    .filter((rota) => {
+      const d = new Date(rota.horarioInicio);
+      return (
+        (d.getMonth() + 1).toString().padStart(2, "0") === mesAtual &&
+        d.getFullYear().toString() === anoAtual
+      );
+    })
+    .reduce((acc, curr) => acc + (parseFloat(curr.lucroLiquido) || 0), 0);
+
+  // 3. Cálculos de Porcentagem e Restante
+  let porcentagem = 0;
+  let falta = 0;
+
+  if (metaTotal > 0) {
+    porcentagem = (lucroAtual / metaTotal) * 100;
+    falta = metaTotal - lucroAtual;
+    if (falta < 0) falta = 0;
+    if (porcentagem > 100) porcentagem = 100;
+  }
+
+  // --- CORREÇÃO AQUI: Garante que é um NÚMERO, não texto ---
+  const valorGrafico = parseFloat(porcentagem.toFixed(1));
+  // --------------------------------------------------------
+
+  // Atualizar texto abaixo do gráfico
+  if (metaTotal === 0) {
+    elTexto.textContent = "Defina meta diária e dias para ver o progresso.";
+  } else if (falta <= 0) {
+    elTexto.innerHTML = `<span style="color:#10b981; font-weight:bold;">PARABÉNS!</span> Meta batida!`;
+  } else {
+    elTexto.innerHTML = `Falta <span style="color:#e53e3e; font-weight:bold;">R$ ${falta.toFixed(2)}</span> para atingir R$ ${metaTotal.toFixed(2)}`;
+  }
+
+  // 4. Configuração do ApexCharts (Estilo Visual)
+  const options = {
+    series: [valorGrafico],
+    chart: {
+      height: 300, // Altura um pouco maior para não cortar
+      type: "radialBar",
+      fontFamily: "Montserrat, sans-serif", // Fonte do seu site
+      animations: {
+        enabled: true,
+        easing: "easeinout",
+        speed: 800,
+      },
+    },
+    plotOptions: {
+      radialBar: {
+        offsetY: -15,
+        startAngle: -135, // -135 a 135 faz o formato de "ferradura"
+        endAngle: 135,
+        hollow: {
+          margin: 15,
+          size: "65%", // Aumente para deixar o anel MAIS FINO (ex: 70%)
+          background: "transparent",
+          image: undefined,
+        },
+        track: {
+          background: "#f1f5f9", // Cor do fundo da barra (cinza bem claro)
+          strokeWidth: "100%",
+          margin: 0, // margem entre o track e a barra colorida
+          dropShadow: {
+            enabled: false, // Pode ativar sombra se quiser profundidade
+            top: 0,
+            left: 0,
+            blur: 3,
+            opacity: 0.1,
+          },
+        },
+        dataLabels: {
+          show: true,
+          name: {
+            offsetY: -10, // Posição vertical do texto "Progresso"
+            show: true,
+            color: "#718096", // Cor cinza médio
+            fontSize: "13px",
+            fontWeight: 600,
+          },
+          value: {
+            offsetY: 10, // Posição vertical da Porcentagem
+            color: "var(--cor-texto-opaco)", // Cor escura para leitura fácil
+            fontSize: "30px", // Tamanho grande para destaque
+            fontWeight: 700,
+            show: true,
+            formatter: function (val) {
+              return val + "%";
+            },
+          },
+        },
+      },
+    },
+    fill: {
+      type: "gradient",
+      gradient: {
+        shade: "dark",
+        type: "horizontal",
+        shadeIntensity: 0.5,
+        // Cores do Gradiente: Começa Roxo (App) -> Termina Verde (Meta)
+        gradientToColors: ["#10b981"],
+        inverseColors: true,
+        opacityFrom: 1,
+        opacityTo: 1,
+        stops: [0, 100],
+      },
+    },
+    stroke: {
+      lineCap: "round", // Deixa as pontas arredondadas (essencial para ficar bonito)
+    },
+    colors: ["#667eea"], // Cor inicial do gradiente
+    labels: ["Progresso"], // Texto que aparece em cima da porcentagem
+  };
+
+  // 5. Renderizar ou Atualizar
+  if (state.chartInstance) {
+    // CORREÇÃO TAMBÉM NO UPDATE:
+    state.chartInstance.updateSeries([valorGrafico]);
+  } else {
+    if (typeof ApexCharts !== "undefined") {
+      state.chartInstance = new ApexCharts(container, options);
+      state.chartInstance.render();
+    }
+  }
 }

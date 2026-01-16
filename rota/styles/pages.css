@@ -46,7 +46,7 @@
   gap: 5px;
   font-size: .8rem;
   font-weight: 700;
-  color: #2d3748;
+  color: var(--cor-texto-opaco);
 }
 
 .gas-input-wrapper input {
@@ -55,7 +55,7 @@
   font-family: "Montserrat", sans-serif;
   font-size: .8rem;
   font-weight: 700;
-  color: #2d3748;
+  color: var(--cor-texto-opaco);
   width: 100%;
   outline: none;
   border-bottom: 2px solid transparent;
@@ -148,7 +148,7 @@
   font-size: 0.85rem;
   /* Valor compacto */
   font-weight: 700;
-  color: #2d3748;
+  color: var(--cor-texto-opaco);
 }
 
 .dado-valor.money {
@@ -196,13 +196,95 @@
   }
 }
 
+/* =========================================
+   META MENSAL (APEXCHARTS)
+   ========================================= */
+.card-meta-mensal {
+  background: white;
+  border-radius: 16px;
+  padding: 20px;
+  margin-top: 20px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03);
+  border: 1px solid #edf2f7;
+  margin-bottom: 30px;
+}
+
+.meta-titulo {
+  font-size: 0.9rem;
+  color: #718096;
+  font-weight: 600;
+  margin-bottom: 15px;
+  text-align: center;
+}
+
+.meta-inputs {
+  display: flex;
+  gap: 15px;
+  margin-bottom: 10px;
+  text-align: center;
+}
+
+.meta-inputs .input-wrapper {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.meta-inputs label {
+  font-size: 0.75rem;
+  color: #a0aec0;
+  font-weight: 600;
+}
+
+.meta-inputs input {
+  width: 100%;
+  padding: 10px;
+  background: #f7fafc;
+  border: 1px solid #edf2f7;
+  border-radius: 8px;
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 700;
+  color: var(--cor-texto-opaco);
+  outline: none;
+  text-align: center;
+}
+
+.meta-inputs input:focus {
+  border-color: #667eea;
+  background: white;
+}
+
+/* Ajuste do container do gráfico */
+#chartMeta {
+  min-height: auto;
+  display: flex;
+  margin-top: -15px;
+  justify-content: center;
+  align-items: center;
+}
+
+#metaTextoResumo {
+  text-align: center;
+  font-size: 0.9rem;
+  color: #718096;
+  padding-top: var(--espacamento-medio);
+  line-height: 1.5;
+}
+
+/* Destaque para os valores dentro do texto */
+#metaTextoResumo span {
+  font-weight: 700;
+  font-size: 1rem;
+}
+
 
 /* ===PAGINA DE ROTAS=== */
 .rotas-list {
   display: flex;
   flex-direction: column;
   gap: 15px;
-  padding-bottom: 60px;
+  padding-bottom: 30px;
 }
 
 .rotas-filter-container {
@@ -210,7 +292,7 @@
   padding: 15px;
   border-radius: 16px;
   margin-bottom: 20px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
+  box-shadow: var(--sombra-card-leve);
   display: flex;
   flex-direction: row;
   align-items: flex-end;
@@ -239,7 +321,7 @@
   border-radius: 10px;
   font-family: "Montserrat", sans-serif;
   font-size: 1rem;
-  color: #2d3748;
+  color: var(--cor-texto-opaco);
   outline: none;
   height: 48px;
 }
@@ -268,8 +350,6 @@
   background: var(--cor-branco);
   border-radius: var(--radius-medio);
   padding: var(--espacamento-medio);
-  box-shadow: var(----sombra-card-leve);
-  border: var(--borda-leve);
 }
 
 .rota-card-header {
@@ -363,7 +443,7 @@
 .config-user-name {
   font-size: 1.25rem;
   font-weight: 700;
-  color: #2d3748;
+  color: var(--cor-texto-opaco);
   margin-bottom: 4px;
 }
 
@@ -436,7 +516,8 @@
   flex-wrap: wrap;
   gap: 12px;
   margin-bottom: 20px;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03);
+  box-shadow: var(--sombra-card-leve);
+  border: var(--borda-leve);
   align-items: flex-end;
 }
 
@@ -465,7 +546,7 @@
   border-radius: 10px;
   font-family: "Montserrat", sans-serif;
   font-size: 0.9rem;
-  color: #2d3748;
+  color: var(--cor-texto-opaco);
   outline: none;
   transition: border-color 0.2s;
 }
@@ -502,9 +583,7 @@
 .financeiro-dashboard {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  /* 2 colunas */
   gap: 12px;
-  margin-bottom: 25px;
 }
 
 /* Card Genérico */
@@ -516,19 +595,18 @@
   flex-direction: column;
   justify-content: space-between;
   gap: 12px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
   position: relative;
   overflow: hidden;
+  border: var(--borda-leve);
+  box-shadow: var(--sombra-card-leve);
 }
 
 /* Card de Lucro (Destaque Total) */
 .card-lucro {
   grid-column: span 2;
-  /* Ocupa largura total */
   background: linear-gradient(135deg, #10b981 0%, #047857 100%);
   color: white;
   flex-direction: row;
-  /* Ícone na esquerda, texto na direita */
   align-items: center;
   padding: 20px;
 }
@@ -600,24 +678,36 @@
 
 .fin-info h4 {
   font-size: 1.1rem;
-  /* Um pouco menor para caber */
-  color: #2d3748;
+  color: var(--cor-texto-opaco);
   font-weight: 700;
   margin: 0;
   margin-top: 4px;
 }
 
-.rota-item-container {
-  padding: 10px 12px;
+.fin-resumo-bar {
+  background-color: var(--cor-branco);
+  border-radius: 12px;
+  padding: 12px;
+  margin: 10px 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  color: #718096;
+  font-size: 0.9rem;
+  box-shadow: var(--sombra-card-leve);
+  border: var(--borda-leve);
 }
 
-/* --- Lista de Extrato (Estilo Feed) --- */
-.financeiro-rotas-list {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  padding-bottom: 60px;
-  /* Espaço para não ficar atrás do menu footer */
+.fin-resumo-bar strong {
+  color: var(--cor-texto-opaco);
+  font-size: 1rem;
+}
+
+.fin-resumo-bar .material-symbols-outlined {
+  font-size: 20px;
+  color: #667eea;
+  /* Azul do tema */
 }
 
 /* Ajuste fino para telas um pouco maiores (Tablets) */
