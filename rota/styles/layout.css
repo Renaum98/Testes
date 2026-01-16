@@ -10,13 +10,13 @@ body {
 }
 
 .logo-site {
-  text-align: left;
-  padding: var(--espacamento-grande) var(--espacamento-medio);
+  text-align: center;
+  padding: var(--espacamento-medio);
   color: var(--cor-texto);
 }
 
 .logo-site h2 {
-  font-size: 2rem;
+  font-size: 1.5rem;
   font-weight: 500;
 }
 
@@ -31,14 +31,17 @@ body {
 
 /* Menu Fixo */
 .footer-menu {
+  margin: auto;
   position: fixed;
-  bottom: 0;
+  width: 250px;
+  bottom: 10px;
   left: 0;
   right: 0;
-  background-color: rgba(255, 255, 255, 0.352);
-  backdrop-filter: blur(5px);
+  padding: 0 var(--espacamento-pequeno);
+  background-color: var(--cor-branco);
   box-shadow: var(--sombra-menu);
   z-index: 1000;
+  border-radius: 20px;
 }
 
 .footer-menu_list {
@@ -59,16 +62,16 @@ body {
   padding: var(--espacamento-pequeno);
   transition: color var(--transicao-rapida);
   font-size: 0.7rem;
+  border-radius: 50px;
 }
 
 .menu-item_link.active{
   color: var(--cor-branco);
   transform: translateY(-10px);
   background-image: var(--gradiente-principal);
-  border-radius: 50px;
   transition: all 0.3s;
 }
 
 .menu-item_link .material-symbols-outlined {
-  font-size: 20px;
+  font-size: 24px;
 }

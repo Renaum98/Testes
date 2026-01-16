@@ -74,7 +74,7 @@ export function atualizarListaRotas() {
     return;
   }
 
-  // --- LÓGICA DE FILTRO ---
+  // --- LÓGICA DE FILTRO (MÊS/ANO) ---
   let rotasExibidas = state.rotas;
 
   if (filtroInput && filtroInput.value) {
@@ -88,7 +88,6 @@ export function atualizarListaRotas() {
       return anoRota === anoFiltro && mesRota === mesFiltro;
     });
   }
-  // ------------------------
 
   // Verifica se o filtro resultou em lista vazia
   if (rotasExibidas.length === 0) {
@@ -102,12 +101,13 @@ export function atualizarListaRotas() {
 
   if (emptyState) emptyState.style.display = "none";
 
+  // --- RENDERIZAÇÃO (SEU LAYOUT SIMPLES) ---
   lista.innerHTML = rotasExibidas
     .map((rota) => {
       const inicio = new Date(rota.horarioInicio);
-      const fim = rota.horarioFim ? new Date(rota.horarioFim) : new Date();
       const lucroLiquido = rota.lucroLiquido || 0;
 
+      // Tratamento do KM para não quebrar
       let kmNumerico = 0;
       if (rota.kmPercorridos !== undefined && rota.kmPercorridos !== null) {
         kmNumerico = Number(rota.kmPercorridos);
@@ -115,31 +115,6 @@ export function atualizarListaRotas() {
         kmNumerico = Number(rota.kmFinal) - Number(rota.kmInicial);
       }
       if (isNaN(kmNumerico)) kmNumerico = 0;
-
-      // Badge da Plataforma
-      let plataformaHtml = "";
-      if (rota.plataforma) {
-        let corBadge = "#999";
-        if (rota.plataforma === "shopee") corBadge = "#ee4d2d";
-        if (rota.plataforma === "meli") corBadge = "#ffe600";
-
-        plataformaHtml = `
-          <div style="margin-top: 4px;">
-            <span style="
-              background: ${corBadge}; 
-              color: ${rota.plataforma === "meli" ? "#2d3277" : "#fff"}; 
-              padding: 2px 8px; 
-              border-radius: 12px; 
-              font-size: 0.70rem; 
-              font-weight: bold;
-              text-transform: uppercase;
-              display: inline-block;
-            ">
-              ${rota.plataforma}
-            </span>
-          </div>
-        `;
-      }
 
       return `
         <div class="rota-item-container" data-rota-id="${rota.id}">
@@ -154,6 +129,7 @@ export function atualizarListaRotas() {
                 }</div>
               </div>
               <div class="rota-info">
+                
                 <div class="info-item">
                   <span class="info-label">Horário</span>
                   <span class="info-value">
@@ -163,24 +139,28 @@ export function atualizarListaRotas() {
                     })}
                   </span>
                 </div>
+                
                 <div class="info-item">
                   <span class="info-label">KM Percorridos</span>
                   <div style="display: flex; flex-direction: column; align-items: center;">
                     <span class="info-value">${kmNumerico.toFixed(1)} km</span>
                   </div>
                 </div>
+                
                 <div class="info-item">
                   <span class="info-label">Lucro Líquido</span>
                   <span class="info-value" style="color: #10b981; font-weight: 600;">
                     R$ ${lucroLiquido.toFixed(2)}
                   </span>
                 </div>
+                
                 <div class="info-item">
                   <span class="info-label">Plataforma</span>
                   <span class="info-value">
                     ${rota.plataforma}
                   </span>
                 </div>
+
               </div>
             </div>
           </div>
@@ -196,6 +176,11 @@ export function atualizarListaRotas() {
     .join("");
 
   configurarSwipeActions();
+
+  // Atualiza o carrossel de resumo
+  if (typeof atualizarCarouselResumo === "function") {
+    atualizarCarouselResumo();
+  }
 }
 
 // ============================================
@@ -337,4 +322,85 @@ function renderizarListaFinanceiro(listaRotas) {
     `;
     })
     .join("");
+}
+
+// ============================================
+// CARROSSEL DE RESUMO (HOME)
+// ============================================
+export function atualizarCarouselResumo() {
+  const container = document.getElementById("carouselResumo");
+  if (!container || !state.rotas) return;
+
+  // 1. Agrupar dados
+  const resumo = {};
+  state.rotas.forEach((rota) => {
+    const data = new Date(rota.horarioInicio);
+    const chave = `${data.getFullYear()}-${(data.getMonth() + 1)
+      .toString()
+      .padStart(2, "0")}`;
+
+    if (!resumo[chave]) {
+      resumo[chave] = { qtd: 0, total: 0, dataRef: data };
+    }
+    resumo[chave].qtd += 1;
+    resumo[chave].total += parseFloat(rota.valor) || 0;
+  });
+
+  // 2. Ordenar e Criar Lista
+  const listaMeses = Object.values(resumo).sort(
+    (a, b) => b.dataRef - a.dataRef
+  );
+
+  if (listaMeses.length === 0) {
+    container.innerHTML = `<div style="width:100%; text-align:center; padding:10px; font-size:0.7rem; color:#a0aec0;">Sem dados.</div>`;
+    return;
+  }
+
+  // 3. Renderizar HTML
+  container.innerHTML = listaMeses
+    .map((item) => {
+      const nomeMes = item.dataRef.toLocaleDateString("pt-BR", {
+        month: "short",
+        year: "2-digit",
+      }); // Ex: "jan 26" (Mais curto)
+
+      const agora = new Date();
+      const ehAtual =
+        item.dataRef.getMonth() === agora.getMonth() &&
+        item.dataRef.getFullYear() === agora.getFullYear();
+      const classeExtra = ehAtual ? "atual" : "";
+
+      return `
+      <div class="resumo-mes-card ${classeExtra}">
+        <div class="card-mes-titulo">${nomeMes}</div>
+        <div class="card-mes-dados">
+           <div>
+             <span class="dado-label">Rotas</span>
+             <div class="dado-valor">${item.qtd}</div>
+           </div>
+           <div>
+             <span class="dado-label">Total</span>
+             <div class="dado-valor money">R$ ${Math.floor(item.total)}</div> 
+             </div>
+        </div>
+      </div>
+    `;
+    })
+    .join("");
+
+  // 4. AUTO-CENTRALIZAR (Lógica da Roleta)
+  setTimeout(() => {
+    const cardAtual = container.querySelector(".atual");
+    if (cardAtual) {
+      // Calcula a posição para deixar o card exatamento no meio
+      const scrollPos =
+        cardAtual.offsetLeft -
+        container.clientWidth / 2 +
+        cardAtual.clientWidth / 2;
+      container.scrollTo({
+        left: scrollPos,
+        behavior: "smooth",
+      });
+    }
+  }, 100); // Pequeno delay para garantir que o DOM renderizou
 }

@@ -1,7 +1,7 @@
 /* Estilos específicos das páginas */
 
-/* Pagina Inicial*/
 
+/* ===PAGINA INICIAL===*/
 /* Configuração de Gasolina na Home */
 .card-config-gasolina {
   background: #ffffff;
@@ -18,7 +18,8 @@
 .icon-gas {
   width: 45px;
   height: 45px;
-  background: #fff5f5; /* Vermelho bem claro */
+  background: #fff5f5;
+  /* Vermelho bem claro */
   color: #f56565;
   border-radius: 10px;
   display: flex;
@@ -65,7 +66,138 @@
   border-bottom-color: #f56565;
 }
 
-/* Página de Rotas */
+/* =========================================
+   CARROSSEL DE RESUMO (HOME)
+   ========================================= */
+
+.carousel-container {
+  display: flex;
+  overflow-x: auto;
+  gap: 10px;
+  /* Espaço menor entre cards */
+
+  /* EFEITO ROLETA */
+  scroll-snap-type: x mandatory;
+  /* Faz o card "imantar" no centro */
+  padding: 10px calc(50% - 60px);
+  /* Padding lateral gigante para permitir que o 1º item vá pro meio */
+
+  /* Esconder barra de rolagem */
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.carousel-container::-webkit-scrollbar {
+  display: none;
+}
+
+/* Card Individual */
+.resumo-mes-card {
+  min-width: 120px;
+  /* Card mais estreito */
+  background: var(--cor-branca);
+  border-radius: 12px;
+  padding: var(--espacamento-pequeno);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+  border: 1px solid #edf2f7;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  flex-shrink: 0;
+
+  /* ALINHAMENTO ROLETA */
+  scroll-snap-align: center;
+  /* O ponto de parada é o centro do card */
+  transition: transform 0.3s ease, border-color 0.3s;
+}
+
+/* Destaque para o mês atual */
+.resumo-mes-card.atual {
+  border-color: #667eea;
+  background: #f0f4ff;
+  transform: scale(1.05);
+  /* Leve aumento para destacar o centro */
+}
+
+.card-mes-titulo {
+  font-size: 0.75rem;
+  /* Fonte menor */
+  font-weight: 600;
+  /* Peso menor (era 700) */
+  color: #4a5568;
+  text-transform: capitalize;
+  text-align: center;
+  margin-bottom: 6px;
+}
+
+.card-mes-dados {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 3px;
+  text-align: center;
+}
+
+.dado-label {
+  font-size: 0.65rem;
+  /* Label bem pequena */
+  color: #a0aec0;
+}
+
+.dado-valor {
+  font-size: 0.85rem;
+  /* Valor compacto */
+  font-weight: 700;
+  color: #2d3748;
+}
+
+.dado-valor.money {
+  color: #10b981;
+}
+
+#card-inicio_resumo {
+  padding: 8px;
+}
+
+.carousel_loading {
+  text-align: center;
+  margin: auto 0;
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  border: 1px solid black;
+}
+
+.loading-wrapper {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 20px 0;
+  gap: 10px;
+  color: #a0aec0;
+  font-size: 0.8rem;
+  font-weight: 500;
+}
+
+.spinner-loading {
+  width: 24px;
+  height: 24px;
+  border: 3px solid #e2e8f0;
+  border-top-color: var(--cor-primaria);
+  border-radius: 50%;
+  animation: girar 1s linear infinite;
+}
+
+@keyframes girar {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+
+/* ===PAGINA DE ROTAS=== */
 .rotas-list {
   display: flex;
   flex-direction: column;
