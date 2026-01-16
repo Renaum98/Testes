@@ -1,12 +1,5 @@
 /* login.css */
 
-/* Reset e base */
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-}
-
 .login-page {
     min-height: 100vh;
     display: flex;
@@ -14,6 +7,7 @@
     background: var(--cor-background);
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
     overflow-x: hidden;
+    position: relative;
 }
 
 /* Header com logo */
@@ -44,7 +38,11 @@
 
 /* Container principal */
 .login-container {
-    flex: 1;
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%,-50%);
+    width: 500px;
     display: flex;
     justify-content: center;
     align-items: center;

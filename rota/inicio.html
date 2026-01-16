@@ -56,21 +56,95 @@
 
       <div class="container">
         <section class="card-inicio">
-          <p class="card-inicio_titulo">Seja bem vindo novamente</p>
+          <p class="card-inicio_titulo">Gerenciamento Rápido</p>
+
           <div class="card-inicio_registrar" id="btnRegistrarRota">
-            Registrar Rota
+            <span
+              class="material-symbols-outlined"
+              style="font-size: 20px; display: block; margin-bottom: 10px"
+              >add_circle</span
+            >
+            Adicionar Nova Rota
           </div>
 
-          <div class="card-inicio_rota-aberta" id="rotaAbertaContainer">
-            <div class="rota-aberta-info" id="btnRotaAberta">
-              <div class="rota-status">
-                <div class="status-indicator"></div>
-                <strong>Rota em andamento</strong>
+          <div class="card-config-gasolina">
+            <div class="icon-gas">
+              <span class="material-symbols-outlined">local_gas_station</span>
+            </div>
+            <div class="gas-info">
+              <label>Preço do Combustivel</label>
+              <div class="gas-input-wrapper">
+                <span>R$</span>
+                <input
+                  type="number"
+                  id="inputPrecoGasolina"
+                  step="0.01"
+                  placeholder="0.00"
+                />
               </div>
-              <div class="rota-detalhes" id="detalhesRotaAberta"></div>
             </div>
           </div>
         </section>
+      </div>
+    </div>
+
+    <div class="modal" id="modalRegistrarRota">
+      <div class="modal-content">
+        <h3>Nova Rota</h3>
+        <form id="formRegistrarRota">
+          <div class="form-group">
+            <label>Plataforma</label>
+            <select id="plataformaRota" required>
+              <option value="Shopee">Shopee</option>
+              <option value="Meli">Mercado Livre (Meli)</option>
+              <option value="outros">Outros</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>KM Percorrido Total</label>
+            <input
+              type="number"
+              id="kmPercorridoInput"
+              step="0.1"
+              placeholder="Ex: 15.5"
+              required
+            />
+          </div>
+
+          <div class="form-group">
+            <label>Consumo do Veículo (Km/L)</label>
+            <input
+              type="number"
+              id="consumoInput"
+              step="0.1"
+              placeholder="Ex: 10"
+              required
+            />
+          </div>
+
+          <div class="form-group">
+            <label>Valor da Rota (R$)</label>
+            <input
+              type="number"
+              id="valorRota"
+              step="0.01"
+              placeholder="0.00"
+              required
+            />
+          </div>
+
+          <div class="form-actions">
+            <button
+              type="button"
+              class="btn btn-secondary"
+              id="btnCancelarRegistro"
+            >
+              Cancelar
+            </button>
+            <button type="submit" class="btn btn-primary">Salvar Rota</button>
+          </div>
+        </form>
       </div>
     </div>
 
@@ -81,6 +155,21 @@
       </div>
 
       <div class="container">
+        <div class="rotas-filter-container">
+          <div class="filter-wrapper">
+            <label for="filtroRotasMes">Filtrar por período:</label>
+            <input type="month" id="filtroRotasMes" />
+          </div>
+
+          <button
+            id="btnExportarCSV"
+            class="btn-csv-icon"
+            title="Baixar dados deste mês"
+          >
+            <span class="material-symbols-outlined">download</span>
+          </button>
+        </div>
+
         <div class="rotas-list" id="rotasList"></div>
         <div class="empty-state" id="emptyState" style="display: none">
           <span class="material-symbols-outlined">local_shipping</span>
@@ -231,7 +320,7 @@
               <span class="material-symbols-outlined">savings</span>
             </div>
             <div class="fin-info">
-              <span>Lucro Líquido</span>
+              <span id="lucro-liquido_txt">Lucro Líquido</span>
               <h3 id="finLucroLiquido">R$ 0,00</h3>
             </div>
           </div>
@@ -271,7 +360,7 @@
           Extrato do Período
         </h3>
 
-        <div class="rotas-list" id="listaFinanceiro"></div>
+        <div class="financeiro-rotas-list" id="listaFinanceiro"></div>
       </div>
     </div>
 

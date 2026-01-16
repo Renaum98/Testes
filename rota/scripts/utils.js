@@ -58,3 +58,84 @@ if (!document.querySelector("#notificacao-styles")) {
   `;
   document.head.appendChild(style);
 }
+
+// EXPORTAÇÃO DE DADOS (CSV)
+// ============================================
+// Agora aceita um array opcional 'rotasFiltradas'
+export function baixarRelatorioCSV(rotasFiltradas = null) {
+  // Se passou uma lista (array), usa ela. Se não, usa todas do state.
+  // Verificamos Array.isArray para evitar que o evento de click (Event) seja tratado como lista.
+  const rotasParaExportar = Array.isArray(rotasFiltradas)
+    ? rotasFiltradas
+    : state.rotas;
+
+  if (!rotasParaExportar || rotasParaExportar.length === 0) {
+    mostrarNotificacao("Não há dados neste período para exportar.", "warning");
+    return;
+  }
+
+  // 1. Cabeçalho do CSV
+  const cabecalho = [
+    "Data",
+    "Hora Inicio",
+    "Hora Fim",
+    "Plataforma",
+    "KM Percorrido",
+    "Consumo (Km/L)",
+    "Valor Bruto (R$)",
+    "Custo Gasolina (R$)",
+    "Lucro Liquido (R$)",
+    "Duração (min)",
+  ];
+
+  // 2. Processar linhas
+  const linhas = rotasParaExportar.map((rota) => {
+    const inicio = new Date(rota.horarioInicio);
+    const fim = rota.horarioFim ? new Date(rota.horarioFim) : new Date();
+
+    const formatarNumero = (val) => (val || 0).toFixed(2).replace(".", ",");
+    const formatarKm = (val) => (val || 0).toFixed(1).replace(".", ",");
+
+    let km = 0;
+    if (rota.kmPercorridos !== undefined && rota.kmPercorridos !== null) {
+      km = Number(rota.kmPercorridos);
+    } else if (rota.kmFinal && rota.kmInicial) {
+      km = Number(rota.kmFinal) - Number(rota.kmInicial);
+    }
+
+    return [
+      inicio.toLocaleDateString("pt-BR"),
+      inicio.toLocaleTimeString("pt-BR"),
+      fim.toLocaleTimeString("pt-BR"),
+      rota.plataforma || "Outros",
+      formatarKm(km),
+      formatarKm(rota.consumoUtilizado),
+      formatarNumero(rota.valor),
+      formatarNumero(rota.custoGasolina),
+      formatarNumero(rota.lucroLiquido),
+      rota.duracaoMinutos || 0,
+    ].join(";");
+  });
+
+  // 3. Montar CSV
+  const csvContent = "\uFEFF" + [cabecalho.join(";"), ...linhas].join("\n");
+
+  // 4. Download
+  const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+
+  const hoje = new Date().toISOString().split("T")[0];
+  link.setAttribute("href", url);
+  // Adiciona um sufixo se for filtrado, opcional, mas ajuda
+  link.setAttribute("download", `rotas_export_${hoje}.csv`);
+
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+
+  mostrarNotificacao(
+    `Exportado ${rotasParaExportar.length} rotas com sucesso!`,
+    "success"
+  );
+}

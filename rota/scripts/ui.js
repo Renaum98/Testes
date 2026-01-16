@@ -6,25 +6,16 @@ import { carregarDados } from "./storage.js";
 // ============================================
 // GERENCIAMENTO DE MODAIS
 // ============================================
-export function abrirModalIniciarRota() {
-  if (state.rotaAtual) {
-    mostrarNotificacao("Você já tem uma rota em andamento!", "info");
-    return;
-  }
-  const modal = document.getElementById("modalIniciarRota");
+
+// NOVA FUNÇÃO: Abre o modal de registro direto
+export function abrirModalRegistrarRota() {
+  const modal = document.getElementById("modalRegistrarRota");
   if (modal) modal.classList.add("active");
 }
 
-export function abrirModalEncerrarRota() {
-  if (!state.rotaAtual) {
-    mostrarNotificacao("Nenhuma rota em andamento!", "info");
-    return;
-  }
-  document.getElementById("modalEncerrarRota").classList.add("active");
-}
-
 export function fecharModal(modalId) {
-  document.getElementById(modalId).classList.remove("active");
+  const modal = document.getElementById(modalId);
+  if (modal) modal.classList.remove("active");
 }
 
 // ============================================
@@ -33,6 +24,7 @@ export function fecharModal(modalId) {
 export function mudarPagina(event, pagina) {
   event.preventDefault();
 
+  // Remove classe active de todas as páginas e links
   document
     .querySelectorAll(".page")
     .forEach((p) => p.classList.remove("active"));
@@ -40,92 +32,112 @@ export function mudarPagina(event, pagina) {
     .querySelectorAll(".menu-item_link")
     .forEach((l) => l.classList.remove("active"));
 
-  document.getElementById("page-" + pagina).classList.add("active");
-  event.currentTarget.classList.add("active");
+  // Adiciona active na página e link atuais
+  const pageElement = document.getElementById("page-" + pagina);
+  if (pageElement) pageElement.classList.add("active");
 
+  if (event.currentTarget) {
+    event.currentTarget.classList.add("active");
+  }
+
+  // Lógica específica por página
   if (pagina === "rotas") {
     carregarDados();
   }
 
-  document.getElementById("page-" + pagina).classList.add("active");
-  event.currentTarget.classList.add("active");
-
-  if (pagina === "rotas") carregarDados();
-
-  // ADICIONAR ISSO:
   if (pagina === "config") {
-    atualizarPerfilUsuario(); // Chama a função que criamos acima
+    atualizarPerfilUsuario();
+  }
+
+  if (pagina === "financeiro") {
+    atualizarPaginaFinanceiro();
   }
 }
 
 // ============================================
 // ATUALIZAÇÃO DA INTERFACE
 // ============================================
-export function atualizarRotaAberta() {
-  const container = document.getElementById("rotaAbertaContainer");
-  const detalhes = document.getElementById("detalhesRotaAberta");
-
-  if (state.rotaAtual) {
-    const inicio = new Date(state.rotaAtual.horarioInicio);
-    const agora = new Date();
-    const duracao = Math.floor((agora - inicio) / 60000);
-
-    const horas = Math.floor(duracao / 60);
-    const minutos = duracao % 60;
-
-    detalhes.innerHTML = `
-      <div><strong>Início:</strong> ${inicio.toLocaleTimeString("pt-BR")}</div>
-      <div><strong>Tempo Decorrido:</strong> ${horas}h ${minutos}min</div>
-      <div style="font-size: 0.8rem; color: #666;">Clique para finalizar</div>
-    `;
-
-    container.classList.add("active");
-  } else {
-    container.classList.remove("active");
-  }
-}
 
 export function atualizarListaRotas() {
   const lista = document.getElementById("rotasList");
   const emptyState = document.getElementById("emptyState");
+  const filtroInput = document.getElementById("filtroRotasMes");
 
+  // Se não tem rotas carregadas, limpa tudo
   if (!state.rotas || state.rotas.length === 0) {
     lista.innerHTML = "";
-    if (emptyState) emptyState.style.display = "block";
+    if (emptyState) {
+      emptyState.style.display = "block";
+      emptyState.querySelector("p").textContent =
+        "Nenhuma rota registrada ainda.";
+    }
+    return;
+  }
+
+  // --- LÓGICA DE FILTRO ---
+  let rotasExibidas = state.rotas;
+
+  if (filtroInput && filtroInput.value) {
+    const [anoFiltro, mesFiltro] = filtroInput.value.split("-");
+
+    rotasExibidas = state.rotas.filter((rota) => {
+      const dataRota = new Date(rota.horarioInicio);
+      const anoRota = dataRota.getFullYear().toString();
+      const mesRota = (dataRota.getMonth() + 1).toString().padStart(2, "0");
+
+      return anoRota === anoFiltro && mesRota === mesFiltro;
+    });
+  }
+  // ------------------------
+
+  // Verifica se o filtro resultou em lista vazia
+  if (rotasExibidas.length === 0) {
+    lista.innerHTML = "";
+    if (emptyState) {
+      emptyState.style.display = "block";
+      emptyState.querySelector("p").textContent = "Nenhuma rota neste mês.";
+    }
     return;
   }
 
   if (emptyState) emptyState.style.display = "none";
 
-  lista.innerHTML = state.rotas
+  lista.innerHTML = rotasExibidas
     .map((rota) => {
       const inicio = new Date(rota.horarioInicio);
       const fim = rota.horarioFim ? new Date(rota.horarioFim) : new Date();
+      const lucroLiquido = rota.lucroLiquido || 0;
 
-      const custoGasolina = rota.custoGasolina || 0;
-      const lucroLiquido = rota.lucroLiquido || rota.valor - custoGasolina;
-
-      // CORREÇÃO AQUI: Garante que pegamos o valor correto, seja da lógica antiga ou nova
-      // Se tiver 'kmPercorridos' direto (nova lógica), usa ele.
-      // Se não, tenta calcular (lógica antiga). Se falhar, usa 0.
-      let kmTotal = 0;
+      let kmNumerico = 0;
       if (rota.kmPercorridos !== undefined && rota.kmPercorridos !== null) {
-        kmTotal = parseFloat(rota.kmPercorridos);
+        kmNumerico = Number(rota.kmPercorridos);
       } else if (rota.kmFinal && rota.kmInicial) {
-        kmTotal = rota.kmFinal - rota.kmInicial;
+        kmNumerico = Number(rota.kmFinal) - Number(rota.kmInicial);
       }
+      if (isNaN(kmNumerico)) kmNumerico = 0;
 
-      // Formatação da Plataforma
+      // Badge da Plataforma
       let plataformaHtml = "";
       if (rota.plataforma) {
         let corBadge = "#999";
-        if (rota.plataforma === "shopee") corBadge = "#ee4d2d"; // Laranja Shopee
-        if (rota.plataforma === "meli") corBadge = "#ffe600"; // Amarelo ML
+        if (rota.plataforma === "shopee") corBadge = "#ee4d2d";
+        if (rota.plataforma === "meli") corBadge = "#ffe600";
 
         plataformaHtml = `
-          
-            ${rota.plataforma}
-          
+          <div style="margin-top: 4px;">
+            <span style="
+              background: ${corBadge}; 
+              color: ${rota.plataforma === "meli" ? "#2d3277" : "#fff"}; 
+              padding: 2px 8px; 
+              border-radius: 12px; 
+              font-size: 0.70rem; 
+              font-weight: bold;
+              text-transform: uppercase;
+              display: inline-block;
+            ">
+              ${rota.plataforma}
+            </span>
+          </div>
         `;
       }
 
@@ -134,9 +146,9 @@ export function atualizarListaRotas() {
           <div class="rota-item-content">
             <div class="rota-card">
               <div class="rota-card-header">
-                <div class="rota-data">
-                    ${inicio.toLocaleDateString("pt-BR")}
-                </div>
+                <div class="rota-data">${inicio.toLocaleDateString(
+                  "pt-BR"
+                )}</div>
                 <div class="rota-valor">R$ ${
                   rota.valor?.toFixed(2) || "0.00"
                 }</div>
@@ -148,18 +160,14 @@ export function atualizarListaRotas() {
                     ${inicio.toLocaleTimeString("pt-BR", {
                       hour: "2-digit",
                       minute: "2-digit",
-                    })} - 
-                    ${fim.toLocaleTimeString("pt-BR", {
-                      hour: "2-digit",
-                      minute: "2-digit",
                     })}
                   </span>
                 </div>
                 <div class="info-item">
                   <span class="info-label">KM Percorridos</span>
-                  <span class="info-value">${
-                    isNaN(kmTotal) ? "0.0" : kmTotal.toFixed(1)
-                  } km</span>
+                  <div style="display: flex; flex-direction: column; align-items: center;">
+                    <span class="info-value">${kmNumerico.toFixed(1)} km</span>
+                  </div>
                 </div>
                 <div class="info-item">
                   <span class="info-label">Lucro Líquido</span>
@@ -170,13 +178,12 @@ export function atualizarListaRotas() {
                 <div class="info-item">
                   <span class="info-label">Plataforma</span>
                   <span class="info-value">
-                    ${plataformaHtml}
+                    ${rota.plataforma}
                   </span>
                 </div>
               </div>
             </div>
           </div>
-          
           <div class="rota-swipe-action delete-action">
             <button class="btn-swipe-delete" data-id="${rota.id}">
               <span class="material-symbols-outlined">delete</span>
@@ -201,8 +208,7 @@ export function atualizarPerfilUsuario() {
   const emailElement = document.getElementById("profileEmail");
 
   if (user && nomeElement && emailElement) {
-    // Tenta pegar o nome do Google/Firebase ou usa o email
-    const nome = user.nome || "Usuário";
+    const nome = user.nome || user.displayName || "Usuário";
     const email = user.email;
 
     nomeElement.textContent = nome;
@@ -223,21 +229,16 @@ export function atualizarPaginaFinanceiro() {
     const primeiroDia = new Date(hoje.getFullYear(), hoje.getMonth(), 1);
     const ultimoDia = new Date(hoje.getFullYear(), hoje.getMonth() + 1, 0);
 
-    // Formata para YYYY-MM-DD (formato do input date)
     inputInicio.value = firstDayFormat(primeiroDia);
     inputFim.value = firstDayFormat(ultimoDia);
   }
 
   // 2. Converter inputs para Date
-  // Ajustamos o fuso horário adicionando "T00:00:00" e "T23:59:59"
   const dataInicio = new Date(inputInicio.value + "T00:00:00");
   const dataFim = new Date(inputFim.value + "T23:59:59");
 
-  console.log("Filtrando de", dataInicio, "até", dataFim);
-
   // 3. Filtrar rotas
   const rotasFiltradas = state.rotas.filter((rota) => {
-    // Usa data de fim se tiver, senão data de início
     const dataRota = new Date(rota.horarioFim || rota.horarioInicio);
     return dataRota >= dataInicio && dataRota <= dataFim;
   });
@@ -249,12 +250,10 @@ export function atualizarPaginaFinanceiro() {
   let totalKm = 0;
 
   rotasFiltradas.forEach((rota) => {
-    // Garante que é número
     const val = parseFloat(rota.valor) || 0;
     const custo = parseFloat(rota.custoGasolina) || 0;
     const lucro = parseFloat(rota.lucroLiquido) || val - custo;
 
-    // Tratamento de KM
     let km = 0;
     if (rota.kmPercorridos !== undefined && rota.kmPercorridos !== null) {
       km = Number(rota.kmPercorridos);
@@ -282,11 +281,10 @@ export function atualizarPaginaFinanceiro() {
     1
   )} km`;
 
-  // 6. Atualizar Lista Filtrada (Reaproveita o estilo da lista principal)
+  // 6. Atualizar Lista Filtrada
   renderizarListaFinanceiro(rotasFiltradas);
 }
 
-// Função auxiliar para formatar data pro input (YYYY-MM-DD)
 function firstDayFormat(date) {
   const year = date.getFullYear();
   const month = String(date.getMonth() + 1).padStart(2, "0");
@@ -294,7 +292,6 @@ function firstDayFormat(date) {
   return `${year}-${month}-${day}`;
 }
 
-// Função simples para renderizar a lista abaixo dos cards
 function renderizarListaFinanceiro(listaRotas) {
   const container = document.getElementById("listaFinanceiro");
 
@@ -308,7 +305,6 @@ function renderizarListaFinanceiro(listaRotas) {
       const data = new Date(rota.horarioFim || rota.horarioInicio);
       const lucro = rota.lucroLiquido || rota.valor - rota.custoGasolina;
 
-      // Badge pequena
       let badge = "";
       if (rota.plataforma === "shopee")
         badge = `<span style="color:#ee4d2d; font-weight:bold; font-size:0.7em;">SHOPEE</span>`;

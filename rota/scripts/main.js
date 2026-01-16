@@ -1,15 +1,15 @@
 import { state } from "./state.js";
-import { mostrarNotificacao } from "./utils.js";
+import { mostrarNotificacao, baixarRelatorioCSV } from "./utils.js";
 import {
-  abrirModalEncerrarRota,
+  abrirModalRegistrarRota,
   fecharModal,
   mudarPagina,
-  atualizarRotaAberta,
-  atualizarPerfilUsuario,
+  atualizarListaRotas,
   atualizarPaginaFinanceiro,
+  atualizarPerfilUsuario,
 } from "./ui.js";
 import { carregarDados, carregarDadosLocal } from "./storage.js";
-import { iniciarRota, encerrarRota, cancelarRota } from "./routes.js";
+import { salvarNovaRota, excluirRota } from "./routes.js";
 
 // ============================================
 // INICIALIZAÇÃO DO APLICATIVO
@@ -40,12 +40,7 @@ function inicializarApp() {
   configurarEventListeners();
   carregarDados();
 
-  // Cronômetro
-  setInterval(() => {
-    if (state.rotaAtual) {
-      atualizarRotaAberta();
-    }
-  }, 60000);
+  // REMOVIDO: Cronômetro (setInterval) não é mais necessário
 
   console.log("Aplicação inicializada com sucesso");
 }
@@ -62,68 +57,156 @@ function inicializarModoOffline() {
 function configurarEventListeners() {
   console.log("Configurando event listeners...");
 
-  // Botão Registrar Rota (Início imediato)
+  // ============================================
+  // CONFIGURAÇÃO DO PREÇO DA GASOLINA
+  // ============================================
+  const inputGasolina = document.getElementById("inputPrecoGasolina");
+
+  if (inputGasolina) {
+    // 1. Carregar valor salvo (ou usar padrão do state)
+    const precoSalvo = localStorage.getItem("precoGasolina");
+    if (precoSalvo) {
+      state.precoGasolina = parseFloat(precoSalvo);
+    }
+    inputGasolina.value = state.precoGasolina.toFixed(2);
+
+    // 2. Salvar ao alterar (Evento 'change' ocorre ao sair do campo ou dar enter)
+    inputGasolina.addEventListener("change", (e) => {
+      let novoPreco = parseFloat(e.target.value);
+
+      if (isNaN(novoPreco) || novoPreco <= 0) {
+        mostrarNotificacao("Preço inválido!", "error");
+        e.target.value = state.precoGasolina.toFixed(2); // Volta ao anterior
+        return;
+      }
+
+      state.precoGasolina = novoPreco;
+      localStorage.setItem("precoGasolina", novoPreco);
+      mostrarNotificacao(
+        `Gasolina atualizada: R$ ${novoPreco.toFixed(2)}`,
+        "success"
+      );
+    });
+  }
+
+  // 1. Botão "Adicionar Nova Rota" (Abre Modal)
   const btnRegistrar = document.getElementById("btnRegistrarRota");
   if (btnRegistrar) {
-    btnRegistrar.addEventListener("click", iniciarRota);
+    btnRegistrar.addEventListener("click", abrirModalRegistrarRota);
   }
 
-  // Botão da Rota em Andamento (Abre o Modal de Encerrar)
-  const btnRotaAberta = document.getElementById("btnRotaAberta");
-  if (btnRotaAberta) {
-    btnRotaAberta.addEventListener("click", abrirModalEncerrarRota);
+  // 2. Formulário de Salvar Rota
+  // IMPORTANTE: O ID mudou no HTML para 'formRegistrarRota'
+  const formRegistrar = document.getElementById("formRegistrarRota");
+  if (formRegistrar) {
+    formRegistrar.addEventListener("submit", salvarNovaRota);
+  } else {
+    // Fallback caso o HTML antigo ainda esteja em cache com ID antigo
+    const formEncerrarAntigo = document.getElementById("formEncerrarRota");
+    if (formEncerrarAntigo)
+      formEncerrarAntigo.addEventListener("submit", salvarNovaRota);
   }
 
-  // Navegação
+  // 3. Botão Cancelar no modal
+  // IMPORTANTE: O ID mudou no HTML para 'btnCancelarRegistro'
+  const btnCancelar = document.getElementById("btnCancelarRegistro");
+  if (btnCancelar) {
+    btnCancelar.addEventListener("click", () =>
+      fecharModal("modalRegistrarRota")
+    );
+  } else {
+    // Fallback ID antigo
+    const btnCancelarAntigo = document.getElementById("btnCancelarRota");
+    if (btnCancelarAntigo)
+      btnCancelarAntigo.addEventListener("click", () =>
+        fecharModal("modalRegistrarRota")
+      );
+  }
+
+  // 4. Navegação
   document.querySelectorAll(".menu-item_link").forEach((link) => {
     const pagina = link.getAttribute("data-pagina");
     if (pagina) {
       link.addEventListener("click", (e) => {
         mudarPagina(e, pagina);
-        
-        // Se entrou na página financeiro, atualiza os dados
+
+        // Atualizações específicas por página
         if (pagina === "financeiro") {
           atualizarPaginaFinanceiro();
+        }
+        if (pagina === "config") {
+          atualizarPerfilUsuario();
         }
       });
     }
   });
 
-  // Formulário de Encerrar
-  const formEncerrar = document.getElementById("formEncerrarRota");
-  if (formEncerrar) {
-    formEncerrar.addEventListener("submit", encerrarRota);
-  }
-
-  // Botão Cancelar no modal
-  const btnCancelarRota = document.getElementById("btnCancelarRota");
-  if (btnCancelarRota) {
-    btnCancelarRota.addEventListener("click", cancelarRota);
-  }
-
-  // Fechar modais (Overlay)
+  // 5. Fechar modais (Overlay e ESC)
   document.querySelectorAll(".modal").forEach((modal) => {
     modal.addEventListener("click", (e) => {
-      if (e.target === modal) {
-        modal.classList.remove("active");
-      }
+      if (e.target === modal) modal.classList.remove("active");
     });
   });
 
-  // Fechar com ESC
   document.addEventListener("keydown", function (e) {
     if (e.key === "Escape") {
-      document.querySelectorAll(".modal.active").forEach((modal) => {
-        modal.classList.remove("active");
-      });
+      document
+        .querySelectorAll(".modal.active")
+        .forEach((modal) => modal.classList.remove("active"));
     }
   });
 
-  // ===========================================
-  // CONFIGURAÇÃO DE LOGOUT (Header e Aba Config)
-  // ===========================================
+  // ============================================
+  // FILTRO DE ROTAS (MÊS/ANO)
+  // ============================================
+  const filtroRotasInput = document.getElementById("filtroRotasMes");
+  if (filtroRotasInput) {
+    const hoje = new Date();
+    const anoAtual = hoje.getFullYear();
+    const mesAtual = (hoje.getMonth() + 1).toString().padStart(2, "0");
 
-  // Função unificada de logout
+    // Define padrão e limites
+    filtroRotasInput.value = `${anoAtual}-${mesAtual}`;
+    filtroRotasInput.min = `${anoAtual - 1}-${mesAtual}`;
+    filtroRotasInput.max = `${anoAtual + 1}-${mesAtual}`;
+
+    // Listener para atualizar lista
+    filtroRotasInput.addEventListener("change", () => {
+      // Import dinâmico ou chamada direta se importado no topo
+      atualizarListaRotas();
+    });
+  }
+
+  // ============================================
+  // EXPORTAR CSV (ABA ROTAS)
+  // ============================================
+  const btnExportar = document.getElementById("btnExportarCSV");
+
+  if (btnExportar && filtroRotasInput) {
+    btnExportar.addEventListener("click", () => {
+      const mesSelecionado = filtroRotasInput.value;
+
+      if (!mesSelecionado) {
+        baixarRelatorioCSV();
+        return;
+      }
+
+      // Filtrar rotas do mês selecionado
+      const [anoFiltro, mesFiltro] = mesSelecionado.split("-");
+      const rotasFiltradas = state.rotas.filter((rota) => {
+        const dataRota = new Date(rota.horarioInicio);
+        const anoRota = dataRota.getFullYear().toString();
+        const mesRota = (dataRota.getMonth() + 1).toString().padStart(2, "0");
+        return anoRota === anoFiltro && mesRota === mesFiltro;
+      });
+
+      baixarRelatorioCSV(rotasFiltradas);
+    });
+  }
+
+  // ===========================================
+  // CONFIGURAÇÃO DE LOGOUT
+  // ===========================================
   const realizarLogout = () => {
     if (confirm("Tem certeza que deseja sair?")) {
       if (window.firebaseDb && window.firebaseDb.auth) {
@@ -141,39 +224,21 @@ function configurarEventListeners() {
     }
   };
 
-  // 2. Botão Grande na Aba Configurações (NOVO)
   const btnConfigLogout = document.getElementById("btnConfigLogout");
-  if (btnConfigLogout) {
+  if (btnConfigLogout)
     btnConfigLogout.addEventListener("click", realizarLogout);
-  }
 
-  // Logout
-  const btnLogout = document.getElementById("btnLogout");
-  if (btnLogout) {
-    btnLogout.addEventListener("click", function () {
-      if (confirm("Tem certeza que deseja sair?")) {
-        if (window.firebaseDb && window.firebaseDb.auth) {
-          window.firebaseDb.auth
-            .signOut()
-            .then(() => {
-              window.location.href = "index.html";
-            })
-            .catch(() => {
-              mostrarNotificacao("Erro ao sair.", "error");
-            });
-        } else {
-          window.location.href = "index.html";
-        }
-      }
-    });
-  }
+  const btnLogoutHeader = document.getElementById("btnLogout");
+  if (btnLogoutHeader)
+    btnLogoutHeader.addEventListener("click", realizarLogout);
+
   // ============================================
   // FILTRO FINANCEIRO
   // ============================================
   const btnFiltrarFin = document.getElementById("btnFiltrarFinanceiro");
   if (btnFiltrarFin) {
     btnFiltrarFin.addEventListener("click", () => {
-      atualizarPaginaFinanceiro(); // Chama a função quando clica no filtro
+      atualizarPaginaFinanceiro();
       mostrarNotificacao("Filtro aplicado!", "success");
     });
   }
