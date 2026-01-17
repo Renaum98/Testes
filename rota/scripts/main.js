@@ -26,7 +26,7 @@ function inicializarApp() {
     console.error("Firebase não configurado corretamente");
     mostrarNotificacao(
       "Firebase não configurado. Usando modo offline.",
-      "warning"
+      "warning",
     );
     inicializarModoOffline();
     return;
@@ -84,15 +84,38 @@ function configurarEventListeners() {
       localStorage.setItem("precoGasolina", novoPreco);
       mostrarNotificacao(
         `Gasolina atualizada: R$ ${novoPreco.toFixed(2)}`,
-        "success"
+        "success",
       );
     });
   }
 
   // 1. Botão "Adicionar Nova Rota" (Abre Modal)
+  // 1. Botão "Adicionar Nova Rota" (Abre Modal + Preenche Data)
   const btnRegistrar = document.getElementById("btnRegistrarRota");
+
   if (btnRegistrar) {
-    btnRegistrar.addEventListener("click", abrirModalRegistrarRota);
+    btnRegistrar.addEventListener("click", (e) => {
+      // A. Chama a sua função original de abrir o modal
+      // (Verificamos se ela existe antes para não quebrar)
+      if (typeof abrirModalRegistrarRota === "function") {
+        abrirModalRegistrarRota(e);
+      } else {
+        // Fallback de segurança: abre o modal na força bruta se a função falhar
+        const modal = document.getElementById("modalRegistrarRota");
+        if (modal) modal.style.display = "flex";
+      }
+
+      // B. Define a Data de Hoje no campo
+      const inputData = document.getElementById("inputDataRota");
+      if (inputData) {
+        const hoje = new Date();
+        const ano = hoje.getFullYear();
+        const mes = String(hoje.getMonth() + 1).padStart(2, "0");
+        const dia = String(hoje.getDate()).padStart(2, "0");
+
+        inputData.value = `${ano}-${mes}-${dia}`;
+      }
+    });
   }
 
   // 2. Formulário de Salvar Rota
@@ -112,14 +135,14 @@ function configurarEventListeners() {
   const btnCancelar = document.getElementById("btnCancelarRegistro");
   if (btnCancelar) {
     btnCancelar.addEventListener("click", () =>
-      fecharModal("modalRegistrarRota")
+      fecharModal("modalRegistrarRota"),
     );
   } else {
     // Fallback ID antigo
     const btnCancelarAntigo = document.getElementById("btnCancelarRota");
     if (btnCancelarAntigo)
       btnCancelarAntigo.addEventListener("click", () =>
-        fecharModal("modalRegistrarRota")
+        fecharModal("modalRegistrarRota"),
       );
   }
 
@@ -343,3 +366,18 @@ document.addEventListener("DOMContentLoaded", () => {
     inicializarModoOffline();
   }
 });
+
+// ============================================
+// REGISTRO DO SERVICE WORKER (PWA)
+// ============================================
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js')
+      .then((registration) => {
+        console.log('ServiceWorker registrado com sucesso: ', registration.scope);
+      })
+      .catch((err) => {
+        console.log('Falha ao registrar ServiceWorker: ', err);
+      });
+  });
+}

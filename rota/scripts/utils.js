@@ -1,5 +1,36 @@
+import { state } from "./state.js";
+
 // ============================================
-// SISTEMA DE NOTIFICAÇÕES
+// FORMATAÇÃO E UTILITÁRIOS (ADICIONADO)
+// ============================================
+export function formatCurrency(value) {
+  return new Intl.NumberFormat("pt-BR", {
+    style: "currency",
+    currency: "BRL",
+  }).format(value);
+}
+
+// ============================================
+// MODAIS (ADICIONADO - O QUE FALTAVA)
+// ============================================
+export function abrirModal(modalId) {
+  const modal = document.getElementById(modalId);
+  if (modal) {
+    modal.style.display = "flex";
+    // Garante que o display seja flex para centralizar,
+    // se o seu CSS usar outro display, ajuste aqui.
+  }
+}
+
+export function fecharModal(modalId) {
+  const modal = document.getElementById(modalId);
+  if (modal) {
+    modal.style.display = "none";
+  }
+}
+
+// ============================================
+// SISTEMA DE NOTIFICAÇÕES (SEU CÓDIGO ORIGINAL)
 // ============================================
 export function mostrarNotificacao(mensagem, tipo = "info") {
   // Remover notificações antigas
@@ -16,10 +47,10 @@ export function mostrarNotificacao(mensagem, tipo = "info") {
       tipo === "success"
         ? "#10b981"
         : tipo === "error"
-        ? "#ef4444"
-        : tipo === "warning"
-        ? "#f59e0b"
-        : "#667eea"
+          ? "#ef4444"
+          : tipo === "warning"
+            ? "#f59e0b"
+            : "#667eea"
     };
     color: white;
     padding: 15px 20px;
@@ -41,7 +72,7 @@ export function mostrarNotificacao(mensagem, tipo = "info") {
 }
 
 // ============================================
-// ESTILOS DINÂMICOS
+// ESTILOS DINÂMICOS (SEU CÓDIGO ORIGINAL)
 // ============================================
 if (!document.querySelector("#notificacao-styles")) {
   const style = document.createElement("style");
@@ -59,12 +90,11 @@ if (!document.querySelector("#notificacao-styles")) {
   document.head.appendChild(style);
 }
 
-// EXPORTAÇÃO DE DADOS (CSV)
 // ============================================
-// Agora aceita um array opcional 'rotasFiltradas'
+// EXPORTAÇÃO DE DADOS (CSV) (SEU CÓDIGO ORIGINAL)
+// ============================================
 export function baixarRelatorioCSV(rotasFiltradas = null) {
   // Se passou uma lista (array), usa ela. Se não, usa todas do state.
-  // Verificamos Array.isArray para evitar que o evento de click (Event) seja tratado como lista.
   const rotasParaExportar = Array.isArray(rotasFiltradas)
     ? rotasFiltradas
     : state.rotas;
@@ -127,7 +157,6 @@ export function baixarRelatorioCSV(rotasFiltradas = null) {
 
   const hoje = new Date().toISOString().split("T")[0];
   link.setAttribute("href", url);
-  // Adiciona um sufixo se for filtrado, opcional, mas ajuda
   link.setAttribute("download", `rotas_export_${hoje}.csv`);
 
   document.body.appendChild(link);
@@ -136,6 +165,6 @@ export function baixarRelatorioCSV(rotasFiltradas = null) {
 
   mostrarNotificacao(
     `Exportado ${rotasParaExportar.length} rotas com sucesso!`,
-    "success"
+    "success",
   );
 }

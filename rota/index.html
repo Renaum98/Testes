@@ -1,7 +1,15 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="pt-BR">
   <head>
     <meta charset="UTF-8" />
+
+    <link rel="manifest" href="manifest.json" />
+    <meta name="theme-color" content="#667eea" />
+    <link rel="apple-touch-icon" href="assets/icon-192.png" />
+    <meta
+      name="apple-mobile-web-app-status-bar-style"
+      content="black-translucent"
+    />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="description" content="Acesso ao sistema RotaTrack" />
     <meta name="theme-color" content="#667eea" />
@@ -82,13 +90,10 @@
         // Verificar se Firebase foi carregado
         function verificarFirebase() {
           if (typeof firebase !== "undefined" && window.firebaseDb) {
-            console.log("Firebase carregado, verificando autenticação...");
-
             // Verifica se já está autenticado
             window.firebaseDb
               .validarUsuario()
               .then((user) => {
-                console.log("Usuário já autenticado:", user.email);
                 // Usuário já autenticado, redireciona para página principal
                 window.location.href = "/";
               })

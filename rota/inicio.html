@@ -6,6 +6,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="description" content="Sistema de gerenciamento de rotas para entregadores" />
   <meta name="theme-color" content="#667eea" />
+
+  <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#667eea">
+    <link rel="apple-touch-icon" href="assets/icon-192.png"> <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <title>RotaTrack - Gerenciador de Rotas</title>
 
   <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -46,7 +50,7 @@
 <body style="display: none">
   <div id="page-inicio" class="page active">
     <div class="logo-site">
-      <h2>RotaTrack</h2>
+      <h2 class="page-inicio_titulo">RotaTrack</h2>
       <h2>Inicio</h2>
     </div>
 
@@ -114,6 +118,12 @@
     <div class="modal-content">
       <h3>Nova Rota</h3>
       <form id="formRegistrarRota">
+
+        <div class="form-group">
+            <label>Data da Rota</label>
+            <input type="date" id="inputDataRota" style="width: 100%; padding: 12px; border: 1px solid #edf2f7; border-radius: 8px; font-family: 'Montserrat'; color: #2d3748;">
+        </div>
+
         <div class="form-group">
           <label>Plataforma</label>
           <select id="plataformaRota" required>
@@ -150,7 +160,7 @@
 
   <div id="page-rotas" class="page">
     <div class="logo-site">
-      <h2>RotaTrack</h2>
+      <h2 class="page-inicio_titulo">RotaTrack</h2>
       <h2>Histórico de Rotas</h2>
     </div>
 
@@ -240,7 +250,7 @@
   <!--pagina configurações-->
   <div id="page-config" class="page">
     <div class="logo-site">
-      <h2>RotaTrack</h2>
+      <h2 class="page-inicio_titulo">RotaTrack</h2>
       <h2>Configurações</h2>
     </div>
 
@@ -267,7 +277,7 @@
   <!--Pagina Financeiro-->
   <div id="page-financeiro" class="page">
     <div class="logo-site">
-      <h2>RotaTrack</h2>
+      <h2 class="page-inicio_titulo">RotaTrack</h2>
       <h2>Financeiro</h2>
     </div>
 

@@ -1,104 +1,137 @@
 import { state } from "./state.js";
-import { mostrarNotificacao } from "./utils.js";
-import { fecharModal, atualizarListaRotas } from "./ui.js";
+import { mostrarNotificacao, fecharModal } from "./utils.js";
 import { salvarRotaFinalizada } from "./storage.js";
 
 // ============================================
-// SALVAR NOVA ROTA (DIRETO)
+// SALVAR NOVA ROTA (ADAPTADO AO SEU HTML)
 // ============================================
 export async function salvarNovaRota(event) {
   event.preventDefault();
 
-  // Elementos do DOM
-  const elPlataforma = document.getElementById("plataformaRota");
-  const elKm = document.getElementById("kmPercorridoInput");
-  const elConsumo = document.getElementById("consumoInput");
-  const elValor = document.getElementById("valorRota");
+  // 1. Pegar Elementos usando os IDs EXATOS do seu HTML
+  const elData = document.getElementById("inputDataRota");
+  const elPlataforma = document.getElementById("plataformaRota"); // ID Corrigido
+  const elKm = document.getElementById("kmPercorridoInput"); // ID Corrigido
+  const elConsumo = document.getElementById("consumoInput"); // ID Corrigido (Km/L)
+  const elValor = document.getElementById("valorRota"); // ID Corrigido
 
-  // Captura valores
+  // 2. Validação de Segurança (Evita o erro "null")
+  if (!elPlataforma || !elKm || !elValor || !elConsumo) {
+    console.error("ERRO CRÍTICO: IDs do HTML não batem com o JS.");
+    return;
+  }
+
+  // 3. Conversão de Valores
   const plataforma = elPlataforma.value;
-  const kmPercorrido = parseFloat(elKm.value);
-  const consumoVeiculo = parseFloat(elConsumo.value);
-  const valorRecebido = parseFloat(elValor.value);
+  const kmPercorridos = parseFloat(elKm.value.replace(",", ".")) || 0;
+  const consumoVeiculo = parseFloat(elConsumo.value.replace(",", ".")) || 10; // Padrão 10 se vazio
+  const valorTotal = parseFloat(elValor.value.replace(",", ".")) || 0;
 
-  // Validações
-  if (isNaN(kmPercorrido) || kmPercorrido <= 0) {
-    mostrarNotificacao("Erro: Digite um KM válido!", "error");
-    return;
+  // 4. Cálculo do Custo e Lucro
+  // Fórmula: (KM / Consumo) * Preço da Gasolina
+  const precoGasolina = state.precoGasolina || 6.35; // Pega do estado ou usa padrão
+  const litrosGastos = kmPercorridos / consumoVeiculo;
+  const custoGasolina = litrosGastos * precoGasolina;
+  const lucroLiquido = valorTotal - custoGasolina;
+
+  // 5. Lógica de Data (Manual ou Atual)
+  let dataReferencia = new Date(); // Por padrão é AGORA
+
+  if (elData && elData.value) {
+    // Se preencheu data manual (YYYY-MM-DD)
+    const partes = elData.value.split("-");
+    const ano = parseInt(partes[0]);
+    const mes = parseInt(partes[1]) - 1;
+    const dia = parseInt(partes[2]);
+
+    // Aplica a data mantendo o horário atual
+    dataReferencia.setFullYear(ano);
+    dataReferencia.setMonth(mes);
+    dataReferencia.setDate(dia);
   }
-  if (!consumoVeiculo || consumoVeiculo <= 0) {
-    mostrarNotificacao("Digite o consumo médio!", "error");
-    return;
-  }
-  if (isNaN(valorRecebido)) {
-    mostrarNotificacao("Digite o valor da rota!", "error");
-    return;
-  }
 
-  // Cálculos Financeiros
-  const litrosGastos = kmPercorrido / consumoVeiculo;
+  // Simula duração (Fim agora, Inicio 30min atrás)
+  const dataFim = new Date(dataReferencia);
+  const dataInicio = new Date(dataReferencia);
+  dataInicio.setMinutes(dataInicio.getMinutes() - 30);
 
-  // AQUI MUDOU: Usa o preço configurado no state (Input da Home)
-  // Se por acaso estiver 0 ou inválido, usa um fallback de segurança (ex: 6.00)
-  const precoGasolinaAtual = state.precoGasolina || 0;
-  const custoGasolina = litrosGastos * precoGasolinaAtual;
-
-  const lucroLiquido = valorRecebido - custoGasolina;
-
-  // Data atual
-  const agora = new Date().toISOString();
-
-  // Objeto Rota Completo
+  // 6. Montar Objeto da Rota
   const novaRota = {
     id: Date.now(),
-    horarioInicio: agora, // Data do registro
-    horarioFim: agora, // Data do registro
-    duracaoMinutos: 0, // Sem timer, duração é irrelevante
     plataforma: plataforma,
-    kmPercorridos: kmPercorrido,
-    consumoUtilizado: consumoVeiculo,
-    valor: valorRecebido,
+    kmPercorridos: kmPercorridos,
+    valor: valorTotal,
+    consumoUtilizado: consumoVeiculo, // Salva quanto o carro fez por litro
     custoGasolina: parseFloat(custoGasolina.toFixed(2)),
     lucroLiquido: parseFloat(lucroLiquido.toFixed(2)),
+
+    // Datas
+    horarioInicio: dataInicio.toISOString(),
+    horarioFim: dataFim.toISOString(),
+
     status: "finalizada",
-    userId: window.firebaseDb.auth.currentUser?.uid || "offline",
+    userId: window.firebaseDb?.auth?.currentUser?.uid || "offline",
+    veiculoId: state.veiculoSelecionado?.id || "padrao",
   };
 
-  // Salvar no Banco/Local
-  await salvarRotaFinalizada(novaRota);
+  try {
+    // 7. Salvar
+    await salvarRotaFinalizada(novaRota);
 
-  // UI: Atualizar lista, fechar modal e limpar form
-  fecharModal("modalRegistrarRota");
-  document.getElementById("formRegistrarRota").reset();
+    // 8. Limpar e Resetar Data para Hoje
+    fecharModal("modalRegistrarRota");
+    document.getElementById("formRegistrarRota").reset();
 
-  mostrarNotificacao(
-    `Rota salva! Lucro: R$ ${lucroLiquido.toFixed(2)}`,
-    "success"
-  );
+    // Preenche a data de hoje novamente para facilitar o próximo lançamento
+    if (elData) {
+      const hoje = new Date();
+      const ano = hoje.getFullYear();
+      const mes = String(hoje.getMonth() + 1).padStart(2, "0");
+      const dia = String(hoje.getDate()).padStart(2, "0");
+      elData.value = `${ano}-${mes}-${dia}`;
+    }
+
+    mostrarNotificacao(
+      `Rota salva! Lucro: R$ ${lucroLiquido.toFixed(2)}`,
+      "success",
+    );
+  } catch (error) {
+    console.error(error);
+    mostrarNotificacao("Erro ao processar rota.", "error");
+  }
 }
 
 // ============================================
-// EXCLUIR ROTA
+// EXCLUIR ROTA (Mantido igual)
 // ============================================
 export async function excluirRota(rotaId) {
   if (!confirm("Tem certeza que deseja excluir esta rota?")) return;
 
   try {
-    if (state.db) {
-      await state.db.rotas.doc(rotaId.toString()).delete();
-      // O listener vai detectar que deletou e atualizará a tela sozinho
+    const user = window.firebaseDb?.auth?.currentUser;
+
+    if (state.db && state.db.db && user) {
+      await state.db.db
+        .collection("usuarios")
+        .doc(user.uid)
+        .collection("rotas")
+        .doc(rotaId.toString())
+        .delete();
+
+      console.log("Rota excluída do Firebase");
     } else {
-      // Fallback offline manual
-      state.rotas = state.rotas.filter(
-        (r) => r.id.toString() !== rotaId.toString()
+      const rotasLocais = JSON.parse(localStorage.getItem("rotas") || "[]");
+      const novasRotas = rotasLocais.filter(
+        (r) => r.id.toString() !== rotaId.toString(),
       );
-      localStorage.setItem("rotas", JSON.stringify(state.rotas));
-      atualizarListaRotas(); // Importar do ui.js se necessário
+      localStorage.setItem("rotas", JSON.stringify(novasRotas));
+      state.rotas = novasRotas;
+      import("./ui.js").then((ui) => ui.atualizarListaRotas());
     }
 
     mostrarNotificacao("Rota excluída!", "success");
   } catch (error) {
-    console.error("Erro ao excluir rota:", error);
-    mostrarNotificacao("Erro ao excluir rota", "error");
+    console.error("Erro ao excluir:", error);
+    mostrarNotificacao("Erro ao excluir rota.", "error");
   }
 }

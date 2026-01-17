@@ -278,7 +278,7 @@ export function atualizarPaginaFinanceiro() {
   if (elTotalRotas) {
     // rotasFiltradas já contém apenas as rotas das datas selecionadas
     const qtd = rotasFiltradas.length;
-    elTotalRotas.innerHTML = `Viagens realizadas neste período: <strong>${qtd}</strong>`;
+    elTotalRotas.innerHTML = `Rotas realizadas neste período: <strong>${qtd}</strong>`;
   }
 }
 
