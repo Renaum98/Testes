@@ -88,8 +88,6 @@ function configurarEventListeners() {
       );
     });
   }
-
-  // 1. Botão "Adicionar Nova Rota" (Abre Modal)
   // 1. Botão "Adicionar Nova Rota" (Abre Modal + Preenche Data)
   const btnRegistrar = document.getElementById("btnRegistrarRota");
 
@@ -267,9 +265,6 @@ function configurarEventListeners() {
   }
 
   // ============================================
-  // CONFIGURAÇÃO DA META MENSAL
-  // ============================================
-  // ============================================
   // CONFIGURAÇÃO DA META MENSAL (COM RESET AUTOMÁTICO)
   // ============================================
   const inputMetaDiaria = document.getElementById("inputMetaDiaria");
@@ -368,16 +363,54 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 // ============================================
-// REGISTRO DO SERVICE WORKER (PWA)
+// INICIALIZAÇÃO E PROTEÇÃO DE ROTAS
 // ============================================
-if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/sw.js')
-      .then((registration) => {
-        console.log('ServiceWorker registrado com sucesso: ', registration.scope);
-      })
-      .catch((err) => {
-        console.log('Falha ao registrar ServiceWorker: ', err);
-      });
-  });
-}
+document.addEventListener("DOMContentLoaded", () => {
+  // 1. Identifica onde estamos pelo CONTEÚDO da página
+  // (Mais seguro que olhar a URL, que pode mudar em subpastas)
+  const isAppPage =
+    !!document.getElementById("app-content") ||
+    !!document.querySelector(".navbar");
+  const isLoginPage = !isAppPage; // Se não é app, assumimos que é login (index.html)
+
+  // 2. Registro do PWA
+  if ("serviceWorker" in navigator) {
+    navigator.serviceWorker
+      .register("./sw.js") // <--- Caminho relativo aqui também
+      .then(() => console.log("Service Worker registrado!"))
+      .catch((err) => console.error("Erro no SW:", err));
+  }
+
+  // 3. Inicialização do Firebase Auth
+  if (window.firebaseDb && window.firebaseDb.auth) {
+    window.firebaseDb.auth.onAuthStateChanged((user) => {
+      if (user) {
+        // --- USUÁRIO LOGADO ---
+        if (isLoginPage) {
+          // Se está na tela de login, manda pro App
+          window.location.replace("app.html");
+          // .replace é melhor que .href pois não deixa voltar pro login com o botão "Voltar"
+        } else {
+          // Já está no app, pode iniciar
+          inicializarApp();
+          // (Se tiver a função de tema que criamos antes, chame ela aqui também: inicializarTema();)
+        }
+      } else {
+        // --- USUÁRIO DESLOGADO ---
+        if (isAppPage) {
+          // Se está tentando acessar o App sem logar, chuta pro Login
+          window.location.replace("index.html");
+        }
+        // Se já está no login, não faz nada (deixa ele logar)
+      }
+    });
+  } else {
+    // MODO OFFLINE / SEM FIREBASE
+    // Se não tiver Firebase configurado, deixa entrar no app para testes
+    if (isLoginPage) {
+      // Opcional: window.location.href = "app.html";
+    } else {
+      inicializarApp();
+    }
+  }
+});
