@@ -388,7 +388,7 @@ document.addEventListener("DOMContentLoaded", () => {
         // --- USUÁRIO LOGADO ---
         if (isLoginPage) {
           // Se está na tela de login, manda pro App
-          window.location.replace("app.html");
+          window.location.replace("inicio.html");
           // .replace é melhor que .href pois não deixa voltar pro login com o botão "Voltar"
         } else {
           // Já está no app, pode iniciar
