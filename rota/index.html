@@ -2,169 +2,124 @@
 <html lang="pt-BR">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>RotaTrack - Login</title>
 
-    <link rel="manifest" href="./manifest.json" />
+    <link rel="manifest" href="manifest.json" />
     <meta name="theme-color" content="#667eea" />
-    <link rel="apple-touch-icon" href="./assets/icon-192.png" />
-
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap"
-      rel="stylesheet"
+    <link rel="apple-touch-icon" href="assets/icon-192.png" />
+    <meta
+      name="apple-mobile-web-app-status-bar-style"
+      content="black-translucent"
     />
-    <link rel="stylesheet" href="./styles/reset.css" />
-    <link rel="stylesheet" href="./styles/variables.css" />
-    <link rel="stylesheet" href="./styles/layout.css" />
-    <link rel="stylesheet" href="./styles/components.css" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Acesso ao sistema RotaTrack" />
+    <meta name="theme-color" content="#667eea" />
+    <title>Login - RotaTrack</title>
 
-    <style>
-      body {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        height: 100vh;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        padding: 20px;
-      }
-      .login-card {
-        background: white;
-        padding: 2rem;
-        border-radius: 16px;
-        width: 100%;
-        max-width: 400px;
-        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
-        text-align: center;
-      }
-      .logo h1 {
-        color: #667eea;
-        margin-bottom: 5px;
-      }
-      .input-group {
-        margin-bottom: 15px;
-        text-align: left;
-      }
-      .input-group label {
-        display: block;
-        margin-bottom: 5px;
-        color: #4a5568;
-      }
-      .input-group input {
-        width: 100%;
-        padding: 12px;
-        border: 1px solid #e2e8f0;
-        border-radius: 8px;
-        font-size: 16px;
-      }
-      .btn-login {
-        width: 100%;
-        background: #667eea;
-        color: white;
-        padding: 12px;
-        border: none;
-        border-radius: 8px;
-        font-size: 16px;
-        cursor: pointer;
-        font-weight: 600;
-        margin-top: 10px;
-      }
-      .error-msg {
-        color: #e53e3e;
-        margin-top: 10px;
-        display: none;
-        font-size: 14px;
-      }
-    </style>
+    <!-- Styles -->
+    <link rel="stylesheet" href="styles/reset.css" />
+    <link rel="stylesheet" href="styles/variables.css" />
+    <link rel="stylesheet" href="styles/layout.css" />
+    <link rel="stylesheet" href="styles/components.css" />
+    <link rel="stylesheet" href="styles/pages.css" />
+    <link rel="stylesheet" href="styles/login.css" />
+  </head>
 
+  <body class="login-page">
+    <!-- Logo/Título -->
+    <header class="login-header">
+      <h1 class="logo">RotaTrack</h1>
+    </header>
+
+    <!-- Container de Login -->
+    <main class="login-container">
+      <div class="login-box">
+        <h2>Acesso ao sistema</h2>
+
+        <form id="loginForm" novalidate>
+          <div class="input-group">
+            <label for="email" class="sr-only">Email</label>
+            <input
+              id="email"
+              type="email"
+              placeholder="Email"
+              autocomplete="email"
+              required
+              aria-required="true"
+            />
+          </div>
+
+          <div class="input-group">
+            <label for="senha" class="sr-only">Senha</label>
+            <input
+              id="senha"
+              type="password"
+              placeholder="Senha"
+              autocomplete="current-password"
+              required
+              aria-required="true"
+            />
+          </div>
+
+          <button type="submit" id="btnLogin">Entrar</button>
+
+          <p
+            id="loginErro"
+            class="error-message"
+            role="alert"
+            aria-live="polite"
+          ></p>
+        </form>
+      </div>
+    </main>
+
+    <!-- Firebase Scripts (ORDEM CORRETA PARA VERSÃO COMPAT) -->
     <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore-compat.js"></script>
 
-    <script src="./scripts/firebase-config.js"></script>
-  </head>
-  <body>
-    <div class="login-card">
-      <div class="logo">
-        <h1>RotaTrack</h1>
-        <p style="color: #718096; margin-bottom: 30px">
-          Gerencie suas entregas
-        </p>
-      </div>
+    <!-- Firebase Config DEVE vir DEPOIS dos SDKs -->
+    <script src="scripts/firebase-config.js"></script>
 
-      <form id="formLogin">
-        <div class="input-group">
-          <label>Email</label>
-          <input type="email" id="email" placeholder="seu@email.com" required />
-        </div>
-        <div class="input-group">
-          <label>Senha</label>
-          <input
-            type="password"
-            id="password"
-            placeholder="********"
-            required
-          />
-        </div>
+    <!-- App Scripts -->
+    <script src="scripts/login.js"></script>
 
-        <button type="submit" class="btn-login" id="btnLogin">Entrar</button>
-        <p class="error-msg" id="msgErro">Email ou senha incorretos</p>
-      </form>
-    </div>
-
+    <!-- Validação de usuário (ATUALIZADA) -->
     <script>
-      document.addEventListener("DOMContentLoaded", () => {
-        // ----------------------------------------------------
-        // 1. REGISTRAR PWA (CORRIGIDO PARA GITHUB PAGES)
-        // ----------------------------------------------------
-        if ("serviceWorker" in navigator) {
-          // Importante: use ./sw.js
-          navigator.serviceWorker
-            .register("./sw.js")
-            .then(() => console.log("Service Worker Registrado"))
-            .catch((err) => console.error("Erro SW:", err));
+      // Aguardar o carregamento do Firebase
+      document.addEventListener("DOMContentLoaded", function () {
+        // Verificar se Firebase foi carregado
+        function verificarFirebase() {
+          if (typeof firebase !== "undefined" && window.firebaseDb) {
+            // Verifica se já está autenticado
+            window.firebaseDb
+              .validarUsuario()
+              .then((user) => {
+                // Usuário já autenticado, redireciona para página principal
+                window.location.href = "/";
+              })
+              .catch((error) => {
+                console.log("Usuário não autenticado ou erro:", error);
+                // Não autenticado, permanece na página de login
+              });
+          } else {
+            // Tentar novamente após 500ms
+            console.log("Aguardando Firebase...");
+            setTimeout(verificarFirebase, 500);
+          }
         }
 
-        // ----------------------------------------------------
-        // 2. VERIFICAR SE JÁ ESTÁ LOGADO (AUTOMÁTICO)
-        // ----------------------------------------------------
-        firebase.auth().onAuthStateChanged((user) => {
-          if (user) {
-            // Importante: use replace para não voltar
-            // Importante: use ./inicio.html (ponto barra)
-            console.log("Usuário já logado. Redirecionando...");
-            window.location.replace("./inicio.html");
+        // Iniciar verificação
+        verificarFirebase();
+
+        // Timeout após 10 segundos
+        setTimeout(() => {
+          if (!window.firebaseDb) {
+            console.error("Firebase não carregou após 10 segundos");
+            document.getElementById("loginErro").textContent =
+              "Erro ao carregar o sistema. Recarregue a página.";
+            document.getElementById("loginErro").style.display = "block";
           }
-        });
-
-        // ----------------------------------------------------
-        // 3. LÓGICA DE LOGIN MANUAL
-        // ----------------------------------------------------
-        const form = document.getElementById("formLogin");
-        const msgErro = document.getElementById("msgErro");
-        const btn = document.getElementById("btnLogin");
-
-        form.addEventListener("submit", async (e) => {
-          e.preventDefault();
-          btn.textContent = "Entrando...";
-          btn.disabled = true;
-          msgErro.style.display = "none";
-
-          const email = document.getElementById("email").value;
-          const password = document.getElementById("password").value;
-
-          try {
-            await firebase.auth().signInWithEmailAndPassword(email, password);
-            // O redirecionamento acontece no onAuthStateChanged acima
-          } catch (error) {
-            console.error("Erro login:", error);
-            btn.textContent = "Entrar";
-            btn.disabled = false;
-            msgErro.textContent = "Erro: " + error.message;
-            msgErro.style.display = "block";
-          }
-        });
+        }, 10000);
       });
     </script>
   </body>
