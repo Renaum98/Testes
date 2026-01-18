@@ -1,10 +1,17 @@
-const CACHE_NAME = "rotatrack-v3"; // Mudei para v2 para forçar atualização
+const CACHE_NAME = "rotatrack-v4"; // Mudei para v2 para forçar atualização
 const urlsToCache = [
   "./",
   "./index.html",
-  "./app.html",
-  "./styles/global.css",
-  "./styles/pages.css",
+  "./inicio.html",
+  "./styles/components.css",
+  "./styles/layout.css",
+  "./styles/main.css",
+  "./styles/routes.css",
+  "./styles/state.css",
+  "./styles/storage.css",
+  "./styles/swipe.css",
+  "./styles/ui.css",
+  "./styles/utils.css",
   "./js/main.js",
   "./js/auth.js",
   "./js/routes.js",
