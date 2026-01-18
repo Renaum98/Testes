@@ -1,17 +1,14 @@
-const CACHE_NAME = "rotatrack-v4"; // Mudei para v2 para forçar atualização
+const CACHE_NAME = "rotatrack-v5";
 const urlsToCache = [
   "./",
   "./index.html",
   "./inicio.html",
   "./styles/components.css",
   "./styles/layout.css",
-  "./styles/main.css",
-  "./styles/routes.css",
-  "./styles/state.css",
-  "./styles/storage.css",
-  "./styles/swipe.css",
-  "./styles/ui.css",
-  "./styles/utils.css",
+  "./styles/login.css",
+  "./styles/pages.css",
+  "./styles/reset.css",
+  "./styles/variables.css",
   "./scripts/firebase-config.js",
   "./scripts/login.js",
   "./scripts/main.js",
@@ -21,9 +18,9 @@ const urlsToCache = [
   "./scripts/swipe.js",
   "./scripts/ui.js",
   "./scripts/utils.js",
-  
-  "./assets/icon-192.png",
-  "./assets/icon-512.png",
+
+  "./assets/rota_icon-192.png",
+  "./assets/rota_icon-512.png",
 ];
 
 // 1. INSTALAÇÃO (Salva os arquivos)
