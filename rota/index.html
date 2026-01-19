@@ -85,41 +85,56 @@
 
     <!-- Validação de usuário (ATUALIZADA) -->
     <script>
-      // Aguardar o carregamento do Firebase
-      document.addEventListener("DOMContentLoaded", function () {
-        // Verificar se Firebase foi carregado
-        function verificarFirebase() {
-          if (typeof firebase !== "undefined" && window.firebaseDb) {
-            // Verifica se já está autenticado
-            window.firebaseDb
-              .validarUsuario()
-              .then((user) => {
-                // Usuário já autenticado, redireciona para página principal
-                window.location.href = "/";
-              })
-              .catch((error) => {
-                console.log("Usuário não autenticado ou erro:", error);
-                // Não autenticado, permanece na página de login
-              });
-          } else {
-            // Tentar novamente após 500ms
-            console.log("Aguardando Firebase...");
-            setTimeout(verificarFirebase, 500);
-          }
+      document.addEventListener("DOMContentLoaded", () => {
+        // 1. Configuração do PWA (Mantém o SW atualizado)
+        if ("serviceWorker" in navigator) {
+          navigator.serviceWorker.register("./sw.js").catch(console.error);
         }
 
-        // Iniciar verificação
-        verificarFirebase();
+        // 2. Proteção de Redirecionamento
+        // Se o Firebase detectar login, esperamos 1 segundo antes de ir,
+        // para garantir que não é um loop louco.
+        if (typeof firebase !== "undefined") {
+          firebase.auth().onAuthStateChanged((user) => {
+            if (user) {
+              console.log("Usuário encontrado. Redirecionando para o App...");
+              // Usa ./inicio.html para garantir caminho relativo
+              window.location.replace("./inicio.html");
+            } else {
+              // Se não tem usuário, apenas mostra o form de login
+              document.body.style.display = "flex";
+            }
+          });
+        }
 
-        // Timeout após 10 segundos
-        setTimeout(() => {
-          if (!window.firebaseDb) {
-            console.error("Firebase não carregou após 10 segundos");
-            document.getElementById("loginErro").textContent =
-              "Erro ao carregar o sistema. Recarregue a página.";
-            document.getElementById("loginErro").style.display = "block";
-          }
-        }, 10000);
+        // 3. Lógica do Botão de Login
+        const form = document.getElementById("formLogin");
+        const msgErro = document.getElementById("msgErro");
+
+        if (form) {
+          form.addEventListener("submit", async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById("btnLogin");
+            btn.textContent = "Verificando...";
+            btn.disabled = true;
+
+            const email = document.getElementById("email").value;
+            const password = document.getElementById("password").value;
+
+            try {
+              await firebase.auth().signInWithEmailAndPassword(email, password);
+              // O onAuthStateChanged lá em cima vai cuidar do redirecionamento
+            } catch (error) {
+              console.error(error);
+              btn.textContent = "Entrar";
+              btn.disabled = false;
+              if (msgErro) {
+                msgErro.style.display = "block";
+                msgErro.textContent = "Email ou senha inválidos.";
+              }
+            }
+          });
+        }
       });
     </script>
   </body>

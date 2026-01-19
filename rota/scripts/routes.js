@@ -8,81 +8,89 @@ import { salvarRotaFinalizada } from "./storage.js";
 export async function salvarNovaRota(event) {
   event.preventDefault();
 
-  // 1. Pegar Elementos usando os IDs EXATOS do seu HTML
+  // --- CORREÇÃO 1: PEGAR O BOTÃO PARA BLOQUEAR/DESBLOQUEAR ---
+  // Procura o botão de submit dentro do formulário que disparou o evento
+  const btnSubmit = event.target.querySelector('button[type="submit"]');
+  const textoOriginal = btnSubmit ? btnSubmit.textContent : "Salvar";
+
+  // Bloqueia o botão imediatamente para evitar cliques duplos
+  if (btnSubmit) {
+    btnSubmit.disabled = true;
+    btnSubmit.textContent = "Salvando...";
+  }
+
+  // 1. Pegar Elementos
   const elData = document.getElementById("inputDataRota");
-  const elPlataforma = document.getElementById("plataformaRota"); // ID Corrigido
-  const elKm = document.getElementById("kmPercorridoInput"); // ID Corrigido
-  const elConsumo = document.getElementById("consumoInput"); // ID Corrigido (Km/L)
-  const elValor = document.getElementById("valorRota"); // ID Corrigido
-
-  // 2. Validação de Segurança (Evita o erro "null")
-  if (!elPlataforma || !elKm || !elValor || !elConsumo) {
-    console.error("ERRO CRÍTICO: IDs do HTML não batem com o JS.");
-    return;
-  }
-
-  // 3. Conversão de Valores
-  const plataforma = elPlataforma.value;
-  const kmPercorridos = parseFloat(elKm.value.replace(",", ".")) || 0;
-  const consumoVeiculo = parseFloat(elConsumo.value.replace(",", ".")) || 10; // Padrão 10 se vazio
-  const valorTotal = parseFloat(elValor.value.replace(",", ".")) || 0;
-
-  // 4. Cálculo do Custo e Lucro
-  // Fórmula: (KM / Consumo) * Preço da Gasolina
-  const precoGasolina = state.precoGasolina || 6.35; // Pega do estado ou usa padrão
-  const litrosGastos = kmPercorridos / consumoVeiculo;
-  const custoGasolina = litrosGastos * precoGasolina;
-  const lucroLiquido = valorTotal - custoGasolina;
-
-  // 5. Lógica de Data (Manual ou Atual)
-  let dataReferencia = new Date(); // Por padrão é AGORA
-
-  if (elData && elData.value) {
-    // Se preencheu data manual (YYYY-MM-DD)
-    const partes = elData.value.split("-");
-    const ano = parseInt(partes[0]);
-    const mes = parseInt(partes[1]) - 1;
-    const dia = parseInt(partes[2]);
-
-    // Aplica a data mantendo o horário atual
-    dataReferencia.setFullYear(ano);
-    dataReferencia.setMonth(mes);
-    dataReferencia.setDate(dia);
-  }
-
-  // Simula duração (Fim agora, Inicio 30min atrás)
-  const dataFim = new Date(dataReferencia);
-  const dataInicio = new Date(dataReferencia);
-  dataInicio.setMinutes(dataInicio.getMinutes() - 30);
-
-  // 6. Montar Objeto da Rota
-  const novaRota = {
-    id: Date.now(),
-    plataforma: plataforma,
-    kmPercorridos: kmPercorridos,
-    valor: valorTotal,
-    consumoUtilizado: consumoVeiculo, // Salva quanto o carro fez por litro
-    custoGasolina: parseFloat(custoGasolina.toFixed(2)),
-    lucroLiquido: parseFloat(lucroLiquido.toFixed(2)),
-
-    // Datas
-    horarioInicio: dataInicio.toISOString(),
-    horarioFim: dataFim.toISOString(),
-
-    status: "finalizada",
-    userId: window.firebaseDb?.auth?.currentUser?.uid || "offline",
-    veiculoId: state.veiculoSelecionado?.id || "padrao",
-  };
+  const elPlataforma = document.getElementById("plataformaRota");
+  const elKm = document.getElementById("kmPercorridoInput");
+  const elConsumo = document.getElementById("consumoInput");
+  const elValor = document.getElementById("valorRota");
 
   try {
-    // 7. Salvar
+    // 2. Validação
+    if (!elPlataforma || !elKm || !elValor || !elConsumo) {
+      throw new Error(
+        "Elementos do formulário não encontrados (IDs incorretos).",
+      );
+    }
+
+    // 3. Conversão
+    const plataforma = elPlataforma.value;
+    const kmPercorridos = parseFloat(elKm.value.replace(",", ".")) || 0;
+    const consumoVeiculo = parseFloat(elConsumo.value.replace(",", ".")) || 10;
+    const valorTotal = parseFloat(elValor.value.replace(",", ".")) || 0;
+
+    // Validação extra de valores zerados (Opcional, mas recomendado)
+    if (kmPercorridos === 0 || valorTotal === 0) {
+      throw new Error("Preencha o KM e o Valor corretamente.");
+    }
+
+    // 4. Cálculos
+    const precoGasolina = state.precoGasolina || 6.35;
+    const litrosGastos = kmPercorridos / consumoVeiculo;
+    const custoGasolina = litrosGastos * precoGasolina;
+    const lucroLiquido = valorTotal - custoGasolina;
+
+    // 5. Data
+    let dataReferencia = new Date();
+    if (elData && elData.value) {
+      const partes = elData.value.split("-");
+      const ano = parseInt(partes[0]);
+      const mes = parseInt(partes[1]) - 1;
+      const dia = parseInt(partes[2]);
+      dataReferencia.setFullYear(ano);
+      dataReferencia.setMonth(mes);
+      dataReferencia.setDate(dia);
+    }
+
+    const dataFim = new Date(dataReferencia);
+    const dataInicio = new Date(dataReferencia);
+    dataInicio.setMinutes(dataInicio.getMinutes() - 30);
+
+    // 6. Objeto
+    const novaRota = {
+      id: Date.now(),
+      plataforma: plataforma,
+      kmPercorridos: kmPercorridos,
+      valor: valorTotal,
+      consumoUtilizado: consumoVeiculo,
+      custoGasolina: parseFloat(custoGasolina.toFixed(2)),
+      lucroLiquido: parseFloat(lucroLiquido.toFixed(2)),
+      horarioInicio: dataInicio.toISOString(),
+      horarioFim: dataFim.toISOString(),
+      status: "finalizada",
+      userId: window.firebaseDb?.auth?.currentUser?.uid || "offline",
+      veiculoId: state.veiculoSelecionado?.id || "padrao",
+    };
+
+    // 7. Salvar (Await)
     await salvarRotaFinalizada(novaRota);
 
-    // 8. Limpar e Resetar Data para Hoje
+    // 8. Sucesso e Limpeza
     fecharModal("modalRegistrarRota");
     document.getElementById("formRegistrarRota").reset();
 
-    // Preenche a data de hoje novamente para facilitar o próximo lançamento
+    // Resetar data para hoje
     if (elData) {
       const hoje = new Date();
       const ano = hoje.getFullYear();
@@ -97,7 +105,15 @@ export async function salvarNovaRota(event) {
     );
   } catch (error) {
     console.error(error);
-    mostrarNotificacao("Erro ao processar rota.", "error");
+    mostrarNotificacao(error.message || "Erro ao processar rota.", "error");
+  } finally {
+    // --- CORREÇÃO 2: O FINALLY SEMPRE RODA ---
+    // Isso garante que o botão SEMPRE volte a funcionar,
+    // independente se deu sucesso ou erro.
+    if (btnSubmit) {
+      btnSubmit.disabled = false;
+      btnSubmit.textContent = textoOriginal; // Volta o texto para "Salvar Rota"
+    }
   }
 }
 
