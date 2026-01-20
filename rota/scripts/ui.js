@@ -1,7 +1,7 @@
 import { state } from "./state.js";
-import { mostrarNotificacao } from "./utils.js";
 import { configurarSwipeActions } from "./swipe.js";
 import { carregarDados } from "./storage.js";
+import { renderizarCalendario } from "./calendar.js";
 
 // ============================================
 // GERENCIAMENTO DE MODAIS
@@ -59,6 +59,10 @@ export function mudarPagina(event, pagina) {
 // ============================================
 
 export function atualizarListaRotas() {
+  // 2. CORREÇÃO: Renderiza o calendário LOGO NO INÍCIO
+  // Isso garante que ele apareça mesmo se não houver rotas na lista
+  renderizarCalendario();
+
   const lista = document.getElementById("rotasList");
   const emptyState = document.getElementById("emptyState");
   const filtroInput = document.getElementById("filtroRotasMes");
@@ -68,9 +72,9 @@ export function atualizarListaRotas() {
     lista.innerHTML = "";
     if (emptyState) {
       emptyState.style.display = "block";
-      emptyState.querySelector("p").textContent =
-        "Nenhuma rota registrada ainda.";
+      emptyState.querySelector("p").textContent = "Nenhuma rota registrada ainda.";
     }
+    // O calendário já foi renderizado lá em cima, então podemos sair
     return;
   }
 
@@ -101,13 +105,13 @@ export function atualizarListaRotas() {
 
   if (emptyState) emptyState.style.display = "none";
 
-  // --- RENDERIZAÇÃO (SEU LAYOUT SIMPLES) ---
+  // --- RENDERIZAÇÃO ---
   lista.innerHTML = rotasExibidas
     .map((rota) => {
       const inicio = new Date(rota.horarioInicio);
       const lucroLiquido = rota.lucroLiquido || 0;
 
-      // Tratamento do KM para não quebrar
+      // Tratamento do KM
       let kmNumerico = 0;
       if (rota.kmPercorridos !== undefined && rota.kmPercorridos !== null) {
         kmNumerico = Number(rota.kmPercorridos);
@@ -118,15 +122,12 @@ export function atualizarListaRotas() {
 
       return `
         <div class="rota-item-container" data-rota-id="${rota.id}">
-          <div class="rota-item-content">
+          
+           <div class="rota-item-content">
             <div class="rota-card">
               <div class="rota-card-header">
-                <div class="rota-data">${inicio.toLocaleDateString(
-                  "pt-BR"
-                )}</div>
-                <div class="rota-valor">R$ ${
-                  rota.valor?.toFixed(2) || "0.00"
-                }</div>
+                <div class="rota-data">${inicio.toLocaleDateString("pt-BR")}</div>
+                <div class="rota-valor">R$ ${rota.valor?.toFixed(2) || "0.00"}</div>
               </div>
               <div class="rota-info">
                 
@@ -164,19 +165,22 @@ export function atualizarListaRotas() {
               </div>
             </div>
           </div>
+          
           <div class="rota-swipe-action delete-action">
             <button class="btn-swipe-delete" data-id="${rota.id}">
               <span class="material-symbols-outlined">delete</span>
               <span>Excluir</span>
             </button>
           </div>
+
         </div>
       `;
     })
     .join("");
 
-  configurarSwipeActions();
-  atualizarGraficoMeta();
+  // Funções auxiliares
+  if (typeof configuringSwipeActions === 'function') configuringSwipeActions(); // Se tiver swipe novo
+  if (typeof atualizarGraficoMeta === 'function') atualizarGraficoMeta();
 
   // Atualiza o carrossel de resumo
   if (typeof atualizarCarouselResumo === "function") {

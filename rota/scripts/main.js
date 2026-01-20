@@ -10,6 +10,7 @@ import {
 } from "./ui.js";
 import { carregarDados, carregarDadosLocal } from "./storage.js";
 import { salvarNovaRota } from "./routes.js";
+import { inicializarCalendario} from "./calendar.js";
 
 // ============================================
 // INICIALIZAÇÃO DO APLICATIVO
@@ -32,6 +33,7 @@ function inicializarApp() {
 
   state.db = window.firebaseDb;
   configurarEventListeners();
+  inicializarCalendario()
   carregarDados();
 
   // Inicializa Tema (Dark/Light) se existir a função
@@ -307,7 +309,7 @@ function configurarMetas() {
           inputDiaria.value = "";
           inputDias.value = "";
         }
-      } catch (e) {}
+      } catch (e) { }
     }
 
     const salvar = () => {

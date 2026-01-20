@@ -1,6 +1,7 @@
 import { state } from "./state.js";
 import { mostrarNotificacao, fecharModal } from "./utils.js";
 import { salvarRotaFinalizada } from "./storage.js";
+import { renderizarCalendario } from "./calendar.js";
 
 // ============================================
 // SALVAR NOVA ROTA (ADAPTADO AO SEU HTML)
@@ -85,6 +86,7 @@ export async function salvarNovaRota(event) {
 
     // 7. Salvar (Await)
     await salvarRotaFinalizada(novaRota);
+    renderizarCalendario();
 
     // 8. Sucesso e Limpeza
     fecharModal("modalRegistrarRota");
