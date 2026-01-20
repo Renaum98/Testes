@@ -1,24 +1,42 @@
 /* Reset CSS */
 * {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+/* --- CORREÇÃO PARA IPHONE (iOS) --- */
+input[type="date"],
+input[type="text"],
+input[type="number"],
+select {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 100%;
+  font-size: 16px;
+}
+
+input[type="date"] {
+  min-height: 45px;
+  padding: 10px;
 }
 
 body {
-    font-family: 'Montserrat', sans-serif;
+  font-family: "Montserrat", sans-serif;
 }
 
 ul {
-    list-style: none;
+  list-style: none;
 }
 
 a {
-    text-decoration: none;
+  text-decoration: none;
 }
 
 button {
-    font-family: 'Montserrat', sans-serif;
-    cursor: pointer;
-    border: none;
+  font-family: "Montserrat", sans-serif;
+  cursor: pointer;
+  border: none;
 }
