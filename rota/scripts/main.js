@@ -343,11 +343,11 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   // 2. Registro do PWA
-  if ("serviceWorker" in navigator) {
+  /*if ("serviceWorker" in navigator) {
     navigator.serviceWorker
       .register("./sw.js")
       .catch((err) => console.error(err));
-  }
+  }*/
 
   // 3. Verificação de Auth
   if (window.firebaseDb && window.firebaseDb.auth) {
