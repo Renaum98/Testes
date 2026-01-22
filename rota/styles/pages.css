@@ -79,8 +79,6 @@
   scroll-snap-type: x mandatory;
   /* Faz o card "imantar" no centro */
   padding: 10px calc(50% - 60px);
-  /* Padding lateral gigante para permitir que o 1º item vá pro meio */
-
   /* Esconder barra de rolagem */
   scrollbar-width: none;
   -ms-overflow-style: none;
