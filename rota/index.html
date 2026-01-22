@@ -1,143 +1,102 @@
 <!doctype html>
 <html lang="pt-BR">
-  <head>
-    <meta charset="UTF-8" />
 
-    <link rel="manifest" href="manifest.json" />
-    <meta name="theme-color" content="#667eea" />
-    <link rel="apple-touch-icon" href="assets/icon-192.png" />
-    <meta
-      name="apple-mobile-web-app-status-bar-style"
-      content="black-translucent"
-    />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content="Acesso ao sistema RotaTrack" />
-    <meta name="theme-color" content="#667eea" />
-    <title>Login - RotaTrack</title>
+<head>
+  <meta charset="UTF-8" />
 
-    <link rel="shortcut icon" href="assets/favicon.ico" type="image/x-icon">
+  <link rel="manifest" href="manifest.json" />
+  <meta name="theme-color" content="#667eea" />
+  <link rel="apple-touch-icon" href="assets/icon-192.png" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Acesso ao sistema RotaTrack" />
+  <meta name="theme-color" content="#667eea" />
+  <title>Login - RotaTrack</title>
 
-    <!-- Styles -->
-    <link rel="stylesheet" href="styles/reset.css" />
-    <link rel="stylesheet" href="styles/variables.css" />
-    <link rel="stylesheet" href="styles/layout.css" />
-    <link rel="stylesheet" href="styles/components.css" />
-    <link rel="stylesheet" href="styles/pages.css" />
-    <link rel="stylesheet" href="styles/login.css" />
-  </head>
+  <link rel="shortcut icon" href="assets/favicon.ico" type="image/x-icon">
 
-  <body class="login-page">
-    <!-- Logo/Título -->
-    <header class="login-header">
-      <h1 class="logo">RotaTrack</h1>
-    </header>
+  <!-- Styles -->
+  <link rel="stylesheet" href="styles/reset.css" />
+  <link rel="stylesheet" href="styles/variables.css" />
+  <link rel="stylesheet" href="styles/layout.css" />
+  <link rel="stylesheet" href="styles/components.css" />
+  <link rel="stylesheet" href="styles/pages.css" />
+  <link rel="stylesheet" href="styles/login.css" />
+</head>
 
-    <!-- Container de Login -->
-    <main class="login-container">
-      <div class="login-box">
-        <h2>Acesso ao sistema</h2>
+<body class="login-page">
+  <!-- Logo/Título -->
+  <header class="login-header">
+    <h1 class="logo">RotaTrack</h1>
+  </header>
 
-        <form id="loginForm" novalidate>
-          <div class="input-group">
-            <label for="email" class="sr-only">Email</label>
-            <input
-              id="email"
-              type="email"
-              placeholder="Email"
-              autocomplete="email"
-              required
-              aria-required="true"
-            />
-          </div>
+  <!-- Container de Login -->
+  <main class="login-container">
+    <div class="login-box">
+      <h2>Acesso ao sistema</h2>
 
-          <div class="input-group">
-            <label for="senha" class="sr-only">Senha</label>
-            <input
-              id="senha"
-              type="password"
-              placeholder="Senha"
-              autocomplete="current-password"
-              required
-              aria-required="true"
-            />
-          </div>
+      <form id="loginForm" novalidate>
+        <div class="input-group">
+          <label for="email" class="sr-only">Email</label>
+          <input id="email" type="email" placeholder="Email" autocomplete="email" required aria-required="true" />
+        </div>
 
-          <button type="submit" id="btnLogin">Entrar</button>
+        <div class="input-group">
+          <label for="senha" class="sr-only">Senha</label>
+          <input id="senha" type="password" placeholder="Senha" autocomplete="current-password" required
+            aria-required="true" />
+        </div>
 
-          <p
-            id="loginErro"
-            class="error-message"
-            role="alert"
-            aria-live="polite"
-          ></p>
-        </form>
-      </div>
-    </main>
+        <button type="submit" id="btnLogin">Entrar</button>
 
-    <!-- Firebase Scripts (ORDEM CORRETA PARA VERSÃO COMPAT) -->
-    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore-compat.js"></script>
+        <p id="loginErro" class="error-message" role="alert" aria-live="polite"></p>
+      </form>
+    </div>
+  </main>
 
-    <!-- Firebase Config DEVE vir DEPOIS dos SDKs -->
-    <script src="scripts/firebase-config.js"></script>
+  <!-- Firebase Scripts (ORDEM CORRETA PARA VERSÃO COMPAT) -->
+  <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore-compat.js"></script>
 
-    <!-- App Scripts -->
-    <script src="scripts/login.js"></script>
+  <!-- Firebase Config DEVE vir DEPOIS dos SDKs -->
+  <script src="scripts/firebase-config.js"></script>
 
-    <!-- Validação de usuário (ATUALIZADA) -->
-    <script>
-      document.addEventListener("DOMContentLoaded", () => {
-        // 1. Configuração do PWA (Mantém o SW atualizado)
-        if ("serviceWorker" in navigator) {
-          navigator.serviceWorker.register("./sw.js").catch(console.error);
-        }
+  <!-- App Scripts -->
+  <script src="scripts/login.js"></script>
 
-        // 2. Proteção de Redirecionamento
-        // Se o Firebase detectar login, esperamos 1 segundo antes de ir,
-        // para garantir que não é um loop louco.
-        if (typeof firebase !== "undefined") {
-          firebase.auth().onAuthStateChanged((user) => {
-            if (user) {
-              console.log("Usuário encontrado. Redirecionando para o App...");
-              // Usa ./inicio.html para garantir caminho relativo
-              window.location.replace("./inicio.html");
-            } else {
-              // Se não tem usuário, apenas mostra o form de login
-              document.body.style.display = "flex";
-            }
-          });
-        }
+  <!-- Validação de usuário (ATUALIZADA) -->
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
 
-        // 3. Lógica do Botão de Login
-        const form = document.getElementById("formLogin");
-        const msgErro = document.getElementById("msgErro");
+      // 1. Configuração do PWA
+      if ("serviceWorker" in navigator) {
+        navigator.serviceWorker.register("./sw.js").catch(console.error);
+      }
 
-        if (form) {
-          form.addEventListener("submit", async (e) => {
-            e.preventDefault();
-            const btn = document.getElementById("btnLogin");
-            btn.textContent = "Verificando...";
-            btn.disabled = true;
+      // 2. Redirecionamento Automático Seguro
+      // Só redireciona se tiver usuário E email verificado
+      if (typeof firebase !== "undefined") {
+        firebase.auth().onAuthStateChanged((user) => {
 
-            const email = document.getElementById("email").value;
-            const password = document.getElementById("password").value;
+          if (user && user.emailVerified) {
+            console.log("Usuário verificado. Redirecionando...");
+            window.location.replace("./inicio.html");
+          }
+          else {
+            // Se não tem usuário OU não verificou o email:
+            // Mostra a tela de login para ele digitar ou ver o erro
+            document.body.style.display = "flex";
 
-            try {
-              await firebase.auth().signInWithEmailAndPassword(email, password);
-              // O onAuthStateChanged lá em cima vai cuidar do redirecionamento
-            } catch (error) {
-              console.error(error);
-              btn.textContent = "Entrar";
-              btn.disabled = false;
-              if (msgErro) {
-                msgErro.style.display = "block";
-                msgErro.textContent = "Email ou senha inválidos.";
-              }
-            }
-          });
-        }
-      });
-    </script>
-  </body>
+            // Se o usuário existe mas não verificou, o login.js vai
+            // cuidar de deslogar ele, não precisamos fazer nada aqui
+            // para não gerar conflito visual.
+          }
+        });
+      }
+    });
+    // O resto da lógica (click no botão, erro de senha) fica somente no login.js
+  </script>
+</body>
+
 </html>

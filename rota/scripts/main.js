@@ -419,41 +419,58 @@ function configurarMetas() {
 // INICIALIZAÇÃO SEGURA (NO FINAL DO MAIN.JS)
 // ============================================
 document.addEventListener("DOMContentLoaded", () => {
-  // 1. Se estivermos na página de Login (index.html), o main.js NÃO deve fazer nada.
-  if (
+  // Verifica se estamos na tela de login (index.html ou raiz /)
+  const isLoginPage =
     window.location.pathname.endsWith("index.html") ||
-    window.location.pathname.endsWith("/")
-  ) {
-    if (!document.querySelector(".navbar")) {
-      return;
-    }
-  }
+    window.location.pathname.endsWith("/") ||
+    window.location.pathname === "/rota-track/"; // ajuste se seu deploy tiver subpasta
 
-  // 2. Registro do PWA
-  /*if ("serviceWorker" in navigator) {
-    navigator.serviceWorker
-      .register("./sw.js")
-      .catch((err) => console.error(err));
-  }*/
-
-  // 3. Verificação de Auth
+  // Verificação de Auth
   if (window.firebaseDb && window.firebaseDb.auth) {
     const unsubscribe = window.firebaseDb.auth.onAuthStateChanged((user) => {
-      if (user) {
-        // --- SUCESSO ---
-        console.log("Usuário validado no App.");
+      // --- CENÁRIO 1: USUÁRIO LOGADO E VERIFICADO (SUCESSO) ---
+      if (user && user.emailVerified) {
+        console.log("Usuário validado e verificado.");
+
+        // Se estiver na tela de login, manda pro app
+        if (isLoginPage) {
+          window.location.href = "inicio.html";
+          return;
+        }
+
+        // Se já estiver no app, inicia
         if (!window.appInicializado) {
           window.appInicializado = true;
           inicializarApp();
         }
-      } else {
-        // --- ERRO: Redireciona para login ---
-        console.warn("Nenhum usuário logado.");
-        window.location.replace("./index.html");
+      }
+
+      // --- CENÁRIO 2: USUÁRIO LOGADO MAS NÃO VERIFICADO (PROBLEMA) ---
+      else if (user && !user.emailVerified) {
+        console.warn("Email não verificado. Deslogando...");
+
+        // Desloga o usuário do Firebase
+        window.firebaseDb.auth.signOut();
+
+        // AQUI ESTAVA O ERRO DO LOOP:
+        // Só redirecionamos se ele estiver tentando acessar o app interno.
+        // Se ele já estiver no login (isLoginPage), NÃO FAZEMOS NADA (apenas o signOut acima).
+        if (!isLoginPage) {
+          window.location.replace("./index.html");
+        }
+      }
+
+      // --- CENÁRIO 3: NINGUÉM LOGADO ---
+      else {
+        console.log("Nenhum usuário logado.");
+        // Se tentar acessar página interna sem login, chuta pro index
+        if (!isLoginPage) {
+          window.location.replace("./index.html");
+        }
       }
     });
   } else {
-    // Modo Offline
-    inicializarApp();
+    // Modo Offline (apenas se não tiver Firebase)
+    if (!isLoginPage) inicializarApp();
   }
 });
