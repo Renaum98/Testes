@@ -36,11 +36,32 @@
 
   <script>
     document.addEventListener("DOMContentLoaded", function () {
+      // Verifica se o Firebase já carregou antes de usar
+      if (!window.firebase || !window.firebase.auth) {
+        console.error("Firebase não carregado.");
+        window.location.replace("./index.html");
+        return;
+      }
+
       firebase.auth().onAuthStateChanged(function (user) {
-        if (!user) {
-          window.location.href = "./index.html";
+        // --- NOVA LÓGICA DE PROTEÇÃO ---
+
+        // Se NÃO tiver usuário OU (tiver usuário MAS o email não for verificado)
+        if (!user || !user.emailVerified) {
+
+          console.warn("Acesso negado: Usuário não logado ou email não verificado.");
+
+          // Se o usuário existe mas não verificou, forçamos o logout aqui também
+          if (user) {
+            firebase.auth().signOut();
+          }
+
+          // Redireciona para o login substituindo o histórico (usuário não pode clicar em Voltar)
+          window.location.replace("./index.html");
+
         } else {
-          console.log("Usuário autenticado:", user.email);
+          // --- SUCESSO ---
+          console.log("Acesso permitido:", user.email);
           document.body.style.display = "block";
         }
       });

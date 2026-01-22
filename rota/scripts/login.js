@@ -1,75 +1,85 @@
 document.addEventListener("DOMContentLoaded", function () {
   console.log("Login.js carregado");
 
+  // --- 1. SELEÇÃO DE ELEMENTOS (CORREÇÃO DE VARIÁVEIS) ---
   const loginForm = document.getElementById("loginForm");
-  const emailInput = document.getElementById("email");
-  const senhaInput = document.getElementById("senha");
-  const btnLogin = document.getElementById("btnLogin");
   const loginErro = document.getElementById("loginErro");
+  const btnLogin = document.getElementById("btnLogin");
 
-  // Verificar se Firebase está disponível
+  // Garante que pega o email e a senha (seja id="senha" ou id="password")
+  const emailInput = document.getElementById("email");
+  const senhaInput =
+    document.getElementById("senha") || document.getElementById("password");
+
+  // Se não achar os campos essenciais, para tudo para não dar erro depois
+  if (!emailInput || !senhaInput || !loginForm) {
+    console.error(
+      "Erro crítico: Elementos do formulário não encontrados no HTML.",
+    );
+    return;
+  }
+
+  // --- 2. VERIFICAR SE FIREBASE ESTÁ CARREGADO ---
   if (!window.firebaseDb || !window.firebaseDb.auth) {
-    mostrarErro("Sistema não carregado corretamente. Recarregue a página.");
-    btnLogin.disabled = true;
+    console.error("Firebase não disponível.");
+    mostrarErro("Erro no sistema. Recarregue a página.");
+    if (btnLogin) btnLogin.disabled = true;
     return;
   }
 
-  // Verificar se já está autenticado
+  // --- 3. VERIFICAÇÃO INICIAL (SEGURANÇA CONTRA LOOP) ---
   const user = window.firebaseDb.auth.currentUser;
+
   if (user) {
-    console.log("Já autenticado, redirecionando...");
-    window.location.href = "inicio.html";
-    return;
+    if (user.emailVerified) {
+      // SUCESSO: Usuário verificado. Vai para o app.
+      console.log("Já autenticado e verificado. Redirecionando...");
+      window.location.href = "inicio.html";
+      return;
+    } else {
+      // PENDENTE: Usuário existe mas não verificou. Desloga para limpar estado.
+      console.log("Usuário pendente detectado no load. Forçando logout.");
+      window.firebaseDb.auth.signOut();
+    }
   }
 
-  // Submissão do formulário
+  // ---------------------------------------------------------
+  // 4. BOTÃO ENTRAR (LOGIN)
+  // ---------------------------------------------------------
   loginForm.addEventListener("submit", function (e) {
     e.preventDefault();
 
     const email = emailInput.value.trim();
     const senha = senhaInput.value;
 
-    // Validação básica
     if (!email || !senha) {
       mostrarErro("Preencha todos os campos.");
       return;
     }
 
-    // Desabilitar botão durante o login
     btnLogin.disabled = true;
     btnLogin.textContent = "Entrando...";
 
-    // Fazer login com email e senha
     window.firebaseDb.auth
       .signInWithEmailAndPassword(email, senha)
       .then((userCredential) => {
-        // Login bem-sucedido
-        console.log("Login bem-sucedido:", userCredential.user.email);
+        const user = userCredential.user;
+
+        // --- TRAVA DE SEGURANÇA NO LOGIN ---
+        if (!user.emailVerified) {
+          window.firebaseDb.auth.signOut(); // Chuta pra fora
+          mostrarErro(
+            "Conta não ativada! Verifique seu email e clique no link enviado.",
+          );
+          return;
+        }
+
+        // Login OK
+        console.log("Login bem-sucedido:", user.email);
         window.location.href = "inicio.html";
       })
       .catch((error) => {
-        // Tratar erros
-        let mensagem = "Erro ao fazer login. Verifique suas credenciais.";
-        switch (error.code) {
-          case "auth/invalid-email":
-            mensagem = "Email inválido.";
-            break;
-          case "auth/user-disabled":
-            mensagem = "Este usuário foi desativado.";
-            break;
-          case "auth/user-not-found":
-            mensagem = "Email não cadastrado.";
-            break;
-          case "auth/wrong-password":
-            mensagem = "Senha incorreta.";
-            break;
-          case "auth/too-many-requests":
-            mensagem = "Muitas tentativas. Tente novamente mais tarde.";
-            break;
-          default:
-            mensagem = `Erro: ${error.message}`;
-        }
-        mostrarErro(mensagem);
+        tratarErrosFirebase(error);
       })
       .finally(() => {
         btnLogin.disabled = false;
@@ -77,71 +87,121 @@ document.addEventListener("DOMContentLoaded", function () {
       });
   });
 
+  // ---------------------------------------------------------
+  // 5. FUNÇÕES AUXILIARES
+  // ---------------------------------------------------------
   function mostrarErro(mensagem) {
-    loginErro.textContent = mensagem;
-    loginErro.style.display = "block";
-
-    // Esconder mensagem após 5 segundos
-    setTimeout(() => {
-      loginErro.style.display = "none";
-    }, 5000);
+    if (loginErro) {
+      loginErro.textContent = mensagem;
+      loginErro.style.display = "block";
+      setTimeout(() => {
+        loginErro.style.display = "none";
+      }, 8000);
+    } else {
+      alert(mensagem); // Fallback caso não tenha div de erro
+    }
   }
 
-  // Adicionar botão de criar conta
-  const btnCriarConta = document.createElement("button");
-  btnCriarConta.type = "button";
-  btnCriarConta.id = "btnCriarConta";
-  btnCriarConta.textContent = "Criar conta";
-  btnCriarConta.className = "btn-secundario";
-  btnCriarConta.style.marginTop = "10px";
-
-  btnCriarConta.addEventListener("click", function () {
-    const email = emailInput.value.trim();
-    const senha = senhaInput.value;
-
-    if (!email || !senha) {
-      mostrarErro("Preencha email e senha para criar conta.");
-      return;
+  function tratarErrosFirebase(error) {
+    let mensagem = "Erro ao processar. Tente novamente.";
+    switch (error.code) {
+      case "auth/invalid-email":
+        mensagem = "Email inválido.";
+        break;
+      case "auth/user-disabled":
+        mensagem = "Este usuário foi desativado.";
+        break;
+      case "auth/user-not-found":
+        mensagem = "Email não cadastrado.";
+        break;
+      case "auth/wrong-password":
+        mensagem = "Senha incorreta.";
+        break;
+      case "auth/email-already-in-use":
+        mensagem = "Este email já está em uso.";
+        break;
+      case "auth/weak-password":
+        mensagem = "A senha é muito fraca (mínimo 6 caracteres).";
+        break;
+      case "auth/too-many-requests":
+        mensagem = "Muitas tentativas. Tente novamente mais tarde.";
+        break;
+      case "auth/invalid-credential":
+        mensagem = "Email ou senha incorretos."; // Novo erro comum do Firebase
+        break;
+      default:
+        mensagem = `Erro: ${error.message}`;
     }
+    mostrarErro(mensagem);
+  }
 
-    if (senha.length < 6) {
-      mostrarErro("A senha deve ter pelo menos 6 caracteres.");
-      return;
-    }
+  // ---------------------------------------------------------
+  // 6. BOTÃO CRIAR CONTA (CORRIGIDO)
+  // ---------------------------------------------------------
+  // Verifica se o botão já existe para não duplicar
+  if (!document.getElementById("btnCriarConta")) {
+    const btnCriarConta = document.createElement("button");
+    btnCriarConta.type = "button";
+    btnCriarConta.id = "btnCriarConta";
+    btnCriarConta.textContent = "Criar conta";
+    btnCriarConta.className = "btn-secundario"; // Certifique-se que essa classe existe no CSS ou mude para 'btn'
+    btnCriarConta.style.marginTop = "10px";
+    btnCriarConta.style.width = "100%"; // Ajuste visual opcional
 
-    btnCriarConta.disabled = true;
-    btnCriarConta.textContent = "Criando...";
+    btnCriarConta.addEventListener("click", function () {
+      // Usa as variáveis declaradas no topo, que agora são seguras
+      const email = emailInput.value.trim();
+      const senha = senhaInput.value;
 
-    window.firebaseDb.auth
-      .createUserWithEmailAndPassword(email, senha)
-      .then((userCredential) => {
-        mostrarErro("Conta criada com sucesso! Faça login.");
-        emailInput.value = "";
-        senhaInput.value = "";
-      })
-      .catch((error) => {
-        let mensagem = "Erro ao criar conta.";
-        switch (error.code) {
-          case "auth/email-already-in-use":
-            mensagem = "Este email já está em uso.";
-            break;
-          case "auth/weak-password":
-            mensagem = "A senha é muito fraca.";
-            break;
-          case "auth/invalid-email":
-            mensagem = "Email inválido.";
-            break;
-          default:
-            mensagem = `Erro: ${error.message}`;
-        }
-        mostrarErro(mensagem);
-      })
-      .finally(() => {
-        btnCriarConta.disabled = false;
-        btnCriarConta.textContent = "Criar conta";
-      });
-  });
+      if (!email || !senha) {
+        mostrarErro("Preencha email e senha para criar conta.");
+        return;
+      }
 
-  // Adicionar botão ao formulário
-  loginForm.appendChild(btnCriarConta);
+      if (senha.length < 6) {
+        mostrarErro("A senha deve ter pelo menos 6 caracteres.");
+        return;
+      }
+
+      btnCriarConta.disabled = true;
+      btnCriarConta.textContent = "Criando...";
+
+      window.firebaseDb.auth
+        .createUserWithEmailAndPassword(email, senha)
+        .then((userCredential) => {
+          const user = userCredential.user;
+
+          // --- ENVIA EMAIL ---
+          user
+            .sendEmailVerification()
+            .then(() => {
+              alert(
+                `Conta criada com sucesso!\n\nUm email de confirmação foi enviado para ${email}.\n\nVerifique sua caixa de entrada (e spam) e ative a conta antes de logar.`,
+              );
+
+              // Logout forçado
+              window.firebaseDb.auth.signOut();
+
+              // Limpa campos
+              emailInput.value = "";
+              senhaInput.value = "";
+            })
+            .catch((err) => {
+              console.error(err);
+              mostrarErro(
+                "Conta criada, mas falha ao enviar email. Tente logar para reenviar.",
+              );
+            });
+        })
+        .catch((error) => {
+          tratarErrosFirebase(error);
+        })
+        .finally(() => {
+          btnCriarConta.disabled = false;
+          btnCriarConta.textContent = "Criar conta";
+        });
+    });
+
+    loginForm.appendChild(btnCriarConta);
+  }
 });
