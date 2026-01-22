@@ -1,9 +1,15 @@
 /* Estilos específicos das páginas */
 
-/* ===PAGINA INICIAL===*/
+/* === PAGINA INICIAL === */
+
+#page-inicio {
+  margin-bottom: 30px;
+}
+
 /* Configuração de Gasolina na Home */
 .card-config-gasolina {
-  background: #ffffff;
+  background: var(--cor-branco);
+  /* Alterado de #ffffff */
   border-radius: 12px;
   padding: 15px;
   margin-top: 15px;
@@ -17,8 +23,8 @@
 .icon-gas {
   width: 45px;
   height: 45px;
-  background: #fff5f5;
-  /* Vermelho bem claro */
+  background: var(--cor-fundo-claro);
+  /* Alterado de #fff5f5 para adaptar ao tema */
   color: #f56565;
   border-radius: 10px;
   display: flex;
@@ -34,7 +40,8 @@
 
 .gas-info label {
   font-size: 0.8rem;
-  color: #718096;
+  color: var(--cor-texto-secundario);
+  /* Alterado de #718096 */
   font-weight: 600;
   margin-bottom: 4px;
 }
@@ -73,13 +80,8 @@
   display: flex;
   overflow-x: auto;
   gap: 10px;
-  /* Espaço menor entre cards */
-
-  /* EFEITO ROLETA */
   scroll-snap-type: x mandatory;
-  /* Faz o card "imantar" no centro */
   padding: 10px calc(50% - 60px);
-  /* Esconder barra de rolagem */
   scrollbar-width: none;
   -ms-overflow-style: none;
 }
@@ -91,29 +93,26 @@
 /* Card Individual */
 .resumo-mes-card {
   min-width: 120px;
-  /* Card mais estreito */
-  background: var(--cor-branca);
+  background: var(--cor-branco);
+  /* Alterado para variável */
   border-radius: 12px;
   padding: var(--espacamento-pequeno);
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
-  border: 1px solid #edf2f7;
+  border: 1px solid var(--cor-borda);
+  /* Alterado de #edf2f7 */
   display: flex;
   flex-direction: column;
   justify-content: center;
   flex-shrink: 0;
   scroll-snap-align: center;
-  /* O ponto de parada é o centro do card */
-  transition:
-    transform 0.3s ease,
-    border-color 0.3s;
+  transition: transform 0.3s ease, border-color 0.3s;
 }
 
 .card-mes-titulo {
   font-size: 0.75rem;
-  /* Fonte menor */
   font-weight: 600;
-  /* Peso menor (era 700) */
-  color: #4a5568;
+  color: var(--cor-texto-secundario);
+  /* Alterado de #4a5568 */
   text-transform: capitalize;
   text-align: center;
 }
@@ -128,19 +127,19 @@
 
 .dado-label {
   font-size: 0.65rem;
-  /* Label bem pequena */
-  color: #a0aec0;
+  color: var(--cor-texto-terciario);
+  /* Alterado de #a0aec0 */
 }
 
 .dado-valor {
   font-size: 0.85rem;
-  /* Valor compacto */
   font-weight: 700;
   color: var(--cor-texto-opaco);
 }
 
 .dado-valor.money {
-  color: #10b981;
+  color: var(--cor-sucesso);
+  /* Alterado de #10b981 */
 }
 
 #card-inicio_resumo {
@@ -153,7 +152,7 @@
   width: 50px;
   height: 50px;
   border-radius: 50%;
-  border: 1px solid black;
+  border: 1px solid var(--cor-texto);
 }
 
 .loading-wrapper {
@@ -164,7 +163,8 @@
   justify-content: center;
   padding: 20px 0;
   gap: 10px;
-  color: #a0aec0;
+  color: var(--cor-texto-terciario);
+  /* Alterado de #a0aec0 */
   font-size: 0.8rem;
   font-weight: 500;
 }
@@ -172,7 +172,8 @@
 .spinner-loading {
   width: 24px;
   height: 24px;
-  border: 3px solid #e2e8f0;
+  border: 3px solid var(--cor-borda);
+  /* Alterado de #e2e8f0 */
   border-top-color: var(--cor-primaria);
   border-radius: 50%;
   animation: girar 1s linear infinite;
@@ -188,17 +189,20 @@
    META MENSAL (APEXCHARTS)
    ========================================= */
 .card-meta-mensal {
-  background: white;
+  background: var(--cor-branco);
+  /* Alterado de white */
   border-radius: 16px;
   padding: 20px;
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03);
-  border: 1px solid #edf2f7;
+  border: 1px solid var(--cor-borda);
+  /* Alterado de #edf2f7 */
   margin: 20px 0;
 }
 
 .meta-titulo {
   font-size: 0.9rem;
-  color: #718096;
+  color: var(--cor-texto-secundario);
+  /* Alterado de #718096 */
   font-weight: 600;
   margin-bottom: 15px;
   text-align: center;
@@ -220,15 +224,18 @@
 
 .meta-inputs label {
   font-size: 0.75rem;
-  color: #a0aec0;
+  color: var(--cor-texto-terciario);
+  /* Alterado de #a0aec0 */
   font-weight: 600;
 }
 
 .meta-inputs input {
   width: 100%;
   padding: 10px;
-  background: #f7fafc;
-  border: 1px solid #edf2f7;
+  background: var(--cor-input-bg);
+  /* Alterado de #f7fafc */
+  border: 1px solid var(--cor-borda);
+  /* Alterado de #edf2f7 */
   border-radius: 8px;
   font-family: "Montserrat", sans-serif;
   font-weight: 700;
@@ -238,8 +245,8 @@
 }
 
 .meta-inputs input:focus {
-  border-color: #667eea;
-  background: white;
+  border-color: var(--cor-primaria);
+  background: var(--cor-branco);
 }
 
 /* Ajuste do container do gráfico */
@@ -254,12 +261,12 @@
 #metaTextoResumo {
   text-align: center;
   font-size: 0.9rem;
-  color: #718096;
+  color: var(--cor-texto-secundario);
+  /* Alterado de #718096 */
   padding-top: var(--espacamento-medio);
   line-height: 1.5;
 }
 
-/* Destaque para os valores dentro do texto */
 #metaTextoResumo span {
   font-weight: 700;
   font-size: 1rem;
@@ -268,7 +275,8 @@
 /* --- CALENDÁRIO --- */
 .calendar-card {
   padding: 15px;
-  background: white;
+  background: var(--cor-branco);
+  /* Alterado de white */
   border-radius: 12px;
   box-shadow: var(--shadow-card, 0 2px 5px rgba(0, 0, 0, 0.05));
   margin-bottom: 20px;
@@ -283,22 +291,24 @@
 
 .calendar-header h3 {
   font-size: 1rem;
-  color: var(--text-primary);
-  text-transform: capitalize; /* Primeira letra maiúscula */
+  color: var(--cor-texto);
+  /* Corrigido de --text-primary */
+  text-transform: capitalize;
 }
 
 .calendar-nav-btn {
   background: none;
   border: none;
   cursor: pointer;
-  color: var(--text-secondary);
+  color: var(--cor-texto-terciario);
+  /* Corrigido de --text-secondary */
   padding: 5px;
   border-radius: 50%;
   transition: background 0.2s;
 }
 
 .calendar-nav-btn:hover {
-  background: var(--border-color);
+  background: var(--cor-borda);
 }
 
 .calendar-weekdays {
@@ -307,7 +317,8 @@
   text-align: center;
   font-size: 0.8rem;
   font-weight: 600;
-  color: var(--text-secondary);
+  color: var(--cor-texto-secundario);
+  /* Corrigido de --text-secondary */
   margin-bottom: 10px;
 }
 
@@ -318,21 +329,22 @@
 }
 
 .calendar-day {
-  aspect-ratio: 1; /* Mantém quadrado */
+  aspect-ratio: 1;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   border-radius: 8px;
   font-size: 0.9rem;
-  color: var(--text-primary);
+  color: var(--cor-texto);
+  /* Corrigido de --text-primary */
   position: relative;
   border: 1px solid transparent;
 }
 
 /* Dia atual */
 .calendar-day.today {
-  border-color: var(--primary-color, #667eea);
+  border-color: var(--cor-primaria);
   font-weight: bold;
 }
 
@@ -340,6 +352,7 @@
 .day-badge {
   background-color: var(--cor-primaria);
   color: white;
+  /* Mantém branco pois é texto dentro de cor sólida */
   font-size: 0.65rem;
   width: 18px;
   height: 18px;
@@ -350,12 +363,14 @@
   margin-top: 2px;
 }
 
-/* Dias de outros meses (cinza clarinho) */
+/* Dias de outros meses */
 .calendar-day.faded {
-  color: #cbd5e0;
+  color: var(--cor-texto-terciario);
+  /* Alterado de #cbd5e0 */
 }
 
-/* ===PAGINA DE ROTAS=== */
+/* === PAGINA DE ROTAS === */
+
 .rotas-list {
   display: flex;
   flex-direction: column;
@@ -363,8 +378,10 @@
   padding-bottom: 30px;
 }
 
+/* Filtros */
 .rotas-filter-container {
-  background: white;
+  background: var(--cor-branco);
+  /* Alterado de white */
   padding: 15px;
   border-radius: 16px;
   margin-bottom: 20px;
@@ -373,33 +390,61 @@
   flex-direction: row;
   align-items: flex-end;
   gap: 12px;
+  animation: slideRight .6s ease-out;
 }
 
 .filter-wrapper {
   flex: 1;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.filter-group {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 5px;
 }
 
 .rotas-filter-container label {
-  font-size: 0.85rem;
+  font-size: 0.75rem;
   font-weight: 600;
-  color: #718096;
+  color: var(--cor-texto-secundario);
+  /* Alterado de #718096 */
   margin-left: 4px;
 }
 
-.rotas-filter-container input[type="month"] {
+.rotas-filter-container input[type="month"],
+.rotas-filter-container select {
   width: 100%;
-  padding: 12px;
-  background: #f7fafc;
-  border: 1px solid #edf2f7;
+  padding: 0 12px;
+  background: var(--cor-input-bg);
+  /* Alterado de #f7fafc */
+  border: 1px solid var(--cor-borda);
+  /* Alterado de #edf2f7 */
   border-radius: 10px;
   font-family: "Montserrat", sans-serif;
-  font-size: 1rem;
-  color: var(--cor-texto-opaco);
+  font-size: 0.9rem;
+  color: var(--cor-texto);
+  /* Alterado de var(--cor-texto) para garantir */
   outline: none;
-  height: 48px;
+  height: 45px;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.rotas-filter-container select {
+  background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23CBD5E0%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px top 50%;
+  background-size: 10px auto;
+}
+
+/* Responsivo para celular muito pequeno */
+@media (max-width: 400px) {
+  .filter-wrapper {
+    grid-template-columns: 1fr;
+  }
 }
 
 .btn-csv-icon {
@@ -407,6 +452,7 @@
   height: 48px;
   background-color: var(--cor-primaria);
   color: var(--cor-branco);
+  /* Mantém branco pois o fundo é cor sólida */
   border: 1px solid #d1fae5;
   border-radius: 10px;
   display: flex;
@@ -422,64 +468,143 @@
   transform: scale(0.95);
 }
 
-.rota-card {
+.rota-card-simples {
   background: var(--cor-branco);
-  border-radius: var(--radius-medio);
-  padding: var(--espacamento-medio);
+  /* Variável já estava ok */
+  border-radius: 12px;
+  padding: 15px;
+  margin-bottom: 15px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  border: 1px solid var(--cor-borda);
+  /* Alterado de #f0f0f0 */
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  animation: slideUp 0.6s ease-out;
 }
 
-.rota-card-header {
+/* --- BOTÕES FLUTUANTES NO TOPO DIREITO --- */
+.rota-actions-top {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  display: flex;
+  gap: 3px;
+  z-index: 2;
+}
+
+.btn-mini-action {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: none;
+  background: var(--cor-input-bg);
+  /* Alterado de #f7fafc */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-mini-action span {
+  font-size: 16px;
+}
+
+/* Cores dos botões */
+.btn-editar {
+  color: #667eea;
+}
+
+.btn-editar:hover {
+  background: #ebf4ff;
+}
+
+.btn-excluir {
+  color: #e53e3e;
+}
+
+.btn-excluir:hover {
+  background: #fff5f5;
+}
+
+/* --- CABEÇALHO (DATA E VALOR) --- */
+.rota-header-row {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 15px;
+  padding-right: 70px;
+  border-bottom: 1px solid var(--cor-borda);
+  /* Alterado de #f0f0f0 */
+  padding-bottom: 8px;
 }
 
-.rota-data {
-  font-weight: 600;
-  color: var(--cor-texto);
-}
-
-.rota-valor {
-  font-size: 1.3rem;
+.rota-data-destaque {
   font-weight: 700;
-  color: var(--cor-sucesso);
+  color: var(--cor-texto);
+  font-size: 1rem;
 }
 
-.rota-info {
+.rota-valor-total {
+  font-size: 1.2rem;
+  font-weight: 800;
+  color: var(--cor-sucesso);
+  /* Alterado de #10b981 */
+}
+
+/* --- GRID DE INFORMAÇÕES --- */
+.rota-info-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: var(--espacamento-pequeno);
-  font-size: 0.9rem;
-  color: var(--cor-texto-secundario);
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
   text-align: center;
-  /* Centraliza o texto horizontalmente */
-  justify-items: center;
-  /* Centraliza os itens horizontalmente na célula */
-  align-items: center;
-  /* Centraliza os itens verticalmente na célula */
 }
 
 .info-item {
   display: flex;
   flex-direction: column;
+  align-items: center;
+  justify-content: center;
 }
 
 .info-label {
-  font-size: 0.75rem;
+  font-size: 0.7rem;
   color: var(--cor-texto-terciario);
-  margin-bottom: 2px;
+  /* Alterado de #a0aec0 */
+  text-transform: uppercase;
+  margin-bottom: 3px;
+  font-weight: 600;
 }
 
 .info-value {
   font-weight: 600;
-  color: var(--cor-texto);
+  font-size: 0.9rem;
+  color: var(--cor-texto-opaco);
+  /* Alterado de #2d3748 */
 }
 
-/*PAGINA CONFIGURAÇÕES*/
-/* Cartão do Perfil (Fundo branco, sombra suave) */
+.info-value.lucro {
+  color: var(--cor-sucesso);
+  /* Alterado de #10b981 */
+}
+
+@media (max-width: 360px) {
+  .rota-header-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 5px;
+  }
+
+  .rota-info-grid {
+    font-size: 0.8rem;
+  }
+}
+
+/* PAGINA CONFIGURAÇÕES */
 .config-profile-card {
-  background: #ffffff;
+  background: var(--cor-branco);
+  /* Alterado de #ffffff */
   border: var(--borda-leve);
   border-radius: 16px;
   padding: 30px 20px;
@@ -495,10 +620,9 @@
 .config-avatar {
   width: 80px;
   height: 80px;
-  background-color: #e0e7ff;
-  /* Azul bem claro */
-  color: #667eea;
-  /* Cor principal do app */
+  background-color: var(--cor-fundo-secundario);
+  /* Alterado de #e0e7ff */
+  color: var(--cor-primaria);
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -525,11 +649,10 @@
 
 .config-user-email {
   font-size: 0.9rem;
-  color: #718096;
-  /* Cinza médio */
+  color: var(--cor-texto-secundario);
+  /* Alterado de #718096 */
   margin: 0;
   word-break: break-all;
-  /* Evita que email longo quebre o layout */
 }
 
 /* Área de Botões */
@@ -539,11 +662,10 @@
   gap: 15px;
 }
 
-/* Botão de Logout (Estilo Perigoso/Vermelho) */
+/* Botão de Logout */
 .config-btn-logout {
   width: 100%;
   background-image: var(--gradiente-principal);
-  /* Fundo vermelho bem claro */
   color: var(--cor-branco);
   border: none;
   padding: 16px;
@@ -569,11 +691,11 @@
   font-size: 20px;
 }
 
-/* Rodapé da Versão */
 .config-footer {
   text-align: center;
   margin-top: 40px;
-  color: #cbd5e0;
+  color: var(--cor-texto-terciario);
+  /* Alterado de #cbd5e0 */
   font-size: 0.75rem;
   font-weight: 500;
   letter-spacing: 1px;
@@ -585,7 +707,8 @@
 
 /* --- Container dos Filtros --- */
 .financeiro-filters {
-  background: white;
+  background: var(--cor-branco);
+  /* Alterado de white */
   padding: 15px;
   border-radius: 16px;
   display: flex;
@@ -595,9 +718,9 @@
   box-shadow: var(--sombra-card-leve);
   border: var(--borda-leve);
   align-items: flex-end;
+  animation: slideRight 0.6s ease-out;
 }
 
-/* Inputs de Data (50% menos um pouquinho para caber 2 na linha) */
 .filter-group {
   flex: 1 1 40%;
   min-width: 100px;
@@ -608,7 +731,8 @@
 
 .filter-group label {
   font-size: 0.75rem;
-  color: #718096;
+  color: var(--cor-texto-secundario);
+  /* Alterado de #718096 */
   font-weight: 600;
   margin-left: 4px;
 }
@@ -616,9 +740,10 @@
 .filter-group input {
   width: 100%;
   padding: 10px 12px;
-  /* Área de toque maior */
-  background: #f7fafc;
-  border: 1px solid #edf2f7;
+  background: var(--cor-input-bg);
+  /* Alterado de #f7fafc */
+  border: 1px solid var(--cor-borda);
+  /* Alterado de #edf2f7 */
   border-radius: 10px;
   font-family: "Montserrat", sans-serif;
   font-size: 0.9rem;
@@ -628,19 +753,17 @@
 }
 
 .filter-group input:focus {
-  border-color: #667eea;
-  background: #fff;
+  border-color: var(--cor-primaria);
+  background: var(--cor-branco);
 }
 
 /* Botão de Filtro */
 .btn-filter {
   flex: 1 1 100%;
-  /* No mobile, ocupa a linha toda abaixo das datas */
   background: var(--cor-primaria);
   color: white;
   border: none;
   height: 44px;
-  /* Altura mínima recomendada para mobile */
   border-radius: 10px;
   cursor: pointer;
   display: flex;
@@ -660,11 +783,13 @@
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 12px;
+  animation: slideUp 0.6s ease-out;
 }
 
 /* Card Genérico */
 .fin-card {
-  background: white;
+  background: var(--cor-branco);
+  /* Alterado de white */
   padding: 16px;
   border-radius: 16px;
   display: flex;
@@ -707,9 +832,10 @@
 .card-lucro h3 {
   color: white;
   font-size: 2rem;
-  /* Valor bem grande */
   margin: 0;
   line-height: 1.1;
+  font-variant-numeric: tabular-nums;
+  transition: color 0.3s ease;
 }
 
 /* Outros Cards */
@@ -724,29 +850,34 @@
 }
 
 #lucro-liquido_txt {
-  color: var(--cor-branca);
+  color: var(--cor-branco);
+  /* Alterado de --cor-branca */
 }
 
-/* Cores dos Ícones */
+/* Cores dos Ícones (Mantidos cores fixas para contraste) */
 .icon-blue {
-  background: #ebf8ff;
+  background: var(--cor-fundo-claro);
+  /* Alterado para adaptar fundo */
   color: #4299e1;
 }
 
 .icon-red {
   background: #fff5f5;
+  /* Mantido fixo pois é vermelho */
   color: #f56565;
 }
 
 .icon-gray {
-  background: #edf2f7;
+  background: var(--cor-input-bg);
+  /* Alterado de #edf2f7 */
   color: #718096;
 }
 
 /* Tipografia dos Cards Menores */
 .fin-info span {
   font-size: 0.7rem;
-  color: #718096;
+  color: var(--cor-texto-secundario);
+  /* Alterado de #718096 */
   text-transform: uppercase;
   font-weight: 700;
   letter-spacing: 0.5px;
@@ -762,6 +893,7 @@
 
 .fin-resumo-bar {
   background-color: var(--cor-branco);
+  /* Variável já ok */
   border-radius: 12px;
   padding: 12px;
   margin: 10px 0;
@@ -769,7 +901,8 @@
   align-items: center;
   justify-content: center;
   gap: 8px;
-  color: #718096;
+  color: var(--cor-texto-secundario);
+  /* Alterado de #718096 */
   font-size: 0.9rem;
   box-shadow: var(--sombra-card-leve);
   border: var(--borda-leve);
@@ -782,15 +915,13 @@
 
 .fin-resumo-bar .material-symbols-outlined {
   font-size: 20px;
-  color: #667eea;
-  /* Azul do tema */
+  color: var(--cor-primaria);
+  /* Alterado de #667eea */
 }
 
-/* Ajuste fino para telas um pouco maiores (Tablets) */
 @media (min-width: 480px) {
   .btn-filter {
     flex: 0 0 50px;
-    /* Volta a ser um botão quadrado pequeno ao lado */
     height: 42px;
   }
 }

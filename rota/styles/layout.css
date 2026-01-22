@@ -1,6 +1,7 @@
 /* Layout Principal */
 body {
-  background: rgb(241, 241, 241);
+  background-color: var(--cor-background);
+  color: var(--cor-texto);
 }
 
 .container {

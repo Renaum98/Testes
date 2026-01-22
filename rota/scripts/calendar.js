@@ -5,12 +5,10 @@ let dataAtualCalendario = new Date();
 export function inicializarCalendario() {
   renderizarCalendario();
 
-  // Listeners dos botões de navegar (Prev/Next)
   const btnPrev = document.getElementById("btnPrevMonth");
   const btnNext = document.getElementById("btnNextMonth");
 
   if (btnPrev && btnNext) {
-    // Clone para remover listeners antigos (igual fizemos antes)
     const newPrev = btnPrev.cloneNode(true);
     const newNext = btnNext.cloneNode(true);
     btnPrev.parentNode.replaceChild(newPrev, btnPrev);
@@ -34,33 +32,38 @@ export function renderizarCalendario() {
   
   if (!grid || !titulo) return;
 
-  grid.innerHTML = ""; // Limpa anterior
+  grid.innerHTML = ""; 
 
   const ano = dataAtualCalendario.getFullYear();
-  const mes = dataAtualCalendario.getMonth(); // 0 a 11
+  const mes = dataAtualCalendario.getMonth(); 
 
-  // Atualiza Título (Ex: Janeiro 2026)
+  // Título
   const nomeMes = new Intl.DateTimeFormat('pt-BR', { month: 'long' }).format(dataAtualCalendario);
   titulo.textContent = `${nomeMes} ${ano}`;
 
-  // Lógica de Dias
-  const primeiroDiaDoMes = new Date(ano, mes, 1).getDay(); // 0 (Dom) a 6 (Sab)
-  const diasNoMes = new Date(ano, mes + 1, 0).getDate(); // Ex: 31
+  // --- LÓGICA AJUSTADA PARA COMEÇAR NA SEGUNDA-FEIRA ---
   
-  // Data de hoje para marcar
+  // 1. Pega o dia da semana do dia 1 do mês (0=Dom, 1=Seg, ..., 6=Sab)
+  let diaSemanaPrimeiroDia = new Date(ano, mes, 1).getDay();
+  
+  // 2. Converte para o padrão onde Segunda é 0 e Domingo é 6
+  // Se for Domingo (0), vira 7. Depois subtrai 1.
+  // Seg(1)->0, Ter(2)->1, ..., Sab(6)->5, Dom(0)->6
+  if (diaSemanaPrimeiroDia === 0) {
+      diaSemanaPrimeiroDia = 7;
+  }
+  const espacosVazios = diaSemanaPrimeiroDia - 1;
+
+  const diasNoMes = new Date(ano, mes + 1, 0).getDate();
   const hoje = new Date();
   
-  // MAPA DE ROTAS: Conta quantas rotas tem em cada dia
-  // Cria um objeto tipo: { "2026-01-20": 3, "2026-01-21": 1 }
+  // Mapa de Rotas
   const rotasPorDia = {};
-  
   if (state.rotas && Array.isArray(state.rotas)) {
       state.rotas.forEach(rota => {
           if (!rota.horarioInicio) return;
           const d = new Date(rota.horarioInicio);
-          // Chave única para o dia: YYYY-M-D (sem zero à esquerda pra facilitar)
           const chave = `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
-          
           if (rotasPorDia[chave]) {
               rotasPorDia[chave]++;
           } else {
@@ -69,8 +72,8 @@ export function renderizarCalendario() {
       });
   }
 
-  // 1. Espaços vazios antes do dia 1
-  for (let i = 0; i < primeiroDiaDoMes; i++) {
+  // 1. Renderiza os espaços vazios (agora calculados para Segunda)
+  for (let i = 0; i < espacosVazios; i++) {
     const vazio = document.createElement("div");
     vazio.classList.add("calendar-day", "faded");
     grid.appendChild(vazio);
@@ -86,12 +89,11 @@ export function renderizarCalendario() {
         elDia.classList.add("today");
     }
 
-    // Número do dia
     const spanNumero = document.createElement("span");
     spanNumero.textContent = dia;
     elDia.appendChild(spanNumero);
 
-    // Verifica se tem rotas neste dia
+    // Bolinha de rotas
     const chaveDia = `${ano}-${mes}-${dia}`;
     if (rotasPorDia[chaveDia]) {
         const badge = document.createElement("div");

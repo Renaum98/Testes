@@ -1,5 +1,4 @@
 import { state } from "./state.js";
-import { configurarSwipeActions } from "./swipe.js";
 import { carregarDados } from "./storage.js";
 import { renderizarCalendario } from "./calendar.js";
 
@@ -10,14 +9,18 @@ import { renderizarCalendario } from "./calendar.js";
 // NOVA FUNÇÃO: Abre o modal de registro direto
 export function abrirModalRegistrarRota() {
   const modal = document.getElementById("modalRegistrarRota");
-  if (modal) modal.classList.add("active");
+  if (modal) {
+    modal.classList.add("active");
+    modal.style.display = "flex"; // Garante abertura visual
+  }
 }
-
 export function fecharModal(modalId) {
   const modal = document.getElementById(modalId);
-  if (modal) modal.classList.remove("active");
+  if (modal) {
+    modal.classList.remove("active");
+    modal.style.display = "none"; // Garante fechamento visual
+  }
 }
-
 // ============================================
 // NAVEGAÇÃO
 // ============================================
@@ -53,141 +56,143 @@ export function mudarPagina(event, pagina) {
     atualizarPaginaFinanceiro();
   }
 }
-
 // ============================================
 // ATUALIZAÇÃO DA INTERFACE
 // ============================================
-
 export function atualizarListaRotas() {
-  // 2. CORREÇÃO: Renderiza o calendário LOGO NO INÍCIO
-  // Isso garante que ele apareça mesmo se não houver rotas na lista
   renderizarCalendario();
 
   const lista = document.getElementById("rotasList");
   const emptyState = document.getElementById("emptyState");
-  const filtroInput = document.getElementById("filtroRotasMes");
+  const filtroMesInput = document.getElementById("filtroRotasMes");
+  const filtroAppInput = document.getElementById("filtroRotasApp"); // Novo
 
-  // Se não tem rotas carregadas, limpa tudo
+  // 1. POPULAR FILTRO DE APPS (DINÂMICO)
+  // Só fazemos isso se tiver rotas e o select existir
+  if (state.rotas && state.rotas.length > 0 && filtroAppInput) {
+    // Guarda o valor que o usuário selecionou antes de recriar a lista
+    const valorSelecionado = filtroAppInput.value;
+
+    // Pega todos os nomes de plataformas únicos
+    const appsUnicos = [
+      ...new Set(state.rotas.map((r) => r.plataforma)),
+    ].sort();
+
+    // Recria as opções (Mantendo o "Todas")
+    filtroAppInput.innerHTML = `<option value="todas">Todas</option>`;
+
+    appsUnicos.forEach((app) => {
+      if (!app) return; // Ignora vazios
+      const option = document.createElement("option");
+      option.value = app;
+      option.textContent = app;
+      filtroAppInput.appendChild(option);
+    });
+
+    // Restaura a seleção do usuário (se ainda existir na lista)
+    filtroAppInput.value = valorSelecionado;
+  }
+
+  // --- VALIDAÇÃO LISTA VAZIA GERAL ---
   if (!state.rotas || state.rotas.length === 0) {
     lista.innerHTML = "";
-    if (emptyState) {
-      emptyState.style.display = "block";
-      emptyState.querySelector("p").textContent = "Nenhuma rota registrada ainda.";
-    }
-    // O calendário já foi renderizado lá em cima, então podemos sair
+    if (emptyState) emptyState.style.display = "block";
     return;
   }
 
-  // --- LÓGICA DE FILTRO (MÊS/ANO) ---
+  // --- APLICAÇÃO DOS FILTROS ---
   let rotasExibidas = state.rotas;
 
-  if (filtroInput && filtroInput.value) {
-    const [anoFiltro, mesFiltro] = filtroInput.value.split("-");
-
-    rotasExibidas = state.rotas.filter((rota) => {
-      const dataRota = new Date(rota.horarioInicio);
-      const anoRota = dataRota.getFullYear().toString();
-      const mesRota = (dataRota.getMonth() + 1).toString().padStart(2, "0");
-
-      return anoRota === anoFiltro && mesRota === mesFiltro;
+  // Filtro 1: Mês
+  if (filtroMesInput && filtroMesInput.value) {
+    const [anoF, mesF] = filtroMesInput.value.split("-");
+    rotasExibidas = rotasExibidas.filter((rota) => {
+      const d = new Date(rota.horarioInicio);
+      return (
+        d.getFullYear().toString() === anoF &&
+        (d.getMonth() + 1).toString().padStart(2, "0") === mesF
+      );
     });
   }
 
-  // Verifica se o filtro resultou em lista vazia
+  // Filtro 2: App (Plataforma)
+  if (filtroAppInput && filtroAppInput.value !== "todas") {
+    rotasExibidas = rotasExibidas.filter(
+      (r) => r.plataforma === filtroAppInput.value,
+    );
+  }
+
+  // --- RESULTADO DOS FILTROS ---
   if (rotasExibidas.length === 0) {
     lista.innerHTML = "";
     if (emptyState) {
       emptyState.style.display = "block";
-      emptyState.querySelector("p").textContent = "Nenhuma rota neste mês.";
+      emptyState.querySelector("p").textContent =
+        "Nenhuma rota encontrada com estes filtros.";
     }
     return;
   }
 
   if (emptyState) emptyState.style.display = "none";
 
-  // --- RENDERIZAÇÃO ---
+  // --- RENDERIZAÇÃO DOS CARDS ---
   lista.innerHTML = rotasExibidas
     .map((rota) => {
       const inicio = new Date(rota.horarioInicio);
       const lucroLiquido = rota.lucroLiquido || 0;
 
-      // Tratamento do KM
-      let kmNumerico = 0;
-      if (rota.kmPercorridos !== undefined && rota.kmPercorridos !== null) {
-        kmNumerico = Number(rota.kmPercorridos);
-      } else if (rota.kmFinal && rota.kmInicial) {
+      let kmNumerico = Number(rota.kmPercorridos) || 0;
+      if (kmNumerico === 0 && rota.kmFinal && rota.kmInicial) {
         kmNumerico = Number(rota.kmFinal) - Number(rota.kmInicial);
       }
-      if (isNaN(kmNumerico)) kmNumerico = 0;
 
       return `
-        <div class="rota-item-container" data-rota-id="${rota.id}">
+        <div class="rota-card-simples" data-rota-id="${rota.id}">
           
-           <div class="rota-item-content">
-            <div class="rota-card">
-              <div class="rota-card-header">
-                <div class="rota-data">${inicio.toLocaleDateString("pt-BR")}</div>
-                <div class="rota-valor">R$ ${rota.valor?.toFixed(2) || "0.00"}</div>
-              </div>
-              <div class="rota-info">
-                
-                <div class="info-item">
-                  <span class="info-label">Horário</span>
-                  <span class="info-value">
-                    ${inicio.toLocaleTimeString("pt-BR", {
-                      hour: "2-digit",
-                      minute: "2-digit",
-                    })}
-                  </span>
-                </div>
-                
-                <div class="info-item">
-                  <span class="info-label">KM Percorridos</span>
-                  <div style="display: flex; flex-direction: column; align-items: center;">
-                    <span class="info-value">${kmNumerico.toFixed(1)} km</span>
-                  </div>
-                </div>
-                
-                <div class="info-item">
-                  <span class="info-label">Lucro Líquido</span>
-                  <span class="info-value" style="color: #10b981; font-weight: 600;">
-                    R$ ${lucroLiquido.toFixed(2)}
-                  </span>
-                </div>
-                
-                <div class="info-item">
-                  <span class="info-label">Plataforma</span>
-                  <span class="info-value">
-                    ${rota.plataforma}
-                  </span>
-                </div>
-
-              </div>
-            </div>
-          </div>
-          
-          <div class="rota-swipe-action delete-action">
-            <button class="btn-swipe-delete" data-id="${rota.id}">
-              <span class="material-symbols-outlined">delete</span>
-              <span>Excluir</span>
+          <div class="rota-actions-top">
+            <button class="btn-mini-action btn-editar" data-id="${rota.id}">
+               <span class="material-symbols-outlined">edit</span>
+            </button>
+            <button class="btn-mini-action btn-excluir" data-id="${rota.id}">
+               <span class="material-symbols-outlined">close</span>
             </button>
           </div>
 
+          <div class="rota-header-row">
+            <div class="rota-data-destaque">
+                ${inicio.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric" })}
+            </div>
+            <div class="rota-valor-total">
+                R$ ${rota.valor?.toFixed(2) || "0.00"}
+            </div>
+          </div>
+
+          <div class="rota-info-grid">
+             <div class="info-item">
+               <span class="info-label">Horário</span>
+               <span class="info-value">${inicio.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}</span>
+             </div>
+             <div class="info-item">
+               <span class="info-label">KM</span>
+               <span class="info-value">${kmNumerico.toFixed(1)} km</span>
+             </div>
+             <div class="info-item">
+               <span class="info-label">Lucro</span>
+               <span class="info-value lucro">R$ ${lucroLiquido.toFixed(2)}</span>
+             </div>
+             <div class="info-item">
+               <span class="info-label">App</span>
+               <span class="info-value">${rota.plataforma}</span>
+             </div>
+          </div>
         </div>
       `;
     })
     .join("");
 
-  // Funções auxiliares
-  if (typeof configuringSwipeActions === 'function') configuringSwipeActions(); // Se tiver swipe novo
-  if (typeof atualizarGraficoMeta === 'function') atualizarGraficoMeta();
-
-  // Atualiza o carrossel de resumo
-  if (typeof atualizarCarouselResumo === "function") {
-    atualizarCarouselResumo();
-  }
+  if (typeof atualizarGraficoMeta === "function") atualizarGraficoMeta();
+  if (typeof atualizarCarouselResumo === "function") atualizarCarouselResumo();
 }
-
 // ============================================
 // PERFIL DO USUÁRIO
 // ============================================
@@ -207,33 +212,76 @@ export function atualizarPerfilUsuario() {
 }
 
 // ============================================
+// FUNÇÃO AUXILIAR DE ANIMAÇÃO (NOVA)
+// ============================================
+function animarValor(elemento, valorFinal, duracao = 2000) {
+  if (!elemento) return;
+
+  let inicioTimestamp = null;
+  const valorInicial = 0; // Começa sempre do zero
+
+  const passo = (timestamp) => {
+    if (!inicioTimestamp) inicioTimestamp = timestamp;
+
+    // Calcula o progresso (de 0 a 1)
+    const progresso = Math.min((timestamp - inicioTimestamp) / duracao, 1);
+
+    // Função de "Easing" (opcional: faz começar rápido e desacelerar no fim)
+    // Se quiser linear, use apenas: const valorAtual = progresso * valorFinal;
+    const easeOutQuart = 1 - Math.pow(1 - progresso, 4);
+    const valorAtual =
+      valorInicial + easeOutQuart * (valorFinal - valorInicial);
+
+    // Atualiza o texto na tela
+    elemento.textContent = `R$ ${valorAtual.toFixed(2)}`;
+
+    // Se ainda não acabou (progresso < 1), chama o próximo quadro
+    if (progresso < 1) {
+      window.requestAnimationFrame(passo);
+    } else {
+      // Garante que o valor final seja exato no fim
+      elemento.textContent = `R$ ${valorFinal.toFixed(2)}`;
+    }
+  };
+
+  window.requestAnimationFrame(passo);
+}
+// ============================================
 // LÓGICA DO FINANCEIRO
 // ============================================
 export function atualizarPaginaFinanceiro() {
   const inputInicio = document.getElementById("filtroDataInicio");
   const inputFim = document.getElementById("filtroDataFim");
 
-  // 1. Definir datas padrão (Mês atual) se estiver vazio
+  // 1. Definir datas padrão... (código igual)
   if (!inputInicio.value || !inputFim.value) {
     const hoje = new Date();
     const primeiroDia = new Date(hoje.getFullYear(), hoje.getMonth(), 1);
     const ultimoDia = new Date(hoje.getFullYear(), hoje.getMonth() + 1, 0);
 
+    // Função auxiliar (precisa estar acessível ou definida aqui perto)
+    const firstDayFormat = (date) => {
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, "0");
+      const day = String(date.getDate()).padStart(2, "0");
+      return `${year}-${month}-${day}`;
+    };
+
     inputInicio.value = firstDayFormat(primeiroDia);
     inputFim.value = firstDayFormat(ultimoDia);
   }
 
-  // 2. Converter inputs para Date
+  // 2. Converter inputs... (código igual)
   const dataInicio = new Date(inputInicio.value + "T00:00:00");
   const dataFim = new Date(inputFim.value + "T23:59:59");
 
-  // 3. Filtrar rotas
+  // 3. Filtrar rotas... (código igual)
   const rotasFiltradas = state.rotas.filter((rota) => {
     const dataRota = new Date(rota.horarioFim || rota.horarioInicio);
     return dataRota >= dataInicio && dataRota <= dataFim;
   });
 
-  // 4. Calcular Totais
+  // 4. Calcular Totais... (código igual)
   let totalFaturamento = 0;
   let totalCustos = 0;
   let totalLucro = 0;
@@ -257,9 +305,16 @@ export function atualizarPaginaFinanceiro() {
     totalKm += isNaN(km) ? 0 : km;
   });
 
-  // 5. Atualizar DOM (Cards)
-  document.getElementById("finLucroLiquido").textContent =
-    `R$ ${totalLucro.toFixed(2)}`;
+  // 5. ATUALIZAR DOM COM ANIMAÇÃO (AQUI É A MUDANÇA)
+
+  // Elemento do Lucro Líquido
+  const elLucro = document.getElementById("finLucroLiquido");
+
+  // Chama a animação (2000ms = 2 segundos)
+  animarValor(elLucro, totalLucro, 1000);
+
+  // Os outros cards mantemos estáticos (instantâneos) para não ficar "carnaval"
+  // Mas se quiser animar todos, basta chamar a função para eles também.
   document.getElementById("finFaturamento").textContent =
     `R$ ${totalFaturamento.toFixed(2)}`;
   document.getElementById("finCustos").textContent =
@@ -267,7 +322,7 @@ export function atualizarPaginaFinanceiro() {
   document.getElementById("finKmTotal").textContent =
     `${totalKm.toFixed(1)} km`;
 
-  // --- NOVO CÁLCULO: RENDIMENTO (R$/KM) ---
+  // --- Resto do código (Rendimento, Qtd Rotas) continua igual...
   let rendimento = 0;
   if (totalKm > 0) {
     rendimento = totalFaturamento / totalKm;
@@ -280,19 +335,16 @@ export function atualizarPaginaFinanceiro() {
 
   const elTotalRotas = document.getElementById("finTotalRotasTexto");
   if (elTotalRotas) {
-    // rotasFiltradas já contém apenas as rotas das datas selecionadas
     const qtd = rotasFiltradas.length;
     elTotalRotas.innerHTML = `Rotas realizadas neste período: <strong>${qtd}</strong>`;
   }
 }
-
 function firstDayFormat(date) {
   const year = date.getFullYear();
   const month = String(date.getMonth() + 1).padStart(2, "0");
   const day = String(date.getDate()).padStart(2, "0");
   return `${year}-${month}-${day}`;
 }
-
 // ============================================
 // CARROSSEL DE RESUMO (HOME)
 // ============================================
@@ -317,7 +369,7 @@ export function atualizarCarouselResumo() {
 
   // 2. Ordenar e Criar Lista
   const listaMeses = Object.values(resumo).sort(
-    (a, b) => b.dataRef - a.dataRef
+    (a, b) => b.dataRef - a.dataRef,
   );
 
   if (listaMeses.length === 0) {
@@ -331,7 +383,7 @@ export function atualizarCarouselResumo() {
       const nomeMes = item.dataRef.toLocaleDateString("pt-BR", {
         month: "short",
         year: "2-digit",
-      }); // Ex: "jan 26" (Mais curto)
+      });
 
       const agora = new Date();
       const ehAtual =
@@ -357,11 +409,10 @@ export function atualizarCarouselResumo() {
     })
     .join("");
 
-  // 4. AUTO-CENTRALIZAR (Lógica da Roleta)
+  // 4. AUTO-CENTRALIZAR
   setTimeout(() => {
     const cardAtual = container.querySelector(".atual");
     if (cardAtual) {
-      // Calcula a posição para deixar o card exatamento no meio
       const scrollPos =
         cardAtual.offsetLeft -
         container.clientWidth / 2 +
@@ -371,9 +422,8 @@ export function atualizarCarouselResumo() {
         behavior: "smooth",
       });
     }
-  }, 100); // Pequeno delay para garantir que o DOM renderizou
+  }, 100);
 }
-
 // ============================================
 // LÓGICA DA META MENSAL (KPI)
 // ============================================
@@ -383,12 +433,10 @@ export function atualizarGraficoMeta() {
 
   if (!container) return;
 
-  // 1. Pegar valores da meta
   const metaDiaria = state.meta.diaria || 0;
   const diasTrabalho = state.meta.dias || 0;
   const metaTotal = metaDiaria * diasTrabalho;
 
-  // 2. Calcular Lucro Real do Mês Atual
   const hoje = new Date();
   const mesAtual = (hoje.getMonth() + 1).toString().padStart(2, "0");
   const anoAtual = hoje.getFullYear().toString();
@@ -403,7 +451,6 @@ export function atualizarGraficoMeta() {
     })
     .reduce((acc, curr) => acc + (parseFloat(curr.lucroLiquido) || 0), 0);
 
-  // 3. Cálculos de Porcentagem e Restante
   let porcentagem = 0;
   let falta = 0;
 
@@ -414,11 +461,8 @@ export function atualizarGraficoMeta() {
     if (porcentagem > 100) porcentagem = 100;
   }
 
-  // --- CORREÇÃO AQUI: Garante que é um NÚMERO, não texto ---
   const valorGrafico = parseFloat(porcentagem.toFixed(1));
-  // --------------------------------------------------------
 
-  // Atualizar texto abaixo do gráfico
   if (metaTotal === 0) {
     elTexto.textContent = "Defina meta diária e dias para ver o progresso.";
   } else if (falta <= 0) {
@@ -427,55 +471,42 @@ export function atualizarGraficoMeta() {
     elTexto.innerHTML = `Falta <span style="color:#e53e3e; font-weight:bold;">R$ ${falta.toFixed(2)}</span> para atingir R$ ${metaTotal.toFixed(2)}`;
   }
 
-  // 4. Configuração do ApexCharts (Estilo Visual)
   const options = {
     series: [valorGrafico],
     chart: {
-      height: 300, // Altura um pouco maior para não cortar
+      height: 300,
       type: "radialBar",
-      fontFamily: "Montserrat, sans-serif", // Fonte do seu site
-      animations: {
-        enabled: true,
-        easing: "easeinout",
-        speed: 800,
-      },
+      fontFamily: "Montserrat, sans-serif",
+      animations: { enabled: true, easing: "easeinout", speed: 800 },
     },
     plotOptions: {
       radialBar: {
         offsetY: -15,
-        startAngle: -135, // -135 a 135 faz o formato de "ferradura"
+        startAngle: -135,
         endAngle: 135,
         hollow: {
           margin: 15,
-          size: "65%", // Aumente para deixar o anel MAIS FINO (ex: 70%)
+          size: "65%",
           background: "transparent",
-          image: undefined,
         },
         track: {
-          background: "#f1f5f9", // Cor do fundo da barra (cinza bem claro)
+          background: "#f1f5f9",
           strokeWidth: "100%",
-          margin: 0, // margem entre o track e a barra colorida
-          dropShadow: {
-            enabled: false, // Pode ativar sombra se quiser profundidade
-            top: 0,
-            left: 0,
-            blur: 3,
-            opacity: 0.1,
-          },
+          margin: 0,
         },
         dataLabels: {
           show: true,
           name: {
-            offsetY: -10, // Posição vertical do texto "Progresso"
+            offsetY: -10,
             show: true,
-            color: "#718096", // Cor cinza médio
+            color: "#718096",
             fontSize: "13px",
             fontWeight: 600,
           },
           value: {
-            offsetY: 10, // Posição vertical da Porcentagem
-            color: "var(--cor-texto-opaco)", // Cor escura para leitura fácil
-            fontSize: "30px", // Tamanho grande para destaque
+            offsetY: 10,
+            color: "var(--cor-texto-opaco)",
+            fontSize: "30px",
             fontWeight: 700,
             show: true,
             formatter: function (val) {
@@ -491,7 +522,6 @@ export function atualizarGraficoMeta() {
         shade: "dark",
         type: "horizontal",
         shadeIntensity: 0.5,
-        // Cores do Gradiente: Começa Roxo (App) -> Termina Verde (Meta)
         gradientToColors: ["#10b981"],
         inverseColors: true,
         opacityFrom: 1,
@@ -499,16 +529,12 @@ export function atualizarGraficoMeta() {
         stops: [0, 100],
       },
     },
-    stroke: {
-      lineCap: "round", // Deixa as pontas arredondadas (essencial para ficar bonito)
-    },
-    colors: ["#667eea"], // Cor inicial do gradiente
-    labels: ["Progresso"], // Texto que aparece em cima da porcentagem
+    stroke: { lineCap: "round" },
+    colors: ["#667eea"],
+    labels: ["Progresso"],
   };
 
-  // 5. Renderizar ou Atualizar
   if (state.chartInstance) {
-    // CORREÇÃO TAMBÉM NO UPDATE:
     state.chartInstance.updateSeries([valorGrafico]);
   } else {
     if (typeof ApexCharts !== "undefined") {

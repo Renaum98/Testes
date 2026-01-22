@@ -10,7 +10,7 @@ import {
 } from "./ui.js";
 import { carregarDados, carregarDadosLocal } from "./storage.js";
 import { salvarNovaRota } from "./routes.js";
-import { inicializarCalendario} from "./calendar.js";
+import { inicializarCalendario } from "./calendar.js";
 
 // ============================================
 // INICIALIZAÇÃO DO APLICATIVO
@@ -33,7 +33,7 @@ function inicializarApp() {
 
   state.db = window.firebaseDb;
   configurarEventListeners();
-  inicializarCalendario()
+  inicializarCalendario();
   carregarDados();
 
   // Inicializa Tema (Dark/Light) se existir a função
@@ -65,7 +65,6 @@ function inicializarTema() {
   }
 
   if (toggle) {
-    // Remove listener antigo para evitar duplicação (cloneNode truque)
     const newToggle = toggle.cloneNode(true);
     toggle.parentNode.replaceChild(newToggle, toggle);
 
@@ -110,20 +109,30 @@ function configurarEventListeners() {
     });
   }
 
-  // 2. ABRIR MODAL "ADICIONAR ROTA" (CORREÇÃO DE FORÇA BRUTA)
-  //
+  // =========================================================
+  // 2. SISTEMA DE CLIQUES (MODAL, EDITAR, EXCLUIR)
+  // =========================================================
   document.addEventListener("click", (e) => {
-    // --- CASO 1: BOTÃO ABRIR (ADICIONAR ROTA) ---
+    // --- CASO 1: ABRIR MODAL (NOVA ROTA) ---
     const btnAbrir = e.target.closest("#btnRegistrarRota");
-
     if (btnAbrir) {
-      console.log("Abrindo Modal...");
+      console.log("Abrindo Modal de Registro...");
       e.preventDefault();
 
+      // Limpeza Preventiva: Garante que não estamos em modo de edição
+      const form = document.getElementById("formRegistrarRota");
+      if (form) {
+        form.reset();
+        delete form.dataset.editingId; // Remove ID de edição se existir
+        const btnSubmit = form.querySelector('button[type="submit"]');
+        if (btnSubmit) btnSubmit.textContent = "Salvar Rota";
+      }
+
+      // Abre o Modal
       const modal = document.getElementById("modalRegistrarRota");
       if (modal) {
         modal.classList.add("active");
-        modal.style.display = "flex"; // Força bruta para abrir
+        modal.style.display = "flex";
       }
 
       // Preenche Data de Hoje
@@ -135,48 +144,106 @@ function configurarEventListeners() {
         const dia = String(hoje.getDate()).padStart(2, "0");
         inputData.value = `${ano}-${mes}-${dia}`;
       }
-      return; // Para a execução aqui
+      return;
     }
 
     // --- CASO 2: BOTÃO CANCELAR (FECHAR MODAL) ---
-    // Verifica se clicou no botão Cancelar (novo ID ou antigo)
     const btnCancelar =
       e.target.closest("#btnCancelarRegistro") ||
       e.target.closest("#btnCancelarRota");
-
     if (btnCancelar) {
-      console.log("Cancelando/Fechando Modal...");
+      console.log("Fechando Modal...");
       e.preventDefault();
 
       const modal = document.getElementById("modalRegistrarRota");
       if (modal) {
         modal.classList.remove("active");
-        modal.style.display = "none"; // Força bruta para esconder
+        modal.style.display = "none";
       }
 
-      // Opcional: Limpar o formulário ao cancelar
       const form = document.getElementById("formRegistrarRota");
-      if (form) form.reset();
+      if (form) {
+        form.reset();
+        delete form.dataset.editingId; // Limpa estado de edição
+        const btnSubmit = form.querySelector('button[type="submit"]');
+        if (btnSubmit) btnSubmit.textContent = "Salvar Rota";
+      }
+      return;
+    }
 
+    // --- CASO 3: BOTÃO EXCLUIR (X) ---
+    const btnExcluir = e.target.closest(".btn-excluir");
+    if (btnExcluir) {
+      const id = btnExcluir.dataset.id;
+      if (confirm("Deseja realmente apagar esta rota?")) {
+        // Importação dinâmica para evitar ciclos de dependência
+        import("./routes.js").then((mod) => {
+          // Verifique se a função excluirRota existe no seu routes.js
+          // Se não existir, avise-me.
+          if (mod.excluirRota) {
+            mod.excluirRota(id);
+          } else {
+            console.error("Função excluirRota não encontrada em routes.js");
+          }
+        });
+      }
+      return;
+    }
+
+    // --- CASO 4: BOTÃO EDITAR (LÁPIS) ---
+    const btnEditar = e.target.closest(".btn-editar");
+    if (btnEditar) {
+      const id = btnEditar.dataset.id;
+      const rota = state.rotas.find((r) => r.id.toString() === id.toString());
+
+      if (rota) {
+        // 1. Preenche o formulário
+        const elPlataforma = document.getElementById("plataformaRota");
+        const elKm = document.getElementById("kmPercorridoInput");
+        const elConsumo = document.getElementById("consumoInput");
+        const elValor = document.getElementById("valorRota");
+        const elData = document.getElementById("inputDataRota");
+
+        if (elPlataforma) elPlataforma.value = rota.plataforma;
+        if (elKm) elKm.value = rota.kmPercorridos;
+        if (elConsumo) elConsumo.value = rota.consumoUtilizado || 10;
+        if (elValor) elValor.value = rota.valor;
+
+        // Converter Data ISO para Input Date (YYYY-MM-DD)
+        if (elData && rota.horarioInicio) {
+          const d = new Date(rota.horarioInicio);
+          const ano = d.getFullYear();
+          const mes = String(d.getMonth() + 1).padStart(2, "0");
+          const dia = String(d.getDate()).padStart(2, "0");
+          elData.value = `${ano}-${mes}-${dia}`;
+        }
+
+        // 2. Marca o formulário como "Modo Edição"
+        const form = document.getElementById("formRegistrarRota");
+        form.dataset.editingId = id; // SALVA O ID NO FORM
+
+        // 3. Muda texto do botão
+        const btnSubmit = form.querySelector('button[type="submit"]');
+        if (btnSubmit) btnSubmit.textContent = "Atualizar Rota";
+
+        // 4. Abre Modal
+        const modal = document.getElementById("modalRegistrarRota");
+        if (modal) {
+          modal.classList.add("active");
+          modal.style.display = "flex";
+        }
+      }
       return;
     }
   });
 
   // =========================================================
-  // 3. SALVAR ROTA (DELEGAÇÃO DE EVENTO - SUBMIT GLOBAL)
+  // 3. SALVAR ROTA (SUBMIT GLOBAL)
   // =========================================================
-  document.removeEventListener("submit", handleSubmitRota); // Limpa anterior
+  document.removeEventListener("submit", handleSubmitRota);
   document.addEventListener("submit", handleSubmitRota);
 
-  // 4. Cancelar Modal
-  // (Aqui usamos onclick direto para simplicidade, mas se o modal fosse recriado
-  //  também precisaria de delegação. Como modal costuma ser fixo, está ok).
-  const btnCancelar = document.getElementById("btnCancelarRegistro");
-  if (btnCancelar) {
-    btnCancelar.onclick = () => fecharModal("modalRegistrarRota");
-  }
-
-  // 5. Navegação
+  // 4. Navegação
   document.querySelectorAll(".menu-item_link").forEach((link) => {
     link.addEventListener("click", (e) => {
       const pagina = link.getAttribute("data-pagina");
@@ -188,17 +255,27 @@ function configurarEventListeners() {
     });
   });
 
-  // 6. Fechar Modais (Overlay/ESC)
+  // 5. Fechar Modais (Overlay/ESC)
   document.querySelectorAll(".modal").forEach((modal) => {
     modal.onclick = (e) => {
-      if (e.target === modal) modal.classList.remove("active");
+      if (e.target === modal) {
+        modal.classList.remove("active");
+        // Limpa form ao clicar fora
+        const form = document.getElementById("formRegistrarRota");
+        if (form) {
+          form.reset();
+          delete form.dataset.editingId;
+          const btnSubmit = form.querySelector('button[type="submit"]');
+          if (btnSubmit) btnSubmit.textContent = "Salvar Rota";
+        }
+      }
     };
   });
 
-  // 7. Filtros e Exportação
+  // 6. Filtros e Exportação
   configurarFiltrosExtras();
 
-  // 8. Logout
+  // 7. Logout
   configurarLogout();
 
   console.log("Event listeners configurados.");
@@ -223,10 +300,18 @@ function configurarFiltrosExtras() {
   const filtroRotasInput = document.getElementById("filtroRotasMes");
   if (filtroRotasInput) {
     const hoje = new Date();
-    const atual = `${hoje.getFullYear()}-${(hoje.getMonth() + 1).toString().padStart(2, "0")}`;
+    const atual = `${hoje.getFullYear()}-${(hoje.getMonth() + 1)
+      .toString()
+      .padStart(2, "0")}`;
     if (!filtroRotasInput.value) filtroRotasInput.value = atual;
 
     filtroRotasInput.onchange = () => atualizarListaRotas();
+  }
+
+  // --- ADICIONE ISSO AQUI: Filtro App ---
+  const filtroRotasApp = document.getElementById("filtroRotasApp");
+  if (filtroRotasApp) {
+    filtroRotasApp.onchange = () => atualizarListaRotas();
   }
 
   // Exportar CSV
@@ -290,7 +375,9 @@ function configurarMetas() {
   if (inputDiaria && inputDias) {
     const obterMes = () => {
       const h = new Date();
-      return `${h.getFullYear()}-${(h.getMonth() + 1).toString().padStart(2, "0")}`;
+      return `${h.getFullYear()}-${(h.getMonth() + 1)
+        .toString()
+        .padStart(2, "0")}`;
     };
 
     const metaSalva = localStorage.getItem("metaMensal");
@@ -309,7 +396,7 @@ function configurarMetas() {
           inputDiaria.value = "";
           inputDias.value = "";
         }
-      } catch (e) { }
+      } catch (e) {}
     }
 
     const salvar = () => {

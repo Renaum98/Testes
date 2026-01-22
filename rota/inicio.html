@@ -130,13 +130,13 @@
         </div>
 
         <div class="calendar-weekdays">
-          <div>Dom</div>
           <div>Seg</div>
           <div>Ter</div>
           <div>Qua</div>
           <div>Qui</div>
           <div>Sex</div>
           <div>Sab</div>
+          <div>Dom</div>
         </div>
 
         <div class="calendar-grid" id="calendarGrid"></div>
@@ -198,11 +198,22 @@
     <div class="container">
       <div class="rotas-filter-container">
         <div class="filter-wrapper">
-          <label for="filtroRotasMes">Filtrar por período:</label>
-          <input type="month" id="filtroRotasMes" />
+
+          <div class="filter-group">
+            <label for="filtroRotasMes">Mês</label>
+            <input type="month" id="filtroRotasMes">
+          </div>
+
+          <div class="filter-group">
+            <label for="filtroRotasApp">Plataforma</label>
+            <select id="filtroRotasApp">
+              <option value="todas">Todas</option>
+            </select>
+          </div>
+
         </div>
 
-        <button id="btnExportarCSV" class="btn-csv-icon" title="Baixar dados deste mês">
+        <button id="btnExportarCSV" class="btn-csv-icon" title="Baixar Relatório">
           <span class="material-symbols-outlined">download</span>
         </button>
       </div>
@@ -294,6 +305,24 @@
         <p id="profileEmail" class="config-user-email">...</p>
       </div>
 
+      <div class="config-section-card">
+        <div class="config-item-row">
+          <div class="config-item-icon">
+            <span class="material-symbols-outlined">dark_mode</span>
+          </div>
+          <div class="config-item-info">
+            <h4>Modo Escuro</h4>
+            <p>Alternar aparência do app</p>
+          </div>
+          <div class="config-item-action">
+            <label class="switch">
+              <input type="checkbox" id="toggleTema">
+              <span class="slider round"></span>
+            </label>
+          </div>
+        </div>
+      </div>
+
       <div class="config-actions">
         <button id="btnConfigLogout" class="config-btn-logout">
           <span class="material-symbols-outlined">logout</span>
@@ -301,7 +330,7 @@
         </button>
       </div>
 
-      <div class="config-footer">Versão 1.0.0</div>
+      <div class="config-footer">Versão 1.0.1</div>
     </div>
   </div>
 

@@ -15,11 +15,9 @@ const urlsToCache = [
   "./scripts/routes.js",
   "./scripts/state.js",
   "./scripts/storage.js",
-  "./scripts/swipe.js",
   "./scripts/ui.js",
   "./scripts/utils.js",
   "./scripts/calendar.js",
-
   "./assets/rota_logo-192.png",
   "./assets/rota_logo-512.png",
 ];
