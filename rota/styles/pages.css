@@ -589,6 +589,21 @@
   /* Alterado de #10b981 */
 }
 
+.motorista-badge {
+  position: absolute;
+  left: 10px;
+  top: -15px;
+  width: fit-content;
+  background: var(--cor-primaria);
+  color: var(--cor-branco);
+  padding: 5px 10px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  border-radius: 10px;
+  /* Espaço para os botões de editar/excluir */
+  box-shadow: var(--sombra-card-leve);
+}
+
 @media (max-width: 360px) {
   .rota-header-row {
     flex-direction: column;
@@ -695,7 +710,6 @@
   text-align: center;
   margin-top: 40px;
   color: var(--cor-texto-terciario);
-  /* Alterado de #cbd5e0 */
   font-size: 0.75rem;
   font-weight: 500;
   letter-spacing: 1px;
@@ -703,76 +717,93 @@
 
 /* =========================================
    ESTILOS FINANCEIRO
-   ========================================= */
 
 /* --- Container dos Filtros --- */
+/* Container Principal - Agora em Coluna */
 .financeiro-filters {
   background: var(--cor-branco);
-  /* Alterado de white */
   padding: 15px;
   border-radius: 16px;
+  /* Mudança Principal: Coluna Vertical */
   display: flex;
-  flex-wrap: wrap;
+  flex-direction: column; 
   gap: 12px;
   margin-bottom: 20px;
   box-shadow: var(--sombra-card-leve);
   border: var(--borda-leve);
-  align-items: flex-end;
+  /* Garante que os filhos estiquem 100% da largura */
+  align-items: stretch; 
   animation: slideRight 0.6s ease-out;
 }
 
+/* Grupo de Filtro Genérico */
 .filter-group {
-  flex: 1 1 40%;
-  min-width: 100px;
   display: flex;
   flex-direction: column;
   gap: 6px;
 }
 
+/* NOVA CLASSE: Linha das Datas (Lado a Lado) */
+.dates-row {
+  display: flex;
+  gap: 10px; /* Espaço entre as duas datas */
+  width: 100%;
+}
+
+/* Faz cada data ocupar 50% do espaço */
+.dates-row .filter-group {
+  flex: 1; 
+}
+
 .filter-group label {
   font-size: 0.75rem;
   color: var(--cor-texto-secundario);
-  /* Alterado de #718096 */
   font-weight: 600;
   margin-left: 4px;
 }
 
-.filter-group input {
+/* Aplica estilo tanto para INPUT quanto para SELECT */
+.filter-group input,
+.filter-group select {
   width: 100%;
   padding: 10px 12px;
   background: var(--cor-input-bg);
-  /* Alterado de #f7fafc */
   border: 1px solid var(--cor-borda);
-  /* Alterado de #edf2f7 */
   border-radius: 10px;
   font-family: "Montserrat", sans-serif;
   font-size: 0.9rem;
   color: var(--cor-texto-opaco);
   outline: none;
   transition: border-color 0.2s;
+  /* Remove estilo padrão feio do select no iPhone/Android */
+  -webkit-appearance: none; 
+  appearance: none;
 }
 
-.filter-group input:focus {
+.filter-group input:focus,
+.filter-group select:focus {
   border-color: var(--cor-primaria);
   background: var(--cor-branco);
 }
 
-/* Botão de Filtro */
+/* Botão de Filtro - Ajustado para o rodapé */
 .btn-filter {
-  flex: 1 1 100%;
+  /* Removemos o flex: 1 antigo e definimos altura fixa */
+  width: 100%;
+  height: 48px; /* Um pouco mais alto para clique fácil */
   background: var(--cor-primaria);
   color: var(--cor-branco);
   border: none;
-  height: 44px;
   border-radius: 10px;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 5px;
+  gap: 8px;
   font-weight: 600;
   box-shadow: 0 4px 6px rgba(102, 126, 234, 0.25);
   transition: transform 0.1s;
+  margin-top: 5px; /* Espacinho extra do topo */
 }
 
 .btn-filter:active {

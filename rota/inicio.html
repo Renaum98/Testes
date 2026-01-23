@@ -171,6 +171,14 @@
       <form id="formRegistrarRota">
 
         <div class="form-group">
+          <label>Quem dirigiu?</label>
+          <select id="selectMotoristaRota">
+            <option value="Motorista 1">Motorista 1</option>
+            <option value="Motorista 2">Motorista 2</option>
+          </select>
+        </div>
+
+        <div class="form-group">
           <label>Data da Rota</label>
           <input type="date" id="inputDataRota"
             style="width: 100%; padding: 12px; border: 1px solid #edf2f7; border-radius: 8px; font-family: 'Montserrat'; color: #2d3748;">
@@ -344,6 +352,27 @@
         </div>
       </div>
 
+      <div class="config-section-card">
+        <div class="config-item-info" style="margin-bottom: 10px;">
+          <h4>Motoristas</h4>
+          <p>Defina os nomes para aparecer na seleção</p>
+        </div>
+
+        <div class="form-group">
+          <label>Motorista 1</label>
+          <input type="text" id="configMotorista1" placeholder="Nome (ex: João)">
+        </div>
+
+        <div class="form-group">
+          <label>Motorista 2</label>
+          <input type="text" id="configMotorista2" placeholder="Nome (ex: Maria)">
+        </div>
+
+        <button id="btnSalvarNomes" class="btn btn-secondary" style="width: 100%;">
+          Salvar Nomes
+        </button>
+      </div>
+
       <div class="config-actions">
         <button id="btnConfigLogout" class="config-btn-logout">
           <span class="material-symbols-outlined">logout</span>
@@ -363,19 +392,30 @@
     </div>
 
     <div class="container">
-      <div class="financeiro-filters">
-        <div class="filter-group">
-          <label>De:</label>
-          <input type="date" id="filtroDataInicio" />
+      <div id="financeiro-grid" class="financeiro-filters">
+
+        <div class="filter-group area-motorista">
+          <label>Motorista:</label>
+          <select id="filtroMotoristaFin">
+          </select>
         </div>
-        <div class="filter-group">
-          <label>Até:</label>
-          <input type="date" id="filtroDataFim" />
+
+        <div class="dates-rows">
+          <div class="filter-group">
+            <label>De:</label>
+            <input type="date" id="filtroDataInicio" />
+          </div>
+          <div class="filter-group">
+            <label>Até:</label>
+            <input type="date" id="filtroDataFim" />
+          </div>
         </div>
-        <button id="btnFiltrarFinanceiro" class="btn-filter">
-          <p>Filtrar</p>
+
+        <button id="btnFiltrarFinanceiro" class="btn-filter area-botao">
+          Filtrar
           <span class="material-symbols-outlined">filter_list</span>
         </button>
+
       </div>
 
       <div class="financeiro-dashboard">
