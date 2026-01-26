@@ -788,16 +788,15 @@
 }
 
 /* NOVA CLASSE: Linha das Datas (Lado a Lado) */
-.dates-row {
+.dates-rows {
   display: flex;
-  gap: 10px;
-  /* Espaço entre as duas datas */
   width: 100%;
+  justify-content: space-between;
 }
 
-/* Faz cada data ocupar 50% do espaço */
-.dates-row .filter-group {
-  flex: 1;
+#filtroDataInicio,
+#filtroDataFim{
+  width: 140px;
 }
 
 .filter-group label {
@@ -806,6 +805,7 @@
   font-weight: 600;
   margin-left: 4px;
 }
+
 
 /* Aplica estilo tanto para INPUT quanto para SELECT */
 .filter-group input,
@@ -975,7 +975,7 @@
   /* Variável já ok */
   border-radius: 12px;
   padding: 12px;
-  margin: 10px 0;
+  margin: 10px 0 30px 0;
   display: flex;
   align-items: center;
   justify-content: center;

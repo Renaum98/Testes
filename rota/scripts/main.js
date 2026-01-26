@@ -1,8 +1,6 @@
 import { state } from "./state.js";
 import { mostrarNotificacao, baixarRelatorioCSV } from "./utils.js";
 import {
-  abrirModalRegistrarRota,
-  fecharModal,
   mudarPagina,
   atualizarListaRotas,
   atualizarPaginaFinanceiro,

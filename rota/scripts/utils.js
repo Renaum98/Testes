@@ -30,7 +30,7 @@ export function fecharModal(modalId) {
 }
 
 // ============================================
-// SISTEMA DE NOTIFICAÇÕES (SEU CÓDIGO ORIGINAL)
+// SISTEMA DE NOTIFICAÇÕES
 // ============================================
 export function mostrarNotificacao(mensagem, tipo = "info") {
   // Remover notificações antigas
