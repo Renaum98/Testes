@@ -212,9 +212,10 @@ export function atualizarPerfilUsuario() {
 
   const nomeElement = document.getElementById("profileName");
   const emailElement = document.getElementById("profileEmail");
-
+  const motoristaUm = document.getElementById("configMotorista1").value;
+  console.log(motoristaUm);
   if (user && nomeElement && emailElement) {
-    const nome = user.nome || user.displayName || "Usuário";
+    const nome = motoristaUm || user.displayName || "Usuário";
     const email = user.email;
 
     nomeElement.textContent = nome;
@@ -367,7 +368,7 @@ export function atualizarPaginaFinanceiro() {
     // Pequeno ajuste visual para mostrar quem está sendo filtrado
     const textoFiltro =
       motoristaFiltro === "todos" ? "" : ` (${motoristaFiltro})`;
-    elTotalRotas.innerHTML = `Viagens realizadas${textoFiltro}: <strong>${qtd}</strong>`;
+    elTotalRotas.innerHTML = `Rotas realizadas${textoFiltro}: <strong>${qtd}</strong>`;
   }
 }
 function firstDayFormat(date) {

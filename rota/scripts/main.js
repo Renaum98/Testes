@@ -291,8 +291,8 @@ function configurarEventListeners() {
   const selectFiltroFin = document.getElementById("filtroMotoristaFin"); // NOVO DO FINANCEIRO
 
   // 1. Carregar nomes salvos nos inputs ao iniciar
-  const m1Salvo = localStorage.getItem("nomeMotorista1") || "Motorista 1";
-  const m2Salvo = localStorage.getItem("nomeMotorista2") || "Motorista 2";
+  const m1Salvo = localStorage.getItem("nomeMotorista1") || "";
+  const m2Salvo = localStorage.getItem("nomeMotorista2") || "";
 
   if (inputM1) inputM1.value = m1Salvo;
   if (inputM2) inputM2.value = m2Salvo;
@@ -333,8 +333,8 @@ function configurarEventListeners() {
   // 2. Salvar novos nomes
   if (btnSalvarNomes) {
     btnSalvarNomes.addEventListener("click", () => {
-      const n1 = inputM1.value.trim() || "Motorista 1";
-      const n2 = inputM2.value.trim() || "Motorista 2";
+      const n1 = inputM1.value.trim() || "";
+      const n2 = inputM2.value.trim() || "";
 
       localStorage.setItem("nomeMotorista1", n1);
       localStorage.setItem("nomeMotorista2", n2);
