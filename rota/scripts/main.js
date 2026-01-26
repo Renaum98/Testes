@@ -84,26 +84,40 @@ function inicializarTema() {
 // CONFIGURAÇÃO DE EVENT LISTENERS
 // ============================================
 function configurarEventListeners() {
-  console.log("Configurando event listeners...");
-
   // 1. Preço Gasolina
   const inputGasolina = document.getElementById("inputPrecoGasolina");
   if (inputGasolina) {
     const precoSalvo = localStorage.getItem("precoGasolina");
-    if (precoSalvo) state.precoGasolina = parseFloat(precoSalvo);
+    // Se não tiver salvo, usa 6.35 como padrão
+    state.precoGasolina = precoSalvo ? parseFloat(precoSalvo) : 6.35;
     inputGasolina.value = state.precoGasolina.toFixed(2);
 
     inputGasolina.addEventListener("change", (e) => {
       let novoPreco = parseFloat(e.target.value);
-      if (isNaN(novoPreco) || novoPreco <= 0) {
-        mostrarNotificacao("Preço inválido!", "error");
-        e.target.value = state.precoGasolina.toFixed(2);
-        return;
-      }
+      if (isNaN(novoPreco) || novoPreco <= 0) novoPreco = 6.35;
+
       state.precoGasolina = novoPreco;
       localStorage.setItem("precoGasolina", novoPreco);
+      mostrarNotificacao(`Gasolina: R$ ${novoPreco.toFixed(2)}`, "success");
+    });
+  }
+
+  // B. MÉDIA KM/L (NOVO CÓDIGO AQUI)
+  const inputConsumo = document.getElementById("inputConsumoMedio");
+  if (inputConsumo) {
+    const consumoSalvo = localStorage.getItem("consumoMedio");
+    // Se não tiver salvo, usa 10.0 como padrão
+    state.consumoMedio = consumoSalvo ? parseFloat(consumoSalvo) : 10.0;
+    inputConsumo.value = state.consumoMedio.toFixed(1);
+
+    inputConsumo.addEventListener("change", (e) => {
+      let novoConsumo = parseFloat(e.target.value);
+      if (isNaN(novoConsumo) || novoConsumo <= 0) novoConsumo = 10.0;
+
+      state.consumoMedio = novoConsumo;
+      localStorage.setItem("consumoMedio", novoConsumo);
       mostrarNotificacao(
-        `Gasolina atualizada: R$ ${novoPreco.toFixed(2)}`,
+        `Média ajustada: ${novoConsumo.toFixed(1)} km/l`,
         "success",
       );
     });
@@ -119,11 +133,11 @@ function configurarEventListeners() {
       console.log("Abrindo Modal de Registro...");
       e.preventDefault();
 
-      // Limpeza Preventiva: Garante que não estamos em modo de edição
+      // Limpeza Preventiva
       const form = document.getElementById("formRegistrarRota");
       if (form) {
         form.reset();
-        delete form.dataset.editingId; // Remove ID de edição se existir
+        delete form.dataset.editingId;
         const btnSubmit = form.querySelector('button[type="submit"]');
         if (btnSubmit) btnSubmit.textContent = "Salvar Rota";
       }
@@ -144,6 +158,10 @@ function configurarEventListeners() {
         const dia = String(hoje.getDate()).padStart(2, "0");
         inputData.value = `${ano}-${mes}-${dia}`;
       }
+
+      // Garante que o select do motorista esteja atualizado
+      atualizarSelectMotoristas();
+
       return;
     }
 
@@ -164,7 +182,7 @@ function configurarEventListeners() {
       const form = document.getElementById("formRegistrarRota");
       if (form) {
         form.reset();
-        delete form.dataset.editingId; // Limpa estado de edição
+        delete form.dataset.editingId;
         const btnSubmit = form.querySelector('button[type="submit"]');
         if (btnSubmit) btnSubmit.textContent = "Salvar Rota";
       }
@@ -176,10 +194,7 @@ function configurarEventListeners() {
     if (btnExcluir) {
       const id = btnExcluir.dataset.id;
       if (confirm("Deseja realmente apagar esta rota?")) {
-        // Importação dinâmica para evitar ciclos de dependência
         import("./routes.js").then((mod) => {
-          // Verifique se a função excluirRota existe no seu routes.js
-          // Se não existir, avise-me.
           if (mod.excluirRota) {
             mod.excluirRota(id);
           } else {
@@ -203,13 +218,21 @@ function configurarEventListeners() {
         const elConsumo = document.getElementById("consumoInput");
         const elValor = document.getElementById("valorRota");
         const elData = document.getElementById("inputDataRota");
+        // Preenche o motorista (NOVO)
+        const elMotorista = document.getElementById("selectMotoristaRota");
 
         if (elPlataforma) elPlataforma.value = rota.plataforma;
         if (elKm) elKm.value = rota.kmPercorridos;
         if (elConsumo) elConsumo.value = rota.consumoUtilizado || 10;
         if (elValor) elValor.value = rota.valor;
 
-        // Converter Data ISO para Input Date (YYYY-MM-DD)
+        // Garante que o select tem os motoristas carregados antes de setar o valor
+        atualizarSelectMotoristas();
+        if (elMotorista && rota.motorista) {
+          elMotorista.value = rota.motorista;
+        }
+
+        // Converter Data ISO para Input Date
         if (elData && rota.horarioInicio) {
           const d = new Date(rota.horarioInicio);
           const ano = d.getFullYear();
@@ -220,7 +243,7 @@ function configurarEventListeners() {
 
         // 2. Marca o formulário como "Modo Edição"
         const form = document.getElementById("formRegistrarRota");
-        form.dataset.editingId = id; // SALVA O ID NO FORM
+        form.dataset.editingId = id;
 
         // 3. Muda texto do botão
         const btnSubmit = form.querySelector('button[type="submit"]');
@@ -272,13 +295,76 @@ function configurarEventListeners() {
     };
   });
 
+  // ============================================
+  // CONFIGURAÇÃO DE MOTORISTAS (ATUALIZADA)
+  // ============================================
+  const inputM1 = document.getElementById("configMotorista1");
+  const inputM2 = document.getElementById("configMotorista2");
+  const btnSalvarNomes = document.getElementById("btnSalvarNomes");
+
+  // Variáveis dos Selects (Rota e Financeiro)
+  const selectRota = document.getElementById("selectMotoristaRota");
+  const selectFiltroFin = document.getElementById("filtroMotoristaFin"); // NOVO DO FINANCEIRO
+
+  // 1. Carregar nomes salvos nos inputs ao iniciar
+  const m1Salvo = localStorage.getItem("nomeMotorista1") || "";
+  const m2Salvo = localStorage.getItem("nomeMotorista2") || "";
+
+  if (inputM1) inputM1.value = m1Salvo;
+  if (inputM2) inputM2.value = m2Salvo;
+
+  // FUNÇÃO GLOBAL: Atualiza TODOS os Selects de Motorista
+  window.atualizarSelectMotoristas = function () {
+    const nome1 = localStorage.getItem("nomeMotorista1") || "Motorista 1";
+    const nome2 = localStorage.getItem("nomeMotorista2") || "Motorista 2";
+
+    // 1. Select do Modal de Registrar Rota
+    if (selectRota) {
+      selectRota.innerHTML = `
+            <option value="${nome1}">${nome1}</option>
+            <option value="${nome2}">${nome2}</option>
+        `;
+    }
+
+    // 2. Select do Filtro Financeiro
+    if (selectFiltroFin) {
+      const valorAtual = selectFiltroFin.value;
+      selectFiltroFin.innerHTML = `
+            <option value="todos">Todos</option>
+            <option value="${nome1}">${nome1}</option>
+            <option value="${nome2}">${nome2}</option>
+        `;
+      // Tenta manter a seleção anterior se possível
+      if (
+        valorAtual &&
+        (valorAtual === "todos" || valorAtual === nome1 || valorAtual === nome2)
+      ) {
+        selectFiltroFin.value = valorAtual;
+      }
+    }
+  };
+
+  atualizarSelectMotoristas(); // Chama ao iniciar
+
+  // 2. Salvar novos nomes
+  if (btnSalvarNomes) {
+    btnSalvarNomes.addEventListener("click", () => {
+      const n1 = inputM1.value.trim() || "";
+      const n2 = inputM2.value.trim() || "";
+
+      localStorage.setItem("nomeMotorista1", n1);
+      localStorage.setItem("nomeMotorista2", n2);
+
+      atualizarSelectMotoristas();
+      mostrarNotificacao("Nomes atualizados!", "success");
+    });
+  }
+
   // 6. Filtros e Exportação
   configurarFiltrosExtras();
 
   // 7. Logout
   configurarLogout();
-
-  console.log("Event listeners configurados.");
 }
 
 // ============================================
@@ -308,7 +394,7 @@ function configurarFiltrosExtras() {
     filtroRotasInput.onchange = () => atualizarListaRotas();
   }
 
-  // --- ADICIONE ISSO AQUI: Filtro App ---
+  // Filtro App
   const filtroRotasApp = document.getElementById("filtroRotasApp");
   if (filtroRotasApp) {
     filtroRotasApp.onchange = () => atualizarListaRotas();
@@ -419,42 +505,32 @@ function configurarMetas() {
 // INICIALIZAÇÃO SEGURA (NO FINAL DO MAIN.JS)
 // ============================================
 document.addEventListener("DOMContentLoaded", () => {
-  // Verifica se estamos na tela de login (index.html ou raiz /)
+  // Verifica se estamos na tela de login
   const isLoginPage =
     window.location.pathname.endsWith("index.html") ||
     window.location.pathname.endsWith("/") ||
-    window.location.pathname === "/rota-track/"; // ajuste se seu deploy tiver subpasta
+    window.location.pathname === "/rota-track/";
 
   // Verificação de Auth
   if (window.firebaseDb && window.firebaseDb.auth) {
     const unsubscribe = window.firebaseDb.auth.onAuthStateChanged((user) => {
-      // --- CENÁRIO 1: USUÁRIO LOGADO E VERIFICADO (SUCESSO) ---
+      // --- CENÁRIO 1: SUCESSO ---
       if (user && user.emailVerified) {
         console.log("Usuário validado e verificado.");
-
-        // Se estiver na tela de login, manda pro app
         if (isLoginPage) {
           window.location.href = "inicio.html";
           return;
         }
-
-        // Se já estiver no app, inicia
         if (!window.appInicializado) {
           window.appInicializado = true;
           inicializarApp();
         }
       }
 
-      // --- CENÁRIO 2: USUÁRIO LOGADO MAS NÃO VERIFICADO (PROBLEMA) ---
+      // --- CENÁRIO 2: NÃO VERIFICADO ---
       else if (user && !user.emailVerified) {
         console.warn("Email não verificado. Deslogando...");
-
-        // Desloga o usuário do Firebase
         window.firebaseDb.auth.signOut();
-
-        // AQUI ESTAVA O ERRO DO LOOP:
-        // Só redirecionamos se ele estiver tentando acessar o app interno.
-        // Se ele já estiver no login (isLoginPage), NÃO FAZEMOS NADA (apenas o signOut acima).
         if (!isLoginPage) {
           window.location.replace("./index.html");
         }
@@ -463,14 +539,13 @@ document.addEventListener("DOMContentLoaded", () => {
       // --- CENÁRIO 3: NINGUÉM LOGADO ---
       else {
         console.log("Nenhum usuário logado.");
-        // Se tentar acessar página interna sem login, chuta pro index
         if (!isLoginPage) {
           window.location.replace("./index.html");
         }
       }
     });
   } else {
-    // Modo Offline (apenas se não tiver Firebase)
+    // Modo Offline
     if (!isLoginPage) inicializarApp();
   }
 });

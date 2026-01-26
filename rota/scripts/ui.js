@@ -65,31 +65,25 @@ export function atualizarListaRotas() {
   const lista = document.getElementById("rotasList");
   const emptyState = document.getElementById("emptyState");
   const filtroMesInput = document.getElementById("filtroRotasMes");
-  const filtroAppInput = document.getElementById("filtroRotasApp"); // Novo
+  const filtroAppInput = document.getElementById("filtroRotasApp");
 
   // 1. POPULAR FILTRO DE APPS (DINÂMICO)
-  // Só fazemos isso se tiver rotas e o select existir
   if (state.rotas && state.rotas.length > 0 && filtroAppInput) {
-    // Guarda o valor que o usuário selecionou antes de recriar a lista
     const valorSelecionado = filtroAppInput.value;
-
-    // Pega todos os nomes de plataformas únicos
     const appsUnicos = [
       ...new Set(state.rotas.map((r) => r.plataforma)),
     ].sort();
 
-    // Recria as opções (Mantendo o "Todas")
     filtroAppInput.innerHTML = `<option value="todas">Todas</option>`;
 
     appsUnicos.forEach((app) => {
-      if (!app) return; // Ignora vazios
+      if (!app) return;
       const option = document.createElement("option");
       option.value = app;
       option.textContent = app;
       filtroAppInput.appendChild(option);
     });
 
-    // Restaura a seleção do usuário (se ainda existir na lista)
     filtroAppInput.value = valorSelecionado;
   }
 
@@ -115,7 +109,7 @@ export function atualizarListaRotas() {
     });
   }
 
-  // Filtro 2: App (Plataforma)
+  // Filtro 2: App
   if (filtroAppInput && filtroAppInput.value !== "todas") {
     rotasExibidas = rotasExibidas.filter(
       (r) => r.plataforma === filtroAppInput.value,
@@ -146,10 +140,19 @@ export function atualizarListaRotas() {
         kmNumerico = Number(rota.kmFinal) - Number(rota.kmInicial);
       }
 
+      // --- NOVO: LÓGICA DO MOTORISTA ---
+      // Pega o nome salvo ou usa "Eu" como padrão para rotas antigas
+      const motorista = rota.motorista || "Eu";
+
       return `
         <div class="rota-card-simples" data-rota-id="${rota.id}">
           
+          <div class="motorista-badge">
+              ${motorista}
+          </div>
           <div class="rota-actions-top">
+            
+
             <button class="btn-mini-action btn-editar" data-id="${rota.id}">
                <span class="material-symbols-outlined">edit</span>
             </button>
@@ -160,7 +163,11 @@ export function atualizarListaRotas() {
 
           <div class="rota-header-row">
             <div class="rota-data-destaque">
-                ${inicio.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric" })}
+                ${inicio.toLocaleDateString("pt-BR", {
+                  day: "2-digit",
+                  month: "2-digit",
+                  year: "numeric",
+                })}
             </div>
             <div class="rota-valor-total">
                 R$ ${rota.valor?.toFixed(2) || "0.00"}
@@ -170,7 +177,10 @@ export function atualizarListaRotas() {
           <div class="rota-info-grid">
              <div class="info-item">
                <span class="info-label">Horário</span>
-               <span class="info-value">${inicio.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}</span>
+               <span class="info-value">${inicio.toLocaleTimeString("pt-BR", {
+                 hour: "2-digit",
+                 minute: "2-digit",
+               })}</span>
              </div>
              <div class="info-item">
                <span class="info-label">KM</span>
@@ -190,6 +200,7 @@ export function atualizarListaRotas() {
     })
     .join("");
 
+  // Atualiza gráficos e resumos se as funções existirem no escopo global ou importadas
   if (typeof atualizarGraficoMeta === "function") atualizarGraficoMeta();
   if (typeof atualizarCarouselResumo === "function") atualizarCarouselResumo();
 }
@@ -201,9 +212,10 @@ export function atualizarPerfilUsuario() {
 
   const nomeElement = document.getElementById("profileName");
   const emailElement = document.getElementById("profileEmail");
-
+  const motoristaUm = document.getElementById("configMotorista1").value;
+  console.log(motoristaUm);
   if (user && nomeElement && emailElement) {
-    const nome = user.nome || user.displayName || "Usuário";
+    const nome = motoristaUm || user.displayName || "Usuário";
     const email = user.email;
 
     nomeElement.textContent = nome;
@@ -252,14 +264,14 @@ function animarValor(elemento, valorFinal, duracao = 2000) {
 export function atualizarPaginaFinanceiro() {
   const inputInicio = document.getElementById("filtroDataInicio");
   const inputFim = document.getElementById("filtroDataFim");
+  const selectMotorista = document.getElementById("filtroMotoristaFin"); // <--- NOVO
 
-  // 1. Definir datas padrão... (código igual)
+  // 1. Definir datas padrão se vazio (Mantido igual)
   if (!inputInicio.value || !inputFim.value) {
     const hoje = new Date();
     const primeiroDia = new Date(hoje.getFullYear(), hoje.getMonth(), 1);
     const ultimoDia = new Date(hoje.getFullYear(), hoje.getMonth() + 1, 0);
 
-    // Função auxiliar (precisa estar acessível ou definida aqui perto)
     const firstDayFormat = (date) => {
       const year = date.getFullYear();
       const month = String(date.getMonth() + 1).padStart(2, "0");
@@ -271,17 +283,34 @@ export function atualizarPaginaFinanceiro() {
     inputFim.value = firstDayFormat(ultimoDia);
   }
 
-  // 2. Converter inputs... (código igual)
   const dataInicio = new Date(inputInicio.value + "T00:00:00");
   const dataFim = new Date(inputFim.value + "T23:59:59");
 
-  // 3. Filtrar rotas... (código igual)
+  // Pega o valor do motorista selecionado ("todos", "João", "Maria"...)
+  const motoristaFiltro = selectMotorista ? selectMotorista.value : "todos";
+
+  // 3. Filtrar rotas (DATA + MOTORISTA)
   const rotasFiltradas = state.rotas.filter((rota) => {
+    // A. Filtro de Data
     const dataRota = new Date(rota.horarioFim || rota.horarioInicio);
-    return dataRota >= dataInicio && dataRota <= dataFim;
+    const dentroData = dataRota >= dataInicio && dataRota <= dataFim;
+
+    if (!dentroData) return false;
+
+    // B. Filtro de Motorista (NOVO)
+    if (motoristaFiltro !== "todos") {
+      // Se a rota não tiver motorista (rotas antigas), consideramos que não bate com o filtro específico
+      // Ou, se tiver motorista, tem que ser igual ao selecionado
+      const motoristaRota = rota.motorista || "Motorista 1"; // Fallback para antigas se necessário
+      if (motoristaRota !== motoristaFiltro) {
+        return false;
+      }
+    }
+
+    return true;
   });
 
-  // 4. Calcular Totais... (código igual)
+  // 4. Calcular Totais (Mantido igual, mas agora soma só as filtradas)
   let totalFaturamento = 0;
   let totalCustos = 0;
   let totalLucro = 0;
@@ -305,16 +334,16 @@ export function atualizarPaginaFinanceiro() {
     totalKm += isNaN(km) ? 0 : km;
   });
 
-  // 5. ATUALIZAR DOM COM ANIMAÇÃO (AQUI É A MUDANÇA)
-
-  // Elemento do Lucro Líquido
+  // 5. ATUALIZAR DOM (COM ANIMAÇÃO)
   const elLucro = document.getElementById("finLucroLiquido");
 
-  // Chama a animação (2000ms = 2 segundos)
-  animarValor(elLucro, totalLucro, 1000);
+  // Se você tiver a função animarValor, use-a. Se não, use textContent direto.
+  if (typeof animarValor === "function") {
+    animarValor(elLucro, totalLucro, 1000);
+  } else {
+    elLucro.textContent = `R$ ${totalLucro.toFixed(2)}`;
+  }
 
-  // Os outros cards mantemos estáticos (instantâneos) para não ficar "carnaval"
-  // Mas se quiser animar todos, basta chamar a função para eles também.
   document.getElementById("finFaturamento").textContent =
     `R$ ${totalFaturamento.toFixed(2)}`;
   document.getElementById("finCustos").textContent =
@@ -322,7 +351,7 @@ export function atualizarPaginaFinanceiro() {
   document.getElementById("finKmTotal").textContent =
     `${totalKm.toFixed(1)} km`;
 
-  // --- Resto do código (Rendimento, Qtd Rotas) continua igual...
+  // Rendimento
   let rendimento = 0;
   if (totalKm > 0) {
     rendimento = totalFaturamento / totalKm;
@@ -336,7 +365,10 @@ export function atualizarPaginaFinanceiro() {
   const elTotalRotas = document.getElementById("finTotalRotasTexto");
   if (elTotalRotas) {
     const qtd = rotasFiltradas.length;
-    elTotalRotas.innerHTML = `Rotas realizadas neste período: <strong>${qtd}</strong>`;
+    // Pequeno ajuste visual para mostrar quem está sendo filtrado
+    const textoFiltro =
+      motoristaFiltro === "todos" ? "" : ` (${motoristaFiltro})`;
+    elTotalRotas.innerHTML = `Rotas realizadas${textoFiltro}: <strong>${qtd}</strong>`;
   }
 }
 function firstDayFormat(date) {
