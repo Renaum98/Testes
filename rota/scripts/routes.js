@@ -22,20 +22,19 @@ export async function salvarNovaRota(event) {
   const elData = document.getElementById("inputDataRota");
   const elPlataforma = document.getElementById("plataformaRota");
   const elKm = document.getElementById("kmPercorridoInput");
-  const elConsumo = document.getElementById("consumoInput");
   const elValor = document.getElementById("valorRota");
   const elMotorista = document.getElementById("selectMotoristaRota"); // <--- NOVO
 
   try {
     // 2. Validação Básica
-    if (!elPlataforma || !elKm || !elValor || !elConsumo) {
+    if (!elPlataforma || !elKm || !elValor) {
       throw new Error("Elementos do formulário não encontrados.");
     }
 
     // 3. Conversão de Valores
     const plataforma = elPlataforma.value;
     const kmPercorridos = parseFloat(elKm.value.replace(",", ".")) || 0;
-    const consumoVeiculo = parseFloat(elConsumo.value.replace(",", ".")) || 10;
+    const consumoVeiculo = state.consumoMedio || 10;
     const valorTotal = parseFloat(elValor.value.replace(",", ".")) || 0;
 
     // Pega o motorista ou define um padrão se der erro

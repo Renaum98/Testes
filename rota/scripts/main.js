@@ -88,20 +88,36 @@ function configurarEventListeners() {
   const inputGasolina = document.getElementById("inputPrecoGasolina");
   if (inputGasolina) {
     const precoSalvo = localStorage.getItem("precoGasolina");
-    if (precoSalvo) state.precoGasolina = parseFloat(precoSalvo);
+    // Se não tiver salvo, usa 6.35 como padrão
+    state.precoGasolina = precoSalvo ? parseFloat(precoSalvo) : 6.35;
     inputGasolina.value = state.precoGasolina.toFixed(2);
 
     inputGasolina.addEventListener("change", (e) => {
       let novoPreco = parseFloat(e.target.value);
-      if (isNaN(novoPreco) || novoPreco <= 0) {
-        mostrarNotificacao("Preço inválido!", "error");
-        e.target.value = state.precoGasolina.toFixed(2);
-        return;
-      }
+      if (isNaN(novoPreco) || novoPreco <= 0) novoPreco = 6.35;
+
       state.precoGasolina = novoPreco;
       localStorage.setItem("precoGasolina", novoPreco);
+      mostrarNotificacao(`Gasolina: R$ ${novoPreco.toFixed(2)}`, "success");
+    });
+  }
+
+  // B. MÉDIA KM/L (NOVO CÓDIGO AQUI)
+  const inputConsumo = document.getElementById("inputConsumoMedio");
+  if (inputConsumo) {
+    const consumoSalvo = localStorage.getItem("consumoMedio");
+    // Se não tiver salvo, usa 10.0 como padrão
+    state.consumoMedio = consumoSalvo ? parseFloat(consumoSalvo) : 10.0;
+    inputConsumo.value = state.consumoMedio.toFixed(1);
+
+    inputConsumo.addEventListener("change", (e) => {
+      let novoConsumo = parseFloat(e.target.value);
+      if (isNaN(novoConsumo) || novoConsumo <= 0) novoConsumo = 10.0;
+
+      state.consumoMedio = novoConsumo;
+      localStorage.setItem("consumoMedio", novoConsumo);
       mostrarNotificacao(
-        `Gasolina atualizada: R$ ${novoPreco.toFixed(2)}`,
+        `Média ajustada: ${novoConsumo.toFixed(1)} km/l`,
         "success",
       );
     });

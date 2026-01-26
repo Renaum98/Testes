@@ -6,71 +6,113 @@
   margin-bottom: 30px;
 }
 
-/* Configuração de Gasolina na Home */
+/* =========================================
+   CONFIGURAÇÃO DE GASOLINA E MÉDIA (DUAL)
+   ========================================= */
+
 .card-config-gasolina {
-  background: var(--cor-branco);
-  /* Alterado de #ffffff */
+  background: var(--cor-fundo-claro);
   border-radius: 12px;
-  padding: 15px;
+  padding: 10px;
   margin-top: 15px;
+
   display: flex;
   align-items: center;
-  gap: 15px;
+  justify-content: space-between;
+
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03);
   border: var(--borda-leve);
 }
 
+/* Blocos Individuais (Preço e Média) */
+.gas-info-block {
+  flex: 1;
+  /* Faz os dois ocuparem o mesmo espaço (50/50) */
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  /* Espaço entre ícone e texto */
+  min-width: 0;
+  /* Evita quebra de layout em telas muito pequenas */
+}
+
+/* Ícones (Unificado) */
 .icon-gas {
-  width: 45px;
-  height: 45px;
-  background: var(--cor-fundo-claro);
-  /* Alterado de #fff5f5 para adaptar ao tema */
-  color: #f56565;
+  width: 38px;
+  height: 38px;
   border-radius: 10px;
   display: flex;
   align-items: center;
   justify-content: center;
+  flex-shrink: 0;
+  /* Garante que o ícone não amasse */
+  font-size: 1.2rem;
 }
 
-.gas-info {
-  flex: 1;
+/* Variações de Cor dos Ícones */
+.icon-red {
+  background: #fff5f5;
+  /* Vermelho bem claro */
+  color: #f56565;
+}
+
+.icon-blue {
+  background: #ebf8ff;
+  /* Azul bem claro */
+  color: #4299e1;
+}
+
+/* Ajuste para Modo Escuro (se usar data-theme) */
+[data-theme="dark"] .icon-red {
+  background: rgba(245, 101, 101, 0.15);
+}
+
+[data-theme="dark"] .icon-blue {
+  background: rgba(66, 153, 225, 0.15);
+}
+
+/* Área de Texto e Input */
+.gas-data {
   display: flex;
   flex-direction: column;
+  width: 100%;
 }
 
-.gas-info label {
-  font-size: 0.8rem;
+.gas-data label {
+  font-size: 0.7rem;
   color: var(--cor-texto-secundario);
-  /* Alterado de #718096 */
   font-weight: 600;
-  margin-bottom: 4px;
+  margin-bottom: 2px;
+  white-space: nowrap;
+  /* Impede que o texto quebre linha */
 }
 
-.gas-input-wrapper {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  font-size: 0.8rem;
-  font-weight: 700;
-  color: var(--cor-texto-opaco);
-}
-
-.gas-input-wrapper input {
+.gas-data input {
+  width: 100%;
   border: none;
   background: transparent;
+  padding: 0;
+
   font-family: "Montserrat", sans-serif;
-  font-size: 0.8rem;
+  font-size: 0.95rem;
+  /* Texto maior para facilitar leitura */
   font-weight: 700;
   color: var(--cor-texto-opaco);
-  width: 100%;
+
   outline: none;
   border-bottom: 2px solid transparent;
+  /* Linha invisível */
   transition: border-color 0.2s;
 }
 
-.gas-input-wrapper input:focus {
-  border-bottom-color: #f56565;
+.gas-data input:focus {
+  border-bottom-color: var(--cor-primaria);
+  /* Linha aparece ao clicar */
 }
+
+
+
+
 
 /* =========================================
    CARROSSEL DE RESUMO (HOME)
@@ -105,7 +147,9 @@
   justify-content: center;
   flex-shrink: 0;
   scroll-snap-align: center;
-  transition: transform 0.3s ease, border-color 0.3s;
+  transition:
+    transform 0.3s ease,
+    border-color 0.3s;
 }
 
 .card-mes-titulo {
@@ -390,7 +434,7 @@
   flex-direction: row;
   align-items: flex-end;
   gap: 12px;
-  animation: slideRight .6s ease-out;
+  animation: slideRight 0.6s ease-out;
 }
 
 .filter-wrapper {
@@ -726,13 +770,13 @@
   border-radius: 16px;
   /* Mudança Principal: Coluna Vertical */
   display: flex;
-  flex-direction: column; 
+  flex-direction: column;
   gap: 12px;
   margin-bottom: 20px;
   box-shadow: var(--sombra-card-leve);
   border: var(--borda-leve);
   /* Garante que os filhos estiquem 100% da largura */
-  align-items: stretch; 
+  align-items: stretch;
   animation: slideRight 0.6s ease-out;
 }
 
@@ -746,13 +790,14 @@
 /* NOVA CLASSE: Linha das Datas (Lado a Lado) */
 .dates-row {
   display: flex;
-  gap: 10px; /* Espaço entre as duas datas */
+  gap: 10px;
+  /* Espaço entre as duas datas */
   width: 100%;
 }
 
 /* Faz cada data ocupar 50% do espaço */
 .dates-row .filter-group {
-  flex: 1; 
+  flex: 1;
 }
 
 .filter-group label {
@@ -776,7 +821,7 @@
   outline: none;
   transition: border-color 0.2s;
   /* Remove estilo padrão feio do select no iPhone/Android */
-  -webkit-appearance: none; 
+  -webkit-appearance: none;
   appearance: none;
 }
 
@@ -790,7 +835,8 @@
 .btn-filter {
   /* Removemos o flex: 1 antigo e definimos altura fixa */
   width: 100%;
-  height: 48px; /* Um pouco mais alto para clique fácil */
+  height: 48px;
+  /* Um pouco mais alto para clique fácil */
   background: var(--cor-primaria);
   color: var(--cor-branco);
   border: none;
@@ -803,7 +849,8 @@
   font-weight: 600;
   box-shadow: 0 4px 6px rgba(102, 126, 234, 0.25);
   transition: transform 0.1s;
-  margin-top: 5px; /* Espacinho extra do topo */
+  margin-top: 5px;
+  /* Espacinho extra do topo */
 }
 
 .btn-filter:active {

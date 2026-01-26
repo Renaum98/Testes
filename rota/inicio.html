@@ -107,16 +107,29 @@
         </div>
 
         <div class="card-config-gasolina">
-          <div class="icon-gas">
-            <span class="material-symbols-outlined">local_gas_station</span>
-          </div>
-          <div class="gas-info">
-            <label>Preço do Combustivel</label>
-            <div class="gas-input-wrapper">
-              <span>R$</span>
-              <input type="number" id="inputPrecoGasolina" step="0.01" placeholder="0.00" />
+
+          <div class="gas-info-block">
+            <div class="icon-gas icon-red">
+              <span class="material-symbols-outlined">local_gas_station</span>
+            </div>
+            <div class="gas-data">
+              <label>Preço (R$)</label>
+              <input type="number" id="inputPrecoGasolina" step="0.01" placeholder="0.00">
             </div>
           </div>
+
+          <div class="vertical-divider"></div>
+
+          <div class="gas-info-block">
+            <div class="icon-gas icon-blue">
+              <span class="material-symbols-outlined">speed</span>
+            </div>
+            <div class="gas-data">
+              <label>Média (Km/L)</label>
+              <input type="number" id="inputConsumoMedio" step="0.1" placeholder="10.0">
+            </div>
+          </div>
+
         </div>
       </section>
 
@@ -196,11 +209,6 @@
         <div class="form-group">
           <label>KM Percorrido Total</label>
           <input type="number" id="kmPercorridoInput" step="0.1" placeholder="Ex: 15.5" required />
-        </div>
-
-        <div class="form-group">
-          <label>Consumo do Veículo (Km/L)</label>
-          <input type="number" id="consumoInput" step="0.1" placeholder="Ex: 10" required />
         </div>
 
         <div class="form-group">
