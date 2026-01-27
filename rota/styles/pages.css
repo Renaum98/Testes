@@ -135,13 +135,10 @@
 /* Card Individual */
 .resumo-mes-card {
   min-width: 120px;
-  background: var(--cor-branco);
-  /* Alterado para variável */
+  background: var(--cor-fundo-secundario);
   border-radius: 12px;
   padding: var(--espacamento-pequeno);
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
-  border: 1px solid var(--cor-borda);
-  /* Alterado de #edf2f7 */
+  box-shadow: var(--sombra-card-leve);
   display: flex;
   flex-direction: column;
   justify-content: center;
