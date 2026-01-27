@@ -444,12 +444,6 @@
   gap: 10px;
 }
 
-.filter-group {
-  display: flex;
-  flex-direction: column;
-  gap: 5px;
-}
-
 .rotas-filter-container label {
   font-size: 0.75rem;
   font-weight: 600;
@@ -768,7 +762,6 @@
   background: var(--cor-branco);
   padding: 15px;
   border-radius: 16px;
-  /* Mudança Principal: Coluna Vertical */
   display: flex;
   flex-direction: column;
   gap: 12px;
@@ -791,19 +784,17 @@
 .dates-rows {
   display: flex;
   width: 100%;
-  justify-content: space-between;
 }
 
-#filtroDataInicio,
-#filtroDataFim{
-  width: 150px;
+.dates-rows .filter-group input {
+  width: 85%;
 }
+
 
 .filter-group label {
   font-size: 0.75rem;
   color: var(--cor-texto-secundario);
   font-weight: 600;
-  margin-left: 4px;
 }
 
 
