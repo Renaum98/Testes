@@ -1,261 +1,484 @@
 <!DOCTYPE html>
 <html lang="pt-br">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Minha Lista de Mercado</title>
+
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap"
+        rel="stylesheet">
+    <title>Mercado Inteligente</title>
     <style>
-        /* CSS Simples e Limpo (Mobile First) */
-        body { font-family: 'Segoe UI', sans-serif; margin: 0; padding: 0; background: #f4f4f9; color: #333; }
-        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-        
-        h1, h2 { text-align: center; color: #444; }
-        
-        /* Botões */
-        button { width: 100%; padding: 15px; border: none; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 10px; }
-        .btn-primary { background-color: #007bff; color: white; }
-        .btn-success { background-color: #28a745; color: white; }
-        .btn-danger { background-color: #dc3545; color: white; margin-top: 5px; }
+        body {
+            font-family: 'Poppins', sans-serif;
+            margin: 0;
+            padding: 0;
+            background: #f4f4f9;
+            color: #333;
+        }
 
-        /* Inputs */
-        input { width: 100%; padding: 12px; margin-bottom: 10px; border: 1px solid #ccc; border-radius: 5px; box-sizing: border-box; font-size: 16px; }
-        .input-row { display: flex; gap: 10px; }
-        
-        /* Cards e Listas */
-        .card { background: white; padding: 15px; border-radius: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); margin-bottom: 15px; }
-        .item-lista { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #eee; }
-        .historico-item { cursor: pointer; border-left: 5px solid #007bff; }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 15px;
+        }
 
-        /* Totalizador */
-        .total-box { background: #333; color: #00ff88; padding: 20px; text-align: center; font-size: 2rem; border-radius: 10px; margin-bottom: 20px; font-weight: bold; }
+        h1 {
+            text-align: center;
+        }
 
-        /* Utilitários de visibilidade */
-        .hidden { display: none; }
+        /* Painel de Valores */
+        .painel-financeiro {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 15px;
+            position: sticky;
+            top: 10px;
+            z-index: 100;
+        }
+
+        .box {
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            color: white;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .bg-dark {
+            background: #333;
+        }
+
+        .bg-saldo {
+            background: #28a745;
+            transition: background 0.3s;
+        }
+
+        .bg-danger {
+            background: #dc3545 !important;
+        }
+
+        .label {
+            font-size: 11px;
+            text-transform: uppercase;
+            opacity: 0.8;
+            display: block;
+        }
+
+        .valor {
+            font-size: 1.3rem;
+            font-weight: bold;
+        }
+
+        /* Estilos Gerais */
+        .card {
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+            margin-bottom: 15px;
+        }
+
+        input {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            box-sizing: border-box;
+            font-size: 16px;
+            appearance: none;
+            outline: none;
+            -webkit-appearance: none;
+        }
+
+        .input-row {
+            display: flex;
+            gap: 10px;
+        }
+
+        button {
+            width: 100%;
+            padding: 15px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .btn-primary {
+            background-color: #007bff;
+            color: white;
+            margin-top: 5px;
+        }
+
+        .btn-success {
+            background-color: #28a745;
+            color: white;
+            margin-top: 15px;
+        }
+
+        .btn-cancel {
+            background-color: rgb(186, 2, 2);
+            color: white;
+            margin-top: 10px;
+        }
+
+        /* Lista de Itens */
+        .item-lista {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid #eee;
+        }
+
+        .item-info {
+            flex-grow: 1;
+        }
+
+        .item-total {
+            font-weight: bold;
+            margin-right: 15px;
+        }
+
+        .btn-remove {
+            background: #ff4d4d;
+            color: white;
+            width: 30px;
+            height: 30px;
+            padding: 0;
+            border-radius: 50%;
+            line-height: 30px;
+            font-size: 14px;
+            flex-shrink: 0;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        .historico-card {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px;
+            border-left: 4px solid #007bff;
+            margin-bottom: 8px;
+            background: #fff;
+            border-radius: 5px;
+        }
+
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .modal-content {
+            background: #fff;
+            width: 90%;
+            max-width: 400px;
+            padding: 20px;
+            border-radius: 5px;
+            max-height: 80vh;
+            overflow-y: auto;
+            font-family: 'Courier New', Courier, monospace;
+        }
+
+        .close-modal {
+            float: right;
+            font-size: 28px;
+            cursor: pointer;
+            color: #aaa;
+        }
+
+        .linha-cupom {
+            display: flex;
+            justify-content: space-between;
+            border-bottom: 1px dashed #ccc;
+            padding: 5px 0;
+        }
     </style>
 </head>
+
 <body>
 
     <div class="container">
-        
+
         <div id="tela-inicial">
-            <h1>🛒 Controle de Mercado</h1>
-            <button id="btn-iniciar" class="btn-primary">INICIAR COMPRAS</button>
-            
-            <h3>Histórico de Compras</h3>
-            <div id="lista-historico">
-                <p style="text-align:center; color:#888">Carregando histórico...</p>
+            <h1>Controle Mercado</h1>
+            <div class="card">
+                <label>Limite de orçamento para hoje:</label>
+                <input type="number" id="orcamento-inicial" placeholder="R$ 0,00" step="0.01">
+                <button id="btn-iniciar" class="btn-primary">INICIAR COMPRAS</button>
             </div>
+            <h3>Compras Recentes</h3>
+            <div id="lista-historico"></div>
         </div>
 
         <div id="tela-compras" class="hidden">
-            <div class="total-box">
-                R$ <span id="valor-total-atual">0,00</span>
+            <div class="painel-financeiro">
+                <div class="box bg-dark">
+                    <span class="label">Total Gasto</span>
+                    <span class="valor">R$ <span id="txt-total">0,00</span></span>
+                </div>
+                <div id="box-saldo" class="box bg-saldo">
+                    <span class="label" id="label-saldo">Saldo Disponível</span>
+                    <span class="valor">R$ <span id="txt-saldo">0,00</span></span>
+                </div>
             </div>
 
             <div class="card">
-                <h3>Adicionar Item</h3>
-                <input type="text" id="input-nome" list="sugestoes-produtos" placeholder="Nome do Produto (ex: Arroz)">
-                <datalist id="sugestoes-produtos">
-                    </datalist>
-
+                <input type="text" id="input-nome" list="sugestoes-produtos" placeholder="Nome do produto">
+                <datalist id="sugestoes-produtos"></datalist>
                 <div class="input-row">
-                    <input type="number" id="input-qtd" placeholder="Qtd" value="1" style="width: 30%;">
+                    <input type="number" id="input-qtd" placeholder="Qtd" value="1" min="1" max="10" step="1"
+                        style="width: 35%;">
                     <input type="number" id="input-preco" placeholder="Preço Un." step="0.01">
                 </div>
-                <button id="btn-adicionar" class="btn-primary">Adicionar ao Carrinho</button>
+                <button id="btn-adicionar" class="btn-primary">ADICIONAR ITEM</button>
             </div>
 
-            <h3>Carrinho Atual</h3>
             <div id="lista-atual" class="card">
-                <p style="text-align:center; color:#888">Nenhum item adicionado ainda.</p>
             </div>
 
-            <button id="btn-finalizar" class="btn-success">FINALIZAR E SALVAR</button>
-            <button id="btn-cancelar" class="btn-danger">Cancelar</button>
+            <button id="btn-finalizar" class="btn-success">FINALIZAR COMPRA</button>
+            <button id="btn-cancelar" class="btn-cancel">Cancelar Tudo</button>
         </div>
 
     </div>
 
+    <div id="modal-cupom" class="modal hidden">
+        <div class="modal-content">
+            <span class="close-modal">&times;</span>
+            <h2 style="text-align: center;">🧾 Cupom Fiscal</h2>
+            <div id="conteudo-cupom">
+            </div>
+            <hr>
+            <div id="total-cupom" style="text-align: right; font-weight: bold; font-size: 1.2rem;"></div>
+        </div>
+    </div>
+
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getFirestore, collection, addDoc, getDocs, orderBy, query, Timestamp } 
-               from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, getDocs, orderBy, query, Timestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-        // --- CONFIGURAÇÃO (COLE A SUA AQUI) ---
         const firebaseConfig = {
-            apiKey: "SUA_API_KEY",
-            authDomain: "SEU_PROJETO.firebaseapp.com",
-            projectId: "SEU_PROJETO",
-            storageBucket: "SEU_PROJETO.appspot.com",
-            messagingSenderId: "NUMEROS",
-            appId: "ID_DO_APP"
+            apiKey: "AIzaSyDAFvUYHdaNItt6zAbLaYxafzjifRkP0UU",
+            authDomain: "compras-158d1.firebaseapp.com",
+            projectId: "compras-158d1",
+            storageBucket: "compras-158d1.firebasestorage.app",
+            messagingSenderId: "740402019679",
+            appId: "1:740402019679:web:e3a996f6844ac0f698caea"
         };
 
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
-        // --- VARIÁVEIS DE ESTADO ---
-        let carrinhoAtual = []; // Guarda os itens da compra atual na memória
-        let produtosConhecidos = new Set(); // Para o autocomplete
+        // --- ESTADO ---
+        let carrinho = [];
+        let orcamento = 0;
 
-        // --- ELEMENTOS DOM ---
-        const telaInicial = document.getElementById('tela-inicial');
-        const telaCompras = document.getElementById('tela-compras');
-        const listaHistorico = document.getElementById('lista-historico');
-        const listaAtualDiv = document.getElementById('lista-atual');
-        const totalSpan = document.getElementById('valor-total-atual');
-        const datalistSugestoes = document.getElementById('sugestoes-produtos');
+        const produtosBasicos = [
+            // MERCEARIA E DESPENSA
+            "Arroz Branco", "Arroz Integral", "Feijão Carioca", "Feijão Preto", "Açúcar Refinado",
+            "Açúcar Mascavo", "Sal Refinado", "Sal Grosso", "Café em Pó", "Cápsulas de Café",
+            "Óleo de Soja", "Azeite de Oliva", "Vinagre", "Molho de Tomate", "Macarrão Espaguete",
+            "Macarrão Parafuso", "Farinha de Trigo", "Farinha de Mandioca", "Milho de Pipoca",
+            "Extrato de Tomate", "Maionese", "Ketchup", "Mostarda", "Leite Condensado", "Creme de Leite",
 
-        // --- FUNÇÕES DE NAVEGAÇÃO ---
+            // PADARIA E MATINAL
+            "Pão Francês", "Pão de Forma", "Pão de Integral", "Biscoito Recheado", "Biscoito Salgado",
+            "Torrada", "Cereal Matinal", "Geléia", "Mel", "Achocolatado em Pó", "Aveia",
+
+            // LATICÍNIOS E FRIOS
+            "Leite Integral", "Leite Desnatado", "Leite de Soja", "Manteiga com Sal", "Margarina",
+            "Queijo Mussarela", "Queijo Prato", "Queijo Parmesão", "Requeijão", "Iogurte Natural",
+            "Iogurte de Frutas", "Ovos Brancos", "Ovos Caipiras", "Presunto", "Peito de Peru",
+
+            // AÇOUGUE E PROTEÍNAS
+            "Frango (Peito)", "Frango (Coxa e Sobrecoxa)", "Carne Moída", "Bife de Alcatra",
+            "Bife de Contra Filé", "Linguiça Toscana", "Salsicha", "Peixe Filé", "Bacon",
+
+            // HORTIFRÚTI
+            "Batata Inglesa", "Batata Doce", "Cebola", "Alho", "Tomate", "Alface", "Cenoura",
+            "Abobrinha", "Banana Prata", "Banana Nanica", "Maçã Gala", "Maçã Argentina",
+            "Laranja", "Limão Taiti", "Mamão", "Melancia", "Uva", "Abacaxi",
+
+            // BEBIDAS
+            "Água Mineral", "Água com Gás", "Refrigerante de Cola", "Refrigerante de Guaraná",
+            "Suco de Caixa", "Suco Concentrado", "Cerveja Latão", "Vinho Tinto", "Vinho Branco",
+
+            // LIMPEZA
+            "Detergente Líquido", "Sabão em Pó", "Sabão Líquido", "Amaciante", "Água Sanitária",
+            "Desinfetante", "Limpador Multiuso", "Esponja de Aço", "Esponja de Louça", "Saco de Lixo",
+
+            // HIGIENE PESSOAL
+            "Papel Higiênico", "Sabonete", "Shampoo", "Condicionador", "Pasta de Dente",
+            "Escova de Dente", "Desodorante Roll-on", "Desodorante Aerossol", "Fio Dental",
+            "Algodão", "Hastes Flexíveis", "Absorvente"
+        ];
+        let produtosConhecidos = new Set(produtosBasicos);
+
+        // --- FUNÇÕES ---
+
+        window.removerItem = (index) => {
+            carrinho.splice(index, 1);
+            atualizarUI();
+        };
+
+        const atualizarUI = () => {
+            const listaDiv = document.getElementById('lista-atual');
+            const totalGeral = carrinho.reduce((sum, item) => sum + item.total, 0);
+            const saldo = orcamento - totalGeral;
+
+            document.getElementById('txt-total').innerText = totalGeral.toFixed(2).replace('.', ',');
+            document.getElementById('txt-saldo').innerText = Math.abs(saldo).toFixed(2).replace('.', ',');
+
+            const boxSaldo = document.getElementById('box-saldo');
+            const labelSaldo = document.getElementById('label-saldo');
+
+            if (saldo < 0) {
+                boxSaldo.classList.add('bg-danger');
+                labelSaldo.innerText = "Ultrapassou";
+            } else {
+                boxSaldo.classList.remove('bg-danger');
+                labelSaldo.innerText = "Saldo Restante";
+            }
+
+            listaDiv.innerHTML = carrinho.length === 0 ? '<p style="text-align:center;color:#999">Carrinho vazio</p>' :
+                carrinho.map((item, i) => `
+                    <div class="item-lista">
+                        <div class="item-info">
+                            <strong>${item.nome}</strong><br>
+                            <small>${item.qtd}x R$ ${item.preco.toFixed(2)}</small>
+                        </div>
+                        <div class="item-total">R$ ${item.total.toFixed(2)}</div>
+                        <button class="btn-remove" onclick="removerItem(${i})">X</button>
+                    </div>
+                `).reverse().join('');
+
+            atualizarDatalist();
+        };
+
+        const atualizarDatalist = () => {
+            const dl = document.getElementById('sugestoes-produtos');
+            dl.innerHTML = Array.from(produtosConhecidos).map(p => `<option value="${p}">`).join('');
+        };
+
+        // --- EVENTOS ---
+
         document.getElementById('btn-iniciar').addEventListener('click', () => {
-            carrinhoAtual = [];
-            atualizarListaVisual();
-            telaInicial.classList.add('hidden');
-            telaCompras.classList.remove('hidden');
+            orcamento = parseFloat(document.getElementById('orcamento-inicial').value) || 0;
+            carrinho = [];
+            atualizarUI();
+            document.getElementById('tela-inicial').classList.add('hidden');
+            document.getElementById('tela-compras').classList.remove('hidden');
+        });
+
+        document.getElementById('btn-adicionar').addEventListener('click', () => {
+            const nome = document.getElementById('input-nome').value;
+            const qtd = parseFloat(document.getElementById('input-qtd').value) || 1;
+            const preco = parseFloat(document.getElementById('input-preco').value);
+
+            if (nome && preco) {
+                carrinho.push({ nome, qtd, preco, total: qtd * preco });
+                produtosConhecidos.add(nome);
+                document.getElementById('input-nome').value = '';
+                document.getElementById('input-preco').value = '';
+                document.getElementById('input-nome').focus();
+                atualizarUI();
+            } else {
+                alert("Informe o nome e o preço!");
+            }
+        });
+
+        document.getElementById('btn-finalizar').addEventListener('click', async () => {
+            if (carrinho.length === 0) return alert("Carrinho vazio!");
+            if (!confirm("Deseja finalizar e salvar esta compra?")) return;
+
+            const total = carrinho.reduce((sum, item) => sum + item.total, 0);
+            try {
+                await addDoc(collection(db, "compras_finalizadas"), {
+                    data: Timestamp.now(),
+                    total: total,
+                    itens: carrinho
+                });
+                alert("Compra salva!");
+                location.reload();
+            } catch (e) {
+                alert("Erro ao salvar.");
+            }
         });
 
         document.getElementById('btn-cancelar').addEventListener('click', () => {
-            if(confirm("Tem certeza? Os itens não salvos serão perdidos.")) {
-                telaCompras.classList.add('hidden');
-                telaInicial.classList.remove('hidden');
-            }
+            if (confirm("Cancelar esta compra? Tudo será perdido.")) location.reload();
         });
 
-        // --- LÓGICA DE COMPRA ---
-
-        // 1. Adicionar item à lista temporária
-        document.getElementById('btn-adicionar').addEventListener('click', () => {
-            const nome = document.getElementById('input-nome').value;
-            const qtd = parseFloat(document.getElementById('input-qtd').value);
-            const preco = parseFloat(document.getElementById('input-preco').value);
-
-            if (!nome || !qtd || !preco) {
-                alert("Preencha todos os campos!");
-                return;
-            }
-
-            const item = { nome, qtd, preco, total: qtd * preco };
-            carrinhoAtual.push(item);
-            
-            // Adiciona ao set de sugestões para o futuro
-            produtosConhecidos.add(nome); 
-
-            // Limpa inputs e foca no nome
-            document.getElementById('input-nome').value = '';
-            document.getElementById('input-qtd').value = '1';
-            document.getElementById('input-preco').value = '';
-            document.getElementById('input-nome').focus();
-
-            atualizarListaVisual();
-        });
-
-        // 2. Atualizar a visualização e o Totalizador
-        function atualizarListaVisual() {
-            let html = '';
-            let totalGeral = 0;
-
-            // Ordena o carrinho do mais recente para o mais antigo
-            carrinhoAtual.slice().reverse().forEach((item, index) => {
-                totalGeral += item.total;
-                html += `
-                    <div class="item-lista">
-                        <div>
-                            <strong>${item.nome}</strong> <br>
-                            <small>${item.qtd}x R$ ${item.preco.toFixed(2)}</small>
-                        </div>
-                        <div>R$ ${item.total.toFixed(2)}</div>
-                    </div>
-                `;
-            });
-
-            if (carrinhoAtual.length === 0) html = '<p style="text-align:center">Carrinho vazio</p>';
-            
-            listaAtualDiv.innerHTML = html;
-            totalSpan.innerText = totalGeral.toFixed(2).replace('.', ',');
-        }
-
-        // 3. Finalizar e Salvar no Firebase
-        document.getElementById('btn-finalizar').addEventListener('click', async () => {
-            if (carrinhoAtual.length === 0) return alert("Adicione itens antes de finalizar.");
-
-            const totalCompra = carrinhoAtual.reduce((acc, item) => acc + item.total, 0);
-
-            try {
-                const docRef = await addDoc(collection(db, "compras_finalizadas"), {
-                    data: Timestamp.now(),
-                    total: totalCompra,
-                    itens: carrinhoAtual // Salva o array inteiro de itens
-                });
-
-                alert("Compra salva com sucesso!");
-                carregarHistorico(); // Recarrega histórico
-                telaCompras.classList.add('hidden');
-                telaInicial.classList.remove('hidden');
-            } catch (e) {
-                console.error("Erro ao salvar: ", e);
-                alert("Erro ao salvar a compra.");
-            }
-        });
-
-        // --- LÓGICA DE HISTÓRICO E SUGESTÕES ---
-
-        async function carregarHistorico() {
-            listaHistorico.innerHTML = '<p>Atualizando...</p>';
+        // --- CARREGAR HISTÓRICO ---
+        (async () => {
+            atualizarDatalist();
             const q = query(collection(db, "compras_finalizadas"), orderBy("data", "desc"));
-            
-            try {
-                const querySnapshot = await getDocs(q);
-                listaHistorico.innerHTML = '';
-                
-                querySnapshot.forEach((doc) => {
-                    const dados = doc.data();
-                    const dataFormatada = dados.data.toDate().toLocaleDateString('pt-BR');
-                    
-                    // Alimenta as sugestões com itens passados
-                    if(dados.itens) {
-                        dados.itens.forEach(i => produtosConhecidos.add(i.nome));
-                    }
-
-                    // Cria o card do histórico
-                    const div = document.createElement('div');
-                    div.className = 'card historico-item';
-                    div.innerHTML = `
-                        <div style="display:flex; justify-content:space-between; align-items:center;">
-                            <div>
-                                <strong>📅 ${dataFormatada}</strong><br>
-                                <small>${dados.itens ? dados.itens.length : 0} itens</small>
-                            </div>
-                            <div style="font-size: 1.2rem; font-weight:bold; color: #28a745;">
-                                R$ ${dados.total.toFixed(2).replace('.', ',')}
-                            </div>
-                        </div>
-                    `;
-                    // Ao clicar, mostra os detalhes (opcional, pode ser implementado depois)
-                    div.onclick = () => alert(`Detalhes:\n${dados.itens.map(i => `${i.nome}: R$ ${i.total.toFixed(2)}`).join('\n')}`);
-                    
-                    listaHistorico.appendChild(div);
-                });
-
-                atualizarDatalistSugestoes();
-
-            } catch (e) {
-                console.error(e);
-                listaHistorico.innerHTML = '<p>Erro ao carregar histórico.</p>';
-            }
-        }
-
-        function atualizarDatalistSugestoes() {
-            datalistSugestoes.innerHTML = '';
-            produtosConhecidos.forEach(nome => {
-                const option = document.createElement('option');
-                option.value = nome;
-                datalistSugestoes.appendChild(option);
+            const snap = await getDocs(q);
+            const histDiv = document.getElementById('lista-historico');
+            histDiv.innerHTML = '';
+            snap.forEach(doc => {
+                const d = doc.data();
+                const itensJson = JSON.stringify(d.itens);
+                if (d.itens) d.itens.forEach(i => produtosConhecidos.add(i.nome));
+                histDiv.innerHTML += `
+    <div class="historico-card" style="cursor:pointer" onclick='abrirModal(${itensJson}, ${d.total})'>
+        <span>📅 ${d.data.toDate().toLocaleDateString()}</span>
+        <strong>R$ ${d.total.toFixed(2)}</strong>
+    </div>`;
             });
+
+            atualizarDatalist();
+        })();
+        const modal = document.getElementById('modal-cupom');
+
+        window.abrirModal = (itens, total) => {
+            const conteudo = document.getElementById('conteudo-cupom');
+            const totalDiv = document.getElementById('total-cupom');
+
+            conteudo.innerHTML = itens.map(i => `
+        <div class="linha-cupom">
+            <span>${i.nome} ${i.qtd}x </span>
+            <span>R$ ${i.total.toFixed(2)}</span>
+        </div>
+    `).join('');
+
+            totalDiv.innerText = `TOTAL: R$ ${total.toFixed(2)}`;
+            modal.classList.remove('hidden');
+        };
+
+        // Seleciona o botão de fechar e atribui o evento via JavaScript puro (mais seguro em módulos)
+        const btnFechar = document.querySelector('.close-modal');
+        if (btnFechar) {
+            btnFechar.onclick = () => modal.classList.add('hidden');
         }
 
-        // Carrega ao abrir o app
-        carregarHistorico();
+        // Fechar ao clicar fora da modal
+        window.addEventListener('click', (event) => {
+            if (event.target == modal) {
+                modal.classList.add('hidden');
+            }
+        });
 
     </script>
 </body>
+
 </html>
