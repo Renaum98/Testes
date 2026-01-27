@@ -388,6 +388,7 @@ export function atualizarCarouselResumo() {
   const resumo = {};
   state.rotas.forEach((rota) => {
     const data = new Date(rota.horarioInicio);
+    // Ajuste para garantir a chave correta baseada no deslocamento (evita bug de fuso)
     const chave = `${data.getFullYear()}-${(data.getMonth() + 1)
       .toString()
       .padStart(2, "0")}`;
@@ -399,9 +400,9 @@ export function atualizarCarouselResumo() {
     resumo[chave].total += parseFloat(rota.valor) || 0;
   });
 
-  // 2. Ordenar e Criar Lista
+  // 2. Ordenar (Crescente: Novembro -> Dezembro -> Janeiro)
   const listaMeses = Object.values(resumo).sort(
-    (a, b) => b.dataRef - a.dataRef,
+    (a, b) => a.dataRef - b.dataRef, 
   );
 
   if (listaMeses.length === 0) {
@@ -441,7 +442,7 @@ export function atualizarCarouselResumo() {
     })
     .join("");
 
-  // 4. AUTO-CENTRALIZAR
+  // 4. AUTO-CENTRALIZAR (Lógica mantida)
   setTimeout(() => {
     const cardAtual = container.querySelector(".atual");
     if (cardAtual) {
@@ -451,6 +452,12 @@ export function atualizarCarouselResumo() {
         cardAtual.clientWidth / 2;
       container.scrollTo({
         left: scrollPos,
+        behavior: "smooth",
+      });
+    } else {
+       // Se não tiver mês atual, rola para o último (mais recente)
+       container.scrollTo({
+        left: container.scrollWidth,
         behavior: "smooth",
       });
     }

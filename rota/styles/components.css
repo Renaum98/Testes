@@ -216,8 +216,8 @@
 }
 
 .btn-secondary {
-  background: var(--cor-input-bg);
-  color: var(--cor-texto-secundario);
+  background: var(--cor-primaria);
+  color: var(--cor-branco);
   border: 1px solid var(--cor-borda);
 }
 

@@ -52,7 +52,7 @@ body {
   background-color: var(--cor-branco);
   box-shadow: var(--sombra-card-leve);
   z-index: 1000;
-  border-radius: 20px;
+  border-radius: 30px;
   border: var(--borda-leve);
 }
 

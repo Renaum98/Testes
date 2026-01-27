@@ -126,6 +126,7 @@ function configurarEventListeners() {
   // =========================================================
   document.addEventListener("click", (e) => {
     // --- CASO 1: ABRIR MODAL (NOVA ROTA) ---
+    // --- CASO 1: ABRIR MODAL (NOVA ROTA) ---
     const btnAbrir = e.target.closest("#btnRegistrarRota");
     if (btnAbrir) {
       console.log("Abrindo Modal de Registro...");
@@ -147,17 +148,20 @@ function configurarEventListeners() {
         modal.style.display = "flex";
       }
 
-      // Preenche Data de Hoje
+      // Preenche Data de Hoje e BLOQUEIA FUTURO
       const inputData = document.getElementById("inputDataRota");
       if (inputData) {
         const hoje = new Date();
         const ano = hoje.getFullYear();
         const mes = String(hoje.getMonth() + 1).padStart(2, "0");
         const dia = String(hoje.getDate()).padStart(2, "0");
-        inputData.value = `${ano}-${mes}-${dia}`;
+
+        const hojeFormatado = `${ano}-${mes}-${dia}`;
+
+        inputData.value = hojeFormatado; // Define data padrão
+        inputData.max = hojeFormatado; // <--- BLOQUEIA DATAS FUTURAS
       }
 
-      // Garante que o select do motorista esteja atualizado
       atualizarSelectMotoristas();
 
       return;

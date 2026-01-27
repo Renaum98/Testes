@@ -110,10 +110,6 @@
   /* Linha aparece ao clicar */
 }
 
-
-
-
-
 /* =========================================
    CARROSSEL DE RESUMO (HOME)
    ========================================= */
@@ -134,11 +130,12 @@
 
 /* Card Individual */
 .resumo-mes-card {
-  min-width: 120px;
-  background: var(--cor-fundo-secundario);
+  min-width: 250px;
+  min-height: 150px;
   border-radius: 12px;
   padding: var(--espacamento-pequeno);
   box-shadow: var(--sombra-card-leve);
+  border: var(--borda-leve);
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -149,10 +146,14 @@
     border-color 0.3s;
 }
 
+.resumo-mes-card.atual {
+  background: var(--cor-fundo-secundario);
+}
+
 .card-mes-titulo {
-  font-size: 0.75rem;
+  font-size: 1rem;
   font-weight: 600;
-  color: var(--cor-texto-secundario);
+  color: var(--cor-texto-opaco);
   /* Alterado de #4a5568 */
   text-transform: capitalize;
   text-align: center;
@@ -167,13 +168,12 @@
 }
 
 .dado-label {
-  font-size: 0.65rem;
-  color: var(--cor-texto-terciario);
-  /* Alterado de #a0aec0 */
+  font-size: 1.5rem;
+  color: var(--cor-texto-secundario);
 }
 
 .dado-valor {
-  font-size: 0.85rem;
+  font-size: 2rem;
   font-weight: 700;
   color: var(--cor-texto-opaco);
 }
@@ -185,6 +185,28 @@
 
 #card-inicio_resumo {
   padding: 8px;
+  position: relative;
+  overflow: hidden;
+
+  &::before {
+    content: "";
+    position: absolute;
+    width: 20px;
+    height: 100%;
+    top: 0;
+    left: 0;
+    backdrop-filter: blur(5px);
+  }
+
+  &::after {
+    content: "";
+    position: absolute;
+    width: 20px;
+    height: 100%;
+    top: 0;
+    right: 0;
+    backdrop-filter: blur(5px);
+  }
 }
 
 .carousel_loading {
@@ -214,7 +236,6 @@
   width: 24px;
   height: 24px;
   border: 3px solid var(--cor-borda);
-  /* Alterado de #e2e8f0 */
   border-top-color: var(--cor-primaria);
   border-radius: 50%;
   animation: girar 1s linear infinite;
@@ -784,7 +805,7 @@
   gap: 10px;
 }
 
-.dates-rows .filter-group{
+.dates-rows .filter-group {
   flex: 1;
 }
 
