@@ -1,4 +1,4 @@
-const CACHE_NAME = "rotatrack-v9";
+const CACHE_NAME = "rotatrack-v10";
 const urlsToCache = [
   "./",
   "./index.html",
