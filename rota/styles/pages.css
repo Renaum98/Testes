@@ -784,6 +784,7 @@
 .dates-rows {
   display: flex;
   width: 100%;
+  gap: 10px;
 }
 
 .dates-rows .filter-group{
