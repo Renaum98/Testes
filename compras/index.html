@@ -82,6 +82,8 @@
             border-radius: 10px;
             box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
             margin-bottom: 15px;
+            position: relative;
+            /* Necessário para a lista suspensa */
         }
 
         input {
@@ -211,10 +213,87 @@
             border-bottom: 1px dashed #ccc;
             padding: 5px 0;
         }
+
+        /* ================= NOVOS ESTILOS ADICIONADOS ================= */
+
+        /* Lista Suspensa (Autocomplete) */
+        .lista-suspensa {
+            position: absolute;
+            background: white;
+            border: 1px solid #ccc;
+            border-radius: 0 0 5px 5px;
+            width: calc(100% - 30px);
+            /* Ajuste para padding do card */
+            max-height: 200px;
+            overflow-y: auto;
+            z-index: 500;
+            top: 55px;
+            /* Ajuste conforme altura do input */
+            left: 15px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .item-sugestao {
+            padding: 10px;
+            cursor: pointer;
+            border-bottom: 1px solid #eee;
+        }
+
+        .item-sugestao:hover {
+            background-color: #f0f0f0;
+        }
+
+        /* Notificação (Toast) */
+        #container-notificacoes {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 2000;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .toast {
+            background: #333;
+            color: white;
+            padding: 12px 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            font-size: 0.9rem;
+            animation: slideIn 0.3s ease-out;
+            max-width: 300px;
+        }
+
+        .toast.positivo {
+            border-left: 5px solid #28a745;
+        }
+
+        .toast.negativo {
+            border-left: 5px solid #dc3545;
+        }
+
+        .toast.neutro {
+            border-left: 5px solid #007bff;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
     </style>
 </head>
 
 <body>
+
+    <div id="container-notificacoes"></div>
 
     <div class="container">
 
@@ -242,8 +321,11 @@
             </div>
 
             <div class="card">
-                <input type="text" id="input-nome" list="sugestoes-produtos" placeholder="Nome do produto">
-                <datalist id="sugestoes-produtos"></datalist>
+                <div style="position: relative;">
+                    <input type="text" id="input-nome" placeholder="Nome do produto" autocomplete="off">
+                    <div id="lista-sugestoes" class="lista-suspensa hidden"></div>
+                </div>
+
                 <div class="input-row">
                     <input type="number" id="input-qtd" placeholder="Qtd" value="1" min="1" max="10" step="1"
                         style="width: 35%;">
@@ -291,42 +373,28 @@
         // --- ESTADO ---
         let carrinho = [];
         let orcamento = 0;
+        let ultimosPrecos = {}; // Objeto para armazenar o ultimo preço de cada item: { "Arroz": 5.99 }
 
         const produtosBasicos = [
-            // MERCEARIA E DESPENSA
             "Arroz Branco", "Arroz Integral", "Feijão Carioca", "Feijão Preto", "Açúcar Refinado",
             "Açúcar Mascavo", "Sal Refinado", "Sal Grosso", "Café em Pó", "Cápsulas de Café",
             "Óleo de Soja", "Azeite de Oliva", "Vinagre", "Molho de Tomate", "Macarrão Espaguete",
             "Macarrão Parafuso", "Farinha de Trigo", "Farinha de Mandioca", "Milho de Pipoca",
             "Extrato de Tomate", "Maionese", "Ketchup", "Mostarda", "Leite Condensado", "Creme de Leite",
-
-            // PADARIA E MATINAL
             "Pão Francês", "Pão de Forma", "Pão de Integral", "Biscoito Recheado", "Biscoito Salgado",
             "Torrada", "Cereal Matinal", "Geléia", "Mel", "Achocolatado em Pó", "Aveia",
-
-            // LATICÍNIOS E FRIOS
             "Leite Integral", "Leite Desnatado", "Leite de Soja", "Manteiga com Sal", "Margarina",
             "Queijo Mussarela", "Queijo Prato", "Queijo Parmesão", "Requeijão", "Iogurte Natural",
             "Iogurte de Frutas", "Ovos Brancos", "Ovos Caipiras", "Presunto", "Peito de Peru",
-
-            // AÇOUGUE E PROTEÍNAS
             "Frango (Peito)", "Frango (Coxa e Sobrecoxa)", "Carne Moída", "Bife de Alcatra",
             "Bife de Contra Filé", "Linguiça Toscana", "Salsicha", "Peixe Filé", "Bacon",
-
-            // HORTIFRÚTI
             "Batata Inglesa", "Batata Doce", "Cebola", "Alho", "Tomate", "Alface", "Cenoura",
             "Abobrinha", "Banana Prata", "Banana Nanica", "Maçã Gala", "Maçã Argentina",
             "Laranja", "Limão Taiti", "Mamão", "Melancia", "Uva", "Abacaxi",
-
-            // BEBIDAS
             "Água Mineral", "Água com Gás", "Refrigerante de Cola", "Refrigerante de Guaraná",
             "Suco de Caixa", "Suco Concentrado", "Cerveja Latão", "Vinho Tinto", "Vinho Branco",
-
-            // LIMPEZA
             "Detergente Líquido", "Sabão em Pó", "Sabão Líquido", "Amaciante", "Água Sanitária",
             "Desinfetante", "Limpador Multiuso", "Esponja de Aço", "Esponja de Louça", "Saco de Lixo",
-
-            // HIGIENE PESSOAL
             "Papel Higiênico", "Sabonete", "Shampoo", "Condicionador", "Pasta de Dente",
             "Escova de Dente", "Desodorante Roll-on", "Desodorante Aerossol", "Fio Dental",
             "Algodão", "Hastes Flexíveis", "Absorvente"
@@ -370,16 +438,99 @@
                         <button class="btn-remove" onclick="removerItem(${i})">X</button>
                     </div>
                 `).reverse().join('');
-
-            atualizarDatalist();
         };
 
-        const atualizarDatalist = () => {
-            const dl = document.getElementById('sugestoes-produtos');
-            dl.innerHTML = Array.from(produtosConhecidos).map(p => `<option value="${p}">`).join('');
+        // --- LÓGICA DE AUTOCOMPLETE E NOTIFICAÇÃO ---
+
+        const inputNome = document.getElementById('input-nome');
+        const listaSugestoes = document.getElementById('lista-sugestoes');
+        const inputPreco = document.getElementById('input-preco');
+
+        inputNome.addEventListener('input', (e) => {
+            const termo = e.target.value.toLowerCase();
+            listaSugestoes.innerHTML = '';
+
+            if (termo.length < 1) {
+                listaSugestoes.classList.add('hidden');
+                return;
+            }
+
+            const sugestoes = Array.from(produtosConhecidos).filter(p => p.toLowerCase().includes(termo));
+
+            if (sugestoes.length > 0) {
+                listaSugestoes.classList.remove('hidden');
+                sugestoes.forEach(produto => {
+                    const div = document.createElement('div');
+                    div.classList.add('item-sugestao');
+                    div.innerText = produto;
+                    div.onclick = () => {
+                        inputNome.value = produto;
+                        listaSugestoes.classList.add('hidden');
+                        listaSugestoes.innerHTML = '';
+                        inputPreco.focus();
+                        verificarHistoricoPreco(produto, parseFloat(inputPreco.value));
+                    };
+                    listaSugestoes.appendChild(div);
+                });
+            } else {
+                listaSugestoes.classList.add('hidden');
+            }
+        });
+
+        // Fechar lista ao clicar fora
+        document.addEventListener('click', (e) => {
+            if (e.target !== inputNome && e.target !== listaSugestoes) {
+                listaSugestoes.classList.add('hidden');
+            }
+        });
+
+        // Verificar preço ao digitar o valor
+        inputPreco.addEventListener('input', () => {
+            const nome = inputNome.value;
+            const preco = parseFloat(inputPreco.value);
+            if (nome && preco) {
+                verificarHistoricoPreco(nome, preco);
+            }
+        });
+
+        const verificarHistoricoPreco = (nome, precoAtual) => {
+            if (!precoAtual) return;
+
+            // Busca case-insensitive no histórico
+            const nomeKey = Object.keys(ultimosPrecos).find(k => k.toLowerCase() === nome.toLowerCase());
+
+            if (nomeKey) {
+                const ultimoPreco = ultimosPrecos[nomeKey];
+                const diff = precoAtual - ultimoPreco;
+
+                if (diff > 0.05) { // Margem de 5 centavos
+                    mostrarNotificacao(`⚠️ Mais caro! Pagou R$ ${ultimoPreco.toFixed(2)} na última vez.`, 'negativo');
+                } else if (diff < -0.05) {
+                    mostrarNotificacao(`✅ Mais barato! Pagou R$ ${ultimoPreco.toFixed(2)} na última vez.`, 'positivo');
+                } else {
+                    mostrarNotificacao(`ℹ️ Mesmo preço da última compra.`, 'neutro');
+                }
+            }
         };
 
-        // --- EVENTOS ---
+        const mostrarNotificacao = (msg, tipo) => {
+            const container = document.getElementById('container-notificacoes');
+            // Remove notificações antigas para não empilhar muitas
+            container.innerHTML = '';
+
+            const toast = document.createElement('div');
+            toast.className = `toast ${tipo}`;
+            toast.innerText = msg;
+
+            container.appendChild(toast);
+
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                setTimeout(() => toast.remove(), 300);
+            }, 4000);
+        };
+
+        // --- EVENTOS DE BOTÕES ---
 
         document.getElementById('btn-iniciar').addEventListener('click', () => {
             orcamento = parseFloat(document.getElementById('orcamento-inicial').value) || 0;
@@ -396,10 +547,20 @@
 
             if (nome && preco) {
                 carrinho.push({ nome, qtd, preco, total: qtd * preco });
+
+                // Adiciona a lista global se for novo
                 produtosConhecidos.add(nome);
+
+                // Atualiza o preço localmente para comparar na próxima inserção imediata
+                ultimosPrecos[nome] = preco;
+
                 document.getElementById('input-nome').value = '';
                 document.getElementById('input-preco').value = '';
                 document.getElementById('input-nome').focus();
+
+                // Limpa notificações
+                document.getElementById('container-notificacoes').innerHTML = '';
+
                 atualizarUI();
             } else {
                 alert("Informe o nome e o preço!");
@@ -420,7 +581,7 @@
                 alert("Compra salva!");
                 location.reload();
             } catch (e) {
-                alert("Erro ao salvar.");
+                alert("Erro ao salvar: " + e.message);
             }
         });
 
@@ -430,15 +591,26 @@
 
         // --- CARREGAR HISTÓRICO ---
         (async () => {
-            atualizarDatalist();
             const q = query(collection(db, "compras_finalizadas"), orderBy("data", "desc"));
             const snap = await getDocs(q);
             const histDiv = document.getElementById('lista-historico');
             histDiv.innerHTML = '';
+
             snap.forEach(doc => {
                 const d = doc.data();
                 const itensJson = JSON.stringify(d.itens);
-                if (d.itens) d.itens.forEach(i => produtosConhecidos.add(i.nome));
+
+                // Popula produtos conhecidos e mapa de preços
+                if (d.itens) {
+                    d.itens.forEach(i => {
+                        produtosConhecidos.add(i.nome);
+                        // Como ordenamos por data DESC, o primeiro valor encontrado é o mais recente
+                        if (!ultimosPrecos[i.nome]) {
+                            ultimosPrecos[i.nome] = i.preco;
+                        }
+                    });
+                }
+
                 histDiv.innerHTML += `
     <div class="historico-card" style="cursor:pointer" onclick='abrirModal(${itensJson}, ${d.total})'>
         <span>📅 ${d.data.toDate().toLocaleDateString()}</span>
@@ -446,8 +618,8 @@
     </div>`;
             });
 
-            atualizarDatalist();
         })();
+
         const modal = document.getElementById('modal-cupom');
 
         window.abrirModal = (itens, total) => {
@@ -465,13 +637,11 @@
             modal.classList.remove('hidden');
         };
 
-        // Seleciona o botão de fechar e atribui o evento via JavaScript puro (mais seguro em módulos)
         const btnFechar = document.querySelector('.close-modal');
         if (btnFechar) {
             btnFechar.onclick = () => modal.classList.add('hidden');
         }
 
-        // Fechar ao clicar fora da modal
         window.addEventListener('click', (event) => {
             if (event.target == modal) {
                 modal.classList.add('hidden');
