@@ -1274,11 +1274,15 @@
                 if (pendentes.length === 0 && termoBusca) {
                     divPendentes.innerHTML = '<p class="text-center text-muted" style="margin-top: 12px; font-size: 0.875rem;">Nenhum item encontrado</p>';
                 } else {
-                    divPendentes.innerHTML = pendentes.map(item => `
-                        <span class="chip-pendente" onclick="selecionarPendente('${item.replace(/'/g, "\\'")}')">
-                            ${item}
-                        </span>
-                    `).join('');
+                    divPendentes.innerHTML = pendentes
+                        // --- ADICIONADO AQUI: Ordenação A-Z (considerando acentos) ---
+                        .sort((a, b) => a.localeCompare(b, 'pt-BR'))
+                        // -------------------------------------------------------------
+                        .map(item => `
+                <span class="chip-pendente" onclick="selecionarPendente('${item.replace(/'/g, "\\'")}')">
+                    ${item}
+                </span>
+            `).join('');
                 }
             } else {
                 painelPendentes.classList.add('hidden');
