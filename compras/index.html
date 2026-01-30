@@ -7,7 +7,10 @@
     <meta name="theme-color" content="#6366f1">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap"
         rel="stylesheet">
     <title>Mercado Inteligente</title>
     <style>
@@ -32,7 +35,7 @@
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            font-family: "Poppins", sans-serif;
             background: var(--gray-50);
             min-height: 100vh;
             color: var(--gray-900);
@@ -56,12 +59,14 @@
             font-weight: 500;
             color: var(--gray-900);
             margin-bottom: 4px;
+            text-align: center;
         }
 
         .app-header p {
             font-size: 0.875rem;
             color: var(--gray-600);
             font-weight: 400;
+            text-align: center;
         }
 
         /* Painel Financeiro */
@@ -394,6 +399,7 @@
         }
 
         .modal-header h2 {
+            text-align: center;
             font-size: 1.0625rem;
             font-weight: 500;
         }
@@ -549,35 +555,34 @@
         <!-- TELA INICIAL -->
         <div id="tela-inicial">
             <div class="app-header">
-                <h1>🛒 Mercado Inteligente</h1>
+                <h1>Mercado Inteligente</h1>
                 <p>Controle suas compras com facilidade</p>
             </div>
 
             <div class="card">
                 <div id="aviso-recuperacao" class="alert alert-info hidden">
-                    <span>🔄</span>
+                    <span></span>
                     <span>Recuperamos sua compra em andamento!</span>
                 </div>
 
                 <button id="btn-criar-lista" class="btn-primary">
-                    <span>📝</span>
                     <span>Editar Lista de Compras</span>
                 </button>
 
                 <div class="divider"></div>
 
                 <label style="display: block; margin-bottom: 8px; font-weight: 600; font-size: 0.875rem;">
-                    💰 Limite de orçamento
+                    Limite de orçamento
                 </label>
                 <input type="number" id="orcamento-inicial" placeholder="R$ 0,00" step="0.01" inputmode="decimal">
                 <button id="btn-iniciar" class="btn-success">
-                    <span>🚀</span>
+
                     <span>Iniciar Compras</span>
                 </button>
             </div>
 
             <div class="card-header">
-                <h3>📊 Compras Recentes</h3>
+                <h3>Compras Recentes</h3>
             </div>
             <div id="lista-historico"></div>
         </div>
@@ -585,7 +590,7 @@
         <!-- TELA EDITOR DE LISTA -->
         <div id="tela-editor-lista" class="hidden">
             <div class="app-header">
-                <h1>📝 Lista de Compras</h1>
+                <h1>Lista de Compras</h1>
                 <p>Organize o que você precisa</p>
             </div>
 
@@ -605,7 +610,6 @@
                 <div id="lista-previa-itens"></div>
 
                 <button id="btn-salvar-lista" class="btn-success">
-                    <span>💾</span>
                     <span>Salvar e Voltar</span>
                 </button>
             </div>
@@ -626,10 +630,10 @@
 
             <div id="painel-lista-pendente" class="card hidden">
                 <div class="card-header">
-                    <h3>📋 Falta Comprar</h3>
+                    <h3>Falta Comprar</h3>
                     <span class="badge" id="badge-pendentes">0</span>
                 </div>
-                <input type="text" id="busca-pendente" placeholder="🔍 Procurar na lista..." style="margin-bottom: 0;">
+                <input type="text" id="busca-pendente" placeholder="Procurar na lista..." style="margin-bottom: 0;">
                 <div id="area-pendentes" class="area-pendentes"></div>
             </div>
 
@@ -654,11 +658,9 @@
             <div id="lista-atual" class="card"></div>
 
             <button id="btn-finalizar" class="btn-success">
-                <span>✅</span>
                 <span>Finalizar Compra</span>
             </button>
             <button id="btn-cancelar" class="btn-danger">
-                <span>❌</span>
                 <span>Cancelar Tudo</span>
             </button>
         </div>
@@ -669,7 +671,7 @@
     <div id="modal-cupom" class="modal hidden">
         <div class="modal-content">
             <div class="modal-header">
-                <h2>🧾 Cupom Fiscal</h2>
+                <h2>Cupom Fiscal</h2>
                 <div class="close-modal">✕</div>
             </div>
             <div id="conteudo-cupom"></div>
@@ -788,14 +790,12 @@
             if (carrinho.length === 0) {
                 listaDiv.innerHTML = `
                     <div class="empty-state">
-                        <div class="empty-state-icon">🛒</div>
                         <p>Carrinho vazio</p>
                     </div>
                 `;
             } else {
                 listaDiv.innerHTML = carrinho.map((item, i) => `
                     <div class="item-lista">
-                        <div class="item-icon">🛍️</div>
                         <div class="item-info">
                             <div class="item-nome">${item.nome}</div>
                             <div class="item-detalhes">${item.qtd}x R$ ${item.preco.toFixed(2).replace('.', ',')}</div>
@@ -981,7 +981,6 @@
             if (listaPrevia.length === 0) {
                 div.innerHTML = `
                     <div class="empty-state">
-                        <div class="empty-state-icon">📝</div>
                         <p>Sua lista está vazia</p>
                     </div>
                 `;
@@ -989,7 +988,6 @@
             }
             div.innerHTML = listaPrevia.map((item, i) => `
                 <div class="item-lista">
-                    <div class="item-icon">📌</div>
                     <div class="item-info">
                         <div class="item-nome">${item}</div>
                     </div>
@@ -1074,7 +1072,6 @@
             if (snap.empty) {
                 histDiv.innerHTML = `
                     <div class="empty-state">
-                        <div class="empty-state-icon">📊</div>
                         <p>Nenhuma compra registrada ainda</p>
                     </div>
                 `;
@@ -1096,7 +1093,6 @@
                     histDiv.innerHTML += `
                         <div class="historico-card" onclick='abrirModal(${JSON.stringify(d.itens)}, ${d.total})'>
                             <div class="historico-data">
-                                <span>📅</span>
                                 <span>${dataFormatada}</span>
                             </div>
                             <div class="historico-total">R$ ${d.total.toFixed(2).replace('.', ',')}</div>
