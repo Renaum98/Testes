@@ -213,7 +213,6 @@ export function atualizarPerfilUsuario() {
   const nomeElement = document.getElementById("profileName");
   const emailElement = document.getElementById("profileEmail");
   const motoristaUm = document.getElementById("configMotorista1").value;
-  console.log(motoristaUm);
   if (user && nomeElement && emailElement) {
     const nome = motoristaUm || user.displayName || "Usuário";
     const email = user.email;
@@ -402,7 +401,7 @@ export function atualizarCarouselResumo() {
 
   // 2. Ordenar (Crescente: Novembro -> Dezembro -> Janeiro)
   const listaMeses = Object.values(resumo).sort(
-    (a, b) => a.dataRef - b.dataRef, 
+    (a, b) => a.dataRef - b.dataRef,
   );
 
   if (listaMeses.length === 0) {
@@ -455,8 +454,8 @@ export function atualizarCarouselResumo() {
         behavior: "smooth",
       });
     } else {
-       // Se não tiver mês atual, rola para o último (mais recente)
-       container.scrollTo({
+      // Se não tiver mês atual, rola para o último (mais recente)
+      container.scrollTo({
         left: container.scrollWidth,
         behavior: "smooth",
       });

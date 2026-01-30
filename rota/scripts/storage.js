@@ -7,14 +7,12 @@ import { atualizarListaRotas } from "./ui.js";
 // ============================================
 export function carregarDados() {
   if (state.listenerUnsubscribe) {
-    console.log("Listener já está ativo.");
     return;
   }
 
   const user = window.firebaseDb?.auth?.currentUser;
 
   if (!state.db || !state.db.db || !user) {
-    console.log("Aguardando login ou modo offline...");
     carregarDadosLocal();
     return;
   }
@@ -55,8 +53,6 @@ export function carregarDados() {
           carregarDadosLocal();
         },
       );
-
-    console.log("Lendo subcoleção de rotas do usuário:", user.uid);
   } catch (error) {
     console.error("Erro ao iniciar listener:", error);
     carregarDadosLocal();
@@ -110,8 +106,6 @@ export async function salvarRotaFinalizada(rota) {
         .collection("rotas")
         .doc(docId)
         .set(rotaParaSalvar);
-
-      console.log("Salvo na subcoleção do usuário");
     } else {
       const rotasLocais = JSON.parse(localStorage.getItem("rotas") || "[]");
       rotasLocais.unshift(rota);
@@ -136,6 +130,5 @@ export function pararSincronizacao() {
   if (state.listenerUnsubscribe) {
     state.listenerUnsubscribe();
     state.listenerUnsubscribe = null;
-    console.log("Sincronização parada.");
   }
 }

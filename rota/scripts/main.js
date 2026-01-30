@@ -14,8 +14,6 @@ import { inicializarCalendario } from "./calendar.js";
 // INICIALIZAÇÃO DO APLICATIVO
 // ============================================
 function inicializarApp() {
-  console.log("Inicializando aplicação...");
-
   // Evita rodar inicialização na tela de login
   if (window.location.pathname.endsWith("index.html")) {
     return;
@@ -36,12 +34,9 @@ function inicializarApp() {
 
   // Inicializa Tema (Dark/Light) se existir a função
   inicializarTema();
-
-  console.log("Aplicação inicializada com sucesso");
 }
 
 function inicializarModoOffline() {
-  console.log("Iniciando modo offline...");
   configurarEventListeners();
   carregarDadosLocal();
   inicializarTema();
@@ -129,7 +124,6 @@ function configurarEventListeners() {
     // --- CASO 1: ABRIR MODAL (NOVA ROTA) ---
     const btnAbrir = e.target.closest("#btnRegistrarRota");
     if (btnAbrir) {
-      console.log("Abrindo Modal de Registro...");
       e.preventDefault();
 
       // Limpeza Preventiva
@@ -172,7 +166,6 @@ function configurarEventListeners() {
       e.target.closest("#btnCancelarRegistro") ||
       e.target.closest("#btnCancelarRota");
     if (btnCancelar) {
-      console.log("Fechando Modal...");
       e.preventDefault();
 
       const modal = document.getElementById("modalRegistrarRota");
@@ -377,7 +370,6 @@ function handleSubmitRota(e) {
     e.target &&
     (e.target.id === "formRegistrarRota" || e.target.id === "formEncerrarRota")
   ) {
-    console.log("Submit de formulário detectado!");
     e.preventDefault();
     salvarNovaRota(e);
   }
@@ -518,7 +510,6 @@ document.addEventListener("DOMContentLoaded", () => {
     const unsubscribe = window.firebaseDb.auth.onAuthStateChanged((user) => {
       // --- CENÁRIO 1: SUCESSO ---
       if (user && user.emailVerified) {
-        console.log("Usuário validado e verificado.");
         if (isLoginPage) {
           window.location.href = "inicio.html";
           return;
@@ -540,7 +531,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
       // --- CENÁRIO 3: NINGUÉM LOGADO ---
       else {
-        console.log("Nenhum usuário logado.");
         if (!isLoginPage) {
           window.location.replace("./index.html");
         }

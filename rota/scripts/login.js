@@ -1,6 +1,4 @@
 document.addEventListener("DOMContentLoaded", function () {
-  console.log("Login.js carregado");
-
   // --- 1. SELEÇÃO DE ELEMENTOS (CORREÇÃO DE VARIÁVEIS) ---
   const loginForm = document.getElementById("loginForm");
   const loginErro = document.getElementById("loginErro");
@@ -33,12 +31,10 @@ document.addEventListener("DOMContentLoaded", function () {
   if (user) {
     if (user.emailVerified) {
       // SUCESSO: Usuário verificado. Vai para o app.
-      console.log("Já autenticado e verificado. Redirecionando...");
       window.location.href = "inicio.html";
       return;
     } else {
       // PENDENTE: Usuário existe mas não verificou. Desloga para limpar estado.
-      console.log("Usuário pendente detectado no load. Forçando logout.");
       window.firebaseDb.auth.signOut();
     }
   }
@@ -75,7 +71,6 @@ document.addEventListener("DOMContentLoaded", function () {
         }
 
         // Login OK
-        console.log("Login bem-sucedido:", user.email);
         window.location.href = "inicio.html";
       })
       .catch((error) => {

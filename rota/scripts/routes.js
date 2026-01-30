@@ -154,8 +154,6 @@ export async function excluirRota(rotaId) {
         .collection("rotas")
         .doc(rotaId.toString())
         .delete();
-
-      console.log("Rota excluída do Firebase");
     } else {
       const rotasLocais = JSON.parse(localStorage.getItem("rotas") || "[]");
       const novasRotas = rotasLocais.filter(

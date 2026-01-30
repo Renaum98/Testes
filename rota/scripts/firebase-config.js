@@ -152,12 +152,3 @@ window.firebaseDb = {
     });
   },
 };
-
-console.log("Firebase configurado para estrutura existente!");
-console.log("UID do usuário atual:", auth.currentUser?.uid);
-
-// Debug: Verificar estrutura
-console.log("Estrutura esperada:");
-console.log("- /usuarios/{uid} (já existe)");
-console.log("- /usuarios/{uid}/rotas/{rotaId}");
-console.log("- /usuarios/{uid}/sistema/rotaAtual");
