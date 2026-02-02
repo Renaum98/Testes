@@ -3,8 +3,7 @@
 
 
 body{
-    background-image: radial-gradient(circle, rgba(0, 0, 255, 0.377), rgba(158, 0, 0, 0.247));
-    background-color: #272727;
+    background-image: radial-gradient(circle, rgb(82, 82, 255), rgb(92, 20, 20));
     background-repeat: no-repeat;
     background-attachment: fixed;
     font-family: 'Poppins',sans-serif;
@@ -62,10 +61,17 @@ main{
 }
 
 .categorias-list{
-    display: none;   
+    display: none;
+    flex-direction: row;
+    gap: 1rem;
+    overflow-x: scroll;
+}
+.categorias-list::-webkit-scrollbar{
+    display: none;
 }
 
 .list-item{
+    min-width: 300px;
     background-color: #27272773;
     border: 1px solid rgba(255, 255, 255, 0.301);
     border-radius: 32px;
