@@ -63,6 +63,10 @@ body{
     flex-direction: column;
 }
 
+.lista_container{
+    columns: 2;
+}
+
 .lista_titulo,
 .praias_titulo,
 .dados_titulo,
