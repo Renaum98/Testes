@@ -224,43 +224,6 @@
       </form>
     </div>
   </div>
-  <!--Pagina Rotas-->
-  <div id="page-rotas" class="page">
-    <div class="logo-site">
-      <h2 class="page-inicio_titulo">RotaTrack</h2>
-      <h2>Histórico de Rotas</h2>
-    </div>
-
-    <div class="container">
-      <div class="rotas-filter-container">
-        <div class="filter-wrapper">
-
-          <div class="filter-group">
-            <label for="filtroRotasMes">Mês</label>
-            <input type="month" id="filtroRotasMes">
-          </div>
-
-          <div class="filter-group">
-            <label for="filtroRotasApp">Plataforma</label>
-            <select id="filtroRotasApp">
-              <option value="todas">Todas</option>
-            </select>
-          </div>
-
-        </div>
-
-        <button id="btnExportarCSV" class="btn-csv-icon" title="Baixar Relatório">
-          <span class="material-symbols-outlined">download</span>
-        </button>
-      </div>
-
-      <div class="rotas-list" id="rotasList"></div>
-      <div class="empty-state" id="emptyState" style="display: none">
-        <span class="material-symbols-outlined">local_shipping</span>
-        <p>Nenhuma rota registrada ainda</p>
-      </div>
-    </div>
-  </div>
 
   <div class="modal" id="modalEncerrarRota">
     <div class="modal-content">
@@ -297,6 +260,43 @@
           <button type="submit" class="btn btn-primary">Finalizar</button>
         </div>
       </form>
+    </div>
+  </div>
+  <!--Pagina Rotas-->
+  <div id="page-rotas" class="page">
+    <div class="logo-site">
+      <h2 class="page-inicio_titulo">RotaTrack</h2>
+      <h2>Histórico de Rotas</h2>
+    </div>
+
+    <div class="container">
+      <div class="rotas-filter-container">
+        <div class="filter-wrapper">
+
+          <div class="filter-group">
+            <label for="filtroRotasMes">Mês</label>
+            <input type="month" id="filtroRotasMes">
+          </div>
+
+          <div class="filter-group">
+            <label for="filtroRotasApp">Plataforma</label>
+            <select id="filtroRotasApp">
+              <option value="todas">Todas</option>
+            </select>
+          </div>
+
+        </div>
+
+        <button id="btnExportarCSV" class="btn-csv-icon" title="Baixar Relatório">
+          <span class="material-symbols-outlined">download</span>
+        </button>
+      </div>
+
+      <div class="rotas-list" id="rotasList"></div>
+      <div class="empty-state" id="emptyState" style="display: none">
+        <span class="material-symbols-outlined">local_shipping</span>
+        <p>Nenhuma rota registrada ainda</p>
+      </div>
     </div>
   </div>
 

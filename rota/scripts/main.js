@@ -121,7 +121,6 @@ function configurarEventListeners() {
   // =========================================================
   document.addEventListener("click", (e) => {
     // --- CASO 1: ABRIR MODAL (NOVA ROTA) ---
-    // --- CASO 1: ABRIR MODAL (NOVA ROTA) ---
     const btnAbrir = e.target.closest("#btnRegistrarRota");
     if (btnAbrir) {
       e.preventDefault();
