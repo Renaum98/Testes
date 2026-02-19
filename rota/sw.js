@@ -1,4 +1,4 @@
-const CACHE_NAME = "rotatrack-v10";
+const CACHE_NAME = "rotatrack-v13";
 const urlsToCache = [
   "./",
   "./index.html",
@@ -18,6 +18,7 @@ const urlsToCache = [
   "./scripts/ui.js",
   "./scripts/utils.js",
   "./scripts/calendar.js",
+  "./scripts/padronizador.js",
   "./assets/rota_logo-192.png",
   "./assets/rota_logo-512.png",
 ];

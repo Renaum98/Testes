@@ -9,7 +9,7 @@ import {
 import { carregarDados, carregarDadosLocal } from "./storage.js";
 import { salvarNovaRota } from "./routes.js";
 import { inicializarCalendario } from "./calendar.js";
-
+import { initPadronizador } from "./padronizador.js";
 // ============================================
 // INICIALIZAÇÃO DO APLICATIVO
 // ============================================
@@ -30,6 +30,7 @@ function inicializarApp() {
   state.db = window.firebaseDb;
   configurarEventListeners();
   inicializarCalendario();
+  initPadronizador();
   carregarDados();
 
   // Inicializa Tema (Dark/Light) se existir a função
@@ -40,6 +41,7 @@ function inicializarModoOffline() {
   configurarEventListeners();
   carregarDadosLocal();
   inicializarTema();
+  initPadronizador();
 }
 
 // ============================================

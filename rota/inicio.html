@@ -10,7 +10,10 @@
   <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#667eea">
   <link rel="apple-touch-icon" href="assets/rota_logo-192.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="RotaTrack">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
   <title>RotaTrack - Gerenciador de Rotas</title>
   <link rel="shortcut icon" href="assets/favicon.ico" type="image/x-icon">
   <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -30,7 +33,8 @@
 
   <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-auth-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore-compat.js">
+  </script>
 
   <script src="scripts/firebase-config.js"></script>
 
@@ -69,6 +73,20 @@
 </head>
 
 <body style="display: none" id="app-content">
+
+  <div id="splash-screen">
+    <div class="splash-content">
+      <div class="splash-logo">
+        <img src="assets/rota_logo-192.png" alt="RotaTrack" class="splash-logo-img" />
+      </div>
+      <h1 class="splash-title">RotaTrack</h1>
+      <div class="splash-bar-track">
+        <div class="splash-bar-fill"></div>
+      </div>
+      <p class="splash-sub">Carregando...</p>
+    </div>
+  </div>
+
   <!--Pagina Inicio-->
   <div id="page-inicio" class="page active">
     <div class="logo-site">
@@ -219,7 +237,7 @@
           <button type="button" class="btn btn-secondary" id="btnCancelarRegistro">
             Cancelar
           </button>
-          <button type="submit" class="btn btn-primary">Salvar Rota</button>
+          <button type="submit" class="btn btn-secondary">Salvar Rota</button>
         </div>
       </form>
     </div>
@@ -380,6 +398,34 @@
         </button>
       </div>
 
+      <div class="config-section-card" id="card-padronizador">
+        <div class="config-item-info" style="margin-bottom: 14px;">
+          <h4>Padronizar Endereços</h4>
+          <p>Importe o .xlsx da rota, os logradouros serão corrigidos via ViaCEP</p>
+        </div>
+
+        <!-- Drop / seleção de arquivo -->
+        <div class="padron-dropzone" id="padronDropzone">
+          <input type="file" id="padronFileInput" accept=".xlsx,.xls,.csv">
+          <span class="material-symbols-outlined" style="font-size: 28px; color: #a0aec0;">upload_file</span>
+          <span id="padronDropLabel">Selecionar arquivo</span>
+        </div>
+
+        <!-- Barra de progresso (oculta até processar) -->
+        <div class="padron-progress" id="padronProgress" style="display:none">
+          <div class="padron-progress-track">
+            <div class="padron-progress-bar" id="padronBar"></div>
+          </div>
+          <span class="padron-progress-label" id="padronLabel">Processando...</span>
+        </div>
+
+        <!-- Botão download (oculto até finalizar) -->
+        <button class="btn btn-secondary" id="padronBtnDownload" style="width:100%; margin-top:12px; display:none;">
+          <span class="material-symbols-outlined" style="font-size:18px">download</span>
+          Baixar arquivo padronizado
+        </button>
+      </div>
+
       <div class="config-actions">
         <button id="btnConfigLogout" class="config-btn-logout">
           <span class="material-symbols-outlined">logout</span>
@@ -387,7 +433,7 @@
         </button>
       </div>
 
-      <div class="config-footer">Versão 1.0.1</div>
+      <div class="config-footer">Versão 1.0.2</div>
     </div>
   </div>
 
