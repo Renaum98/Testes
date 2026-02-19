@@ -211,8 +211,6 @@
 .btn-primary {
   background: var(--gradiente-principal);
   color: #ffffff;
-  /* Sempre branco pois é gradiente */
-  box-shadow: 0 4px 6px rgba(102, 126, 234, 0.25);
 }
 
 .btn-secondary {
