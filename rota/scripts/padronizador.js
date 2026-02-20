@@ -456,7 +456,13 @@ export function initPadronizador() {
 
     // Montar planilha final com as colunas do modelo
     processedRows = [
-      ["Endereço", "Complemento", "Bairro", "Cidade", "Pacotes Na Parada"],
+      [
+        "Endereço", // O Circuit reconhece automaticamente (Rua + Número)
+        "Complemento", // O Circuit reconhece como Linha 2 do endereço
+        "Bairro", // Ajuda o GPS do Circuit a não errar a cidade
+        "Cidade", // O Circuit reconhece automaticamente
+        "Notas", // O Circuit exibe isso em destaque para o motorista!
+      ],
     ];
 
     for (const item of agrupadas) {
@@ -466,21 +472,19 @@ export function initPadronizador() {
       // 2. Conta a quantidade de pacotes
       const qtdPacotes = sequenciasValidas.length;
 
-      // 3. Junta os números separados por vírgula
-      let pacotesTexto = sequenciasValidas.join(", ");
-
-      // 4. Adiciona o contador no final se houver pacotes
+      // 3. Formata o texto para ficar perfeito na tela do Circuit
+      let notasParaMotorista = "";
       if (qtdPacotes > 0) {
-        // Você pode ajustar o formato aqui. Ex: " (Total: 3)" ou " total 3"
-        pacotesTexto += ` - Total: ${qtdPacotes} pacotes`;
+        notasParaMotorista = `PACOTES: ${sequenciasValidas.join(", ")} (TOTAL: ${qtdPacotes})`;
       }
 
+      // 4. Adiciona a linha na planilha
       processedRows.push([
-        item.line1,
-        item.line2,
-        item.bairro,
-        item.city,
-        pacotesTexto,
+        item.line1, // Rua e Número (Ex: Rua Domingos, 50)
+        item.line2, // Complemento (Ex: Apto 12)
+        item.bairro, // Bairro
+        item.city, // Cidade
+        notasParaMotorista, // Notas (Ex: PACOTES: 66, 67 (TOTAL: 2))
       ]);
     }
 

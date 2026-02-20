@@ -1,4 +1,4 @@
-const CACHE_NAME = "rotatrack-v16"; // Subi para v15 para forçar a troca agora
+const CACHE_NAME = "rotatrack-v17";
 const urlsToCache = [
   "./",
   "./index.html",
