@@ -1,4 +1,4 @@
-const CACHE_NAME = "rotatrack-v13";
+const CACHE_NAME = "rotatrack-v16"; // Subi para v15 para forçar a troca agora
 const urlsToCache = [
   "./",
   "./index.html",
@@ -23,8 +23,11 @@ const urlsToCache = [
   "./assets/rota_logo-512.png",
 ];
 
-// 1. INSTALAÇÃO (Salva os arquivos)
+// 1. INSTALAÇÃO
 self.addEventListener("install", (event) => {
+  // FORÇA A ATUALIZAÇÃO IMEDIATA: Não fica na fila de espera
+  self.skipWaiting();
+
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
       return cache.addAll(urlsToCache);
@@ -32,7 +35,7 @@ self.addEventListener("install", (event) => {
   );
 });
 
-// 2. ATIVAÇÃO (Limpa caches antigos se você mudar a versão)
+// 2. ATIVAÇÃO
 self.addEventListener("activate", (event) => {
   event.waitUntil(
     caches.keys().then((cacheNames) => {
@@ -45,11 +48,13 @@ self.addEventListener("activate", (event) => {
       );
     }),
   );
+  // ASSUME O CONTROLE IMEDIATAMENTE: Faz a nova versão valer na mesma hora
+  return self.clients.claim();
 });
 
-// 3. INTERCEPTAR PEDIDOS (Serve o cache se estiver offline)
+// 3. INTERCEPTAR PEDIDOS (ESTRATÉGIA: REDE PRIMEIRO, CACHE DEPOIS)
 self.addEventListener("fetch", (event) => {
-  // Ignora requisições do Firebase/Google (deixa a lib do Firebase tratar isso)
+  // Ignora requisições do Firebase/Google
   if (
     event.request.url.includes("firestore") ||
     event.request.url.includes("googleapis")
@@ -57,10 +62,24 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
+  // Ignora requisições que não sejam GET (como POST do Firebase Auth, etc)
+  if (event.request.method !== "GET") {
+    return;
+  }
+
   event.respondWith(
-    caches.match(event.request).then((response) => {
-      // Se achou no cache, retorna. Se não, busca na rede.
-      return response || fetch(event.request);
-    }),
+    // 1º TENTA PEGAR DA INTERNET (Para ter a versão mais atualizada que você commitou)
+    fetch(event.request)
+      .then((networkResponse) => {
+        // Se deu certo, atualiza o cache "silenciosamente" com o arquivo novo
+        return caches.open(CACHE_NAME).then((cache) => {
+          cache.put(event.request, networkResponse.clone());
+          return networkResponse;
+        });
+      })
+      .catch(() => {
+        // 2º SE ESTIVER OFFLINE, PEGA DO CACHE (Para o PWA continuar funcionando sem internet)
+        return caches.match(event.request);
+      }),
   );
 });
