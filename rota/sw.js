@@ -1,4 +1,4 @@
-const CACHE_NAME = "rotatrack-v17";
+const CACHE_NAME = "rotatrack-v18";
 const urlsToCache = [
   "./",
   "./index.html",
@@ -25,7 +25,6 @@ const urlsToCache = [
 
 // 1. INSTALAÇÃO
 self.addEventListener("install", (event) => {
-  // FORÇA A ATUALIZAÇÃO IMEDIATA: Não fica na fila de espera
   self.skipWaiting();
 
   event.waitUntil(

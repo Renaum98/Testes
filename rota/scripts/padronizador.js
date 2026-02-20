@@ -457,11 +457,11 @@ export function initPadronizador() {
     // Montar planilha final com as colunas do modelo
     processedRows = [
       [
-        "Endereço", // O Circuit reconhece automaticamente (Rua + Número)
-        "Complemento", // O Circuit reconhece como Linha 2 do endereço
+        "Address Line 1", // O Circuit reconhece automaticamente (Rua + Número)
+        "Address Line 2", // O Circuit reconhece como Linha 2 do endereço
         "Bairro", // Ajuda o GPS do Circuit a não errar a cidade
-        "Cidade", // O Circuit reconhece automaticamente
-        "Notas", // O Circuit exibe isso em destaque para o motorista!
+        "City", // O Circuit reconhece automaticamente
+        "Notes", // O Circuit exibe isso em destaque para o motorista!
       ],
     ];
 
@@ -475,7 +475,7 @@ export function initPadronizador() {
       // 3. Formata o texto para ficar perfeito na tela do Circuit
       let notasParaMotorista = "";
       if (qtdPacotes > 0) {
-        notasParaMotorista = `PACOTES: ${sequenciasValidas.join(", ")} (TOTAL: ${qtdPacotes})`;
+        notasParaMotorista = `Pacotes: ${sequenciasValidas.join(", ")} (Total: ${qtdPacotes})`;
       }
 
       // 4. Adiciona a linha na planilha
