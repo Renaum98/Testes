@@ -472,7 +472,7 @@ export function initPadronizador() {
       // 4. Adiciona o contador no final se houver pacotes
       if (qtdPacotes > 0) {
         // Você pode ajustar o formato aqui. Ex: " (Total: 3)" ou " total 3"
-        pacotesTexto += `-Total: ${qtdPacotes}`;
+        pacotesTexto += `-Total: ${qtdPacotes} pacotes`;
       }
 
       processedRows.push([
