@@ -405,11 +405,26 @@
           <span class="padron-progress-label" id="padronLabel">Processando...</span>
         </div>
 
-        <!-- Botão download (oculto até finalizar) -->
-        <button class="btn btn-secondary" id="padronBtnDownload" style="width:100%; margin-top:12px; display:none;">
-          <span class="material-symbols-outlined" style="font-size:18px">download</span>
-          Baixar arquivo padronizado
-        </button>
+        <!-- Lista de suspeitos (oculta até ter resultados) -->
+        <div class="padron-suspeitos" id="padronSuspeitos" style="display:none">
+          <div class="padron-suspeitos-titulo">
+            <span class="material-symbols-outlined" style="font-size:16px">warning</span>
+            Endereços suspeitos — revise manualmente
+          </div>
+          <ul class="padron-suspeitos-lista" id="padronSuspeitosList"></ul>
+        </div>
+
+        <!-- Botões de ação (ocultos até finalizar) -->
+        <div id="padronBtnRow" style="display:none; margin-top:12px; display:none; gap:8px; flex-direction: row;">
+          <button class="btn btn-secondary" id="padronBtnDownload" style="flex:1;">
+            <span class="material-symbols-outlined" style="font-size:18px">download</span>
+            Baixar
+          </button>
+          <button class="btn btn-secondary" id="padronBtnNovo" style="flex:1;">
+            <span class="material-symbols-outlined" style="font-size:18px">upload_file</span>
+            Novo arquivo
+          </button>
+        </div>
       </div>
 
       <div class="config-actions">

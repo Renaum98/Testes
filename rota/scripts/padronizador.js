@@ -36,29 +36,134 @@ const PADRON_ABBR = [
   [/\bBrig\.\s*/gi, "Brigadeiro "],
 ];
 
+const PALAVRAS_IGNORADAS = new Set([
+  "rua",
+  "avenida",
+  "alameda",
+  "travessa",
+  "estrada",
+  "rodovia",
+  "praça",
+  "largo",
+  "via",
+  "de",
+  "da",
+  "do",
+  "das",
+  "dos",
+  "e",
+  "a",
+  "o",
+  "em",
+  "com",
+]);
+
+// ── Abreviações ──
 function padronApplyAbbr(address) {
   let s = String(address || "");
   for (const [rx, rep] of PADRON_ABBR) s = s.replace(rx, rep);
   return s.replace(/\s{2,}/g, " ").trim();
 }
 
-// Extrai número + complemento do endereço original
-// "R Min Firmino, 27, Loja" → "27, Loja"
-function padronExtractRest(original) {
-  const s = String(original).trim();
-  const m1 = s.match(/,\s*(\d+.*)$/);
-  if (m1) return m1[1].trim();
-  const m2 = s.match(/\s+(\d+\S*.*)$/);
-  if (m2) return m2[1].trim();
-  return null;
+// ── Normaliza string para comparação (sem acentos, minúsculo, sem pontuação) ──
+function normalizar(str) {
+  return String(str)
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9\s]/g, " ")
+    .replace(/\s{2,}/g, " ")
+    .trim();
 }
 
-function padronBuildAddress(original, logradouro) {
-  const rest = padronExtractRest(original);
-  return rest ? logradouro + ", " + rest : logradouro;
+// ── Validação cruzada ViaCEP vs endereço original ──
+function logradouroParece(original, viaLogradouro) {
+  const origNorm = normalizar(original);
+  const viaNorm = normalizar(viaLogradouro);
+
+  const palavrasVia = viaNorm
+    .split(/\s+/)
+    .filter((p) => p.length > 3 && !PALAVRAS_IGNORADAS.has(p));
+
+  if (palavrasVia.length === 0) return true;
+  return palavrasVia.some((p) => origNorm.includes(p));
 }
 
-// ViaCEP com cache
+// ── Validação ESTRITA para resgate interno usando a própria planilha ──
+function logradouroPareceEstrito(original, ruaBoa) {
+  const origNorm = normalizar(original);
+  const boaNorm = normalizar(ruaBoa);
+
+  const palavrasBoa = boaNorm
+    .split(/\s+/)
+    .filter((p) => p.length > 2 && !PALAVRAS_IGNORADAS.has(p));
+
+  if (palavrasBoa.length === 0) return false;
+
+  // Para resgatar, TODAS as palavras principais da rua oficial
+  // devem estar contidas no endereço digitado errado.
+  return palavrasBoa.every((p) => origNorm.includes(p));
+}
+
+// ── Monta endereço e separa em line1 / line2 usando o logradouro como âncora ──
+function padronBuildAndSplit(original, logradouro) {
+  const origNorm = normalizar(original);
+  const viaNorm = normalizar(logradouro);
+
+  const palavrasChave = viaNorm
+    .split(/\s+/)
+    .filter((p) => p.length > 3 && !PALAVRAS_IGNORADAS.has(p));
+
+  // Passo 1: encontrar onde o logradouro termina no texto original normalizado
+  let fimLogradouro = 0;
+  for (const palavra of palavrasChave) {
+    const idx = origNorm.indexOf(palavra);
+    if (idx >= 0) {
+      fimLogradouro = Math.max(fimLogradouro, idx + palavra.length);
+    }
+  }
+
+  const restoOriginal = original.slice(fimLogradouro).trim();
+  const posVirgula = restoOriginal.indexOf(",");
+
+  if (posVirgula >= 0) {
+    const antesVirgula = restoOriginal.slice(0, posVirgula).trim();
+    const aposVirgula = restoOriginal.slice(posVirgula + 1).trim();
+
+    const numMatch = aposVirgula.match(/^(\S+)(.*)/);
+    const numero = numMatch ? numMatch[1] : aposVirgula;
+    const resto = numMatch ? numMatch[2].replace(/^,\s*/, "").trim() : "";
+
+    const line1 = `${logradouro}, ${numero}`;
+
+    const partesLine2 = [];
+    if (antesVirgula) partesLine2.push(antesVirgula);
+    if (resto) partesLine2.push(resto);
+    const line2 = partesLine2.join(", ");
+
+    return { line1, line2 };
+  }
+
+  return { line1: logradouro, line2: restoOriginal.trim() };
+}
+
+// ── Versão sem âncora: separa só com base na estrutura do texto ──
+function splitAddressLines(fullAddress) {
+  const s = String(fullAddress || "").trim();
+
+  const numMatch = s.match(/,\s*(\d+\S*)(.*)/);
+  if (!numMatch) return { line1: s, line2: "" };
+
+  const posVirgula = s.indexOf(numMatch[0]);
+  const line1 = s
+    .slice(0, posVirgula + numMatch[0].length - numMatch[2].length)
+    .trim();
+  const line2 = numMatch[2].replace(/^,\s*/, "").trim();
+
+  return { line1, line2 };
+}
+
+// ── ViaCEP com cache ──
 const padronCepCache = {};
 async function padronFetchViaCEP(rawCep) {
   const cep = String(rawCep).replace(/\D/g, "");
@@ -83,7 +188,33 @@ async function padronFetchViaCEP(rawCep) {
   }
 }
 
-// ── Inicialização (executa após o DOM estar pronto) ──
+// ── Agrupamento de endereços duplicados ──
+function agruparEnderecos(linhas) {
+  const mapa = new Map();
+  const ordem = [];
+
+  for (const item of linhas) {
+    const chave = item.line1
+      .toLowerCase()
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .replace(/[^a-z0-9\s]/g, " ")
+      .replace(/\s{2,}/g, " ")
+      .trim();
+
+    if (mapa.has(chave)) {
+      mapa.get(chave).sequencias.push(...item.sequencias);
+    } else {
+      const entrada = { ...item, sequencias: [...item.sequencias] };
+      mapa.set(chave, entrada);
+      ordem.push(chave);
+    }
+  }
+
+  return ordem.map((chave) => mapa.get(chave));
+}
+
+// ── Inicialização ──
 export function initPadronizador() {
   const dropzone = document.getElementById("padronDropzone");
   const fileInput = document.getElementById("padronFileInput");
@@ -91,15 +222,41 @@ export function initPadronizador() {
   const bar = document.getElementById("padronBar");
   const label = document.getElementById("padronLabel");
   const btnDownload = document.getElementById("padronBtnDownload");
+  const btnRow = document.getElementById("padronBtnRow");
+  const btnNovo = document.getElementById("padronBtnNovo");
 
-  if (!dropzone) return; // elemento não existe na página atual
+  if (!dropzone) return;
 
   let workbook = null;
   let sheetName = "";
   let isXlsx = false;
   let processedRows = [];
 
-  // Drag & drop visual
+  if (btnNovo) {
+    btnNovo.addEventListener("click", () => {
+      dropzone.classList.remove("file-ready");
+      dropzone.querySelector('span[class*="material"]').textContent =
+        "upload_file";
+      document.getElementById("padronDropLabel").textContent =
+        "Selecionar arquivo";
+
+      fileInput.value = "";
+
+      progress.style.display = "none";
+      btnRow.style.display = "none";
+      bar.style.width = "0%";
+      label.textContent = "Processando...";
+
+      const suspeitosBox = document.getElementById("padronSuspeitosBox");
+      if (suspeitosBox) suspeitosBox.remove();
+
+      workbook = null;
+      sheetName = "";
+      isXlsx = false;
+      processedRows = [];
+    });
+  }
+
   dropzone.addEventListener("dragover", (e) => {
     e.preventDefault();
     dropzone.classList.add("dragover");
@@ -119,14 +276,12 @@ export function initPadronizador() {
   function handleFile(file) {
     isXlsx = /\.xlsx?$/i.test(file.name);
 
-    // Feedback visual na dropzone
     dropzone.classList.add("file-ready");
     dropzone.querySelector('span[class*="material"]').textContent =
       "check_circle";
     document.getElementById("padronDropLabel").textContent = file.name;
 
-    // Esconde botão de download anterior
-    btnDownload.style.display = "none";
+    btnRow.style.display = "none";
     processedRows = [];
 
     const reader = new FileReader();
@@ -143,7 +298,6 @@ export function initPadronizador() {
     let parsedRows;
 
     if (xlsx) {
-      // Carrega SheetJS dinamicamente se não estiver disponível
       if (!window.XLSX) {
         await loadScript(
           "https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js",
@@ -165,90 +319,281 @@ export function initPadronizador() {
       return;
     }
 
-    // Auto-detectar colunas de endereço e CEP
-    const headers = parsedRows[0].map((h) => String(h));
+    const headers = parsedRows[0].map((h) => String(h).trim());
+
     const addrCol = headers.findIndex((h) =>
       /destination.?address|endere|logradouro/i.test(h),
     );
     const cepCol = headers.findIndex((h) =>
       /zipcode|zip.?code|postal.?code|cep|zip|postal/i.test(h),
     );
+    const seqCol = headers.findIndex((h) => /^sequence$|^seq$/i.test(h));
+    const bairroCol = headers.findIndex((h) =>
+      /bairro|neighborhood|district/i.test(h),
+    );
+    const cityCol = headers.findIndex((h) => /^city$|^cidade$/i.test(h));
 
     if (addrCol < 0 || cepCol < 0) {
-      label.textContent = `Colunas não encontradas. Endereço: col ${addrCol} | CEP: col ${cepCol}`;
+      label.textContent = "Coluna de endereço ou CEP não encontrada.";
       progress.style.display = "block";
       return;
     }
 
-    // Iniciar processamento
     progress.style.display = "block";
     bar.style.width = "0%";
     label.textContent = "Iniciando...";
 
-    processedRows = [[...parsedRows[0]]]; // header
     const dataRows = parsedRows.slice(1);
     const total = dataRows.length;
 
+    let totalCorrigidos = 0;
+    let totalApenasAbrev = 0;
+    let totalSuspeitos = 0;
+    let totalResgatados = 0;
+    const listaSuspeitos = [];
+
+    const linhasProcessadas = [];
+
+    // Banco de ruas oficiais da própria planilha
+    const ruasValidadasPlanilha = new Set();
+
+    // ========================================================
+    // PASSO 1: Validar no ViaCEP e Popular o Banco de Ruas
+    // ========================================================
     for (let i = 0; i < dataRows.length; i++) {
-      const row = [...dataRows[i]];
+      const row = dataRows[i];
       const cepClean = String(row[cepCol] || "").replace(/\D/g, "");
       const origAddr = String(row[addrCol] || "").trim();
 
-      // Atualizar barra
       const pct = Math.round(((i + 1) / total) * 100);
       bar.style.width = pct + "%";
-      label.textContent = `${i + 1} / ${total} — CEP ${cepClean || "—"}`;
+      label.textContent = `Validando CEPs: ${i + 1} / ${total}`;
 
+      let line1 = "",
+        line2 = "",
+        status = "";
       const via = await padronFetchViaCEP(cepClean);
 
       if (via && via.logradouro) {
-        row[addrCol] = padronBuildAddress(origAddr, via.logradouro);
+        if (logradouroParece(origAddr, via.logradouro)) {
+          // ✅ ViaCEP confirmado
+          ({ line1, line2 } = padronBuildAndSplit(origAddr, via.logradouro));
+          ruasValidadasPlanilha.add(via.logradouro); // Salva rua boa no banco
+          status = "ok";
+          totalCorrigidos++;
+        } else {
+          status = "suspeito"; // Deixa pendente
+        }
       } else {
-        row[addrCol] = padronApplyAbbr(origAddr);
+        status = "sem_cep"; // Deixa pendente
       }
 
-      processedRows.push(row);
+      linhasProcessadas.push({
+        original: origAddr,
+        cep: cepClean,
+        viaCep: via ? via.logradouro : null,
+        line1,
+        line2,
+        status,
+        linhaOriginal: i + 2,
+        bairro: bairroCol >= 0 ? String(row[bairroCol] || "").trim() : "",
+        city: cityCol >= 0 ? String(row[cityCol] || "").trim() : "",
+        sequencias: seqCol >= 0 ? [String(row[seqCol] || "").trim()] : [],
+      });
 
-      // Throttle apenas para CEPs novos (não em cache)
       if (cepClean.length === 8 && !(cepClean in padronCepCache)) {
         await new Promise((r) => setTimeout(r, 120));
       }
     }
 
-    label.textContent = "✓ Concluído!";
+    // ========================================================
+    // PASSO 2: Resgatar Suspeitos usando o Banco de Ruas
+    // ========================================================
+    label.textContent = "Cruzando dados para resgatar erros...";
+
+    for (const item of linhasProcessadas) {
+      if (item.status === "suspeito" || item.status === "sem_cep") {
+        let resgatado = false;
+
+        // Tenta achar a rua digitada dentro das ruas válidas da própria planilha
+        for (const ruaBoa of ruasValidadasPlanilha) {
+          if (logradouroPareceEstrito(item.original, ruaBoa)) {
+            const separacao = padronBuildAndSplit(item.original, ruaBoa);
+            item.line1 = separacao.line1;
+            item.line2 = separacao.line2;
+
+            resgatado = true;
+            totalResgatados++;
+            totalCorrigidos++;
+            break;
+          }
+        }
+
+        // Se a própria planilha não salvou ele, aplica o Fallback Textual antigo
+        if (!resgatado) {
+          const abbr = padronApplyAbbr(item.original);
+          const separacaoFallback = splitAddressLines(abbr);
+          item.line1 = separacaoFallback.line1;
+          item.line2 = separacaoFallback.line2;
+
+          if (item.status === "suspeito") {
+            totalSuspeitos++;
+            listaSuspeitos.push({
+              linha: item.linhaOriginal,
+              cep: item.cep,
+              original: item.original,
+              viaCep: item.viaCep,
+            });
+          } else {
+            totalApenasAbrev++;
+          }
+        }
+      }
+    }
+
+    // Segunda passagem: agrupar endereços duplicados
+    const agrupadas = agruparEnderecos(linhasProcessadas);
+
+    // Montar planilha final com as colunas do modelo
+    processedRows = [
+      ["Endereço", "Complemento", "Bairro", "Cidade", "Pacotes Na Parada"],
+    ];
+
+    for (const item of agrupadas) {
+      // 1. Filtra as sequências válidas (remove vazias)
+      const sequenciasValidas = item.sequencias.filter(Boolean);
+
+      // 2. Conta a quantidade de pacotes
+      const qtdPacotes = sequenciasValidas.length;
+
+      // 3. Junta os números separados por vírgula
+      let pacotesTexto = sequenciasValidas.join(", ");
+
+      // 4. Adiciona o contador no final se houver pacotes
+      if (qtdPacotes > 0) {
+        // Você pode ajustar o formato aqui. Ex: " (Total: 3)" ou " total 3"
+        pacotesTexto += `-Total: ${qtdPacotes}`;
+      }
+
+      processedRows.push([
+        item.line1,
+        item.line2,
+        item.bairro,
+        item.city,
+        pacotesTexto,
+      ]);
+    }
+
+    // Resumo
+    const totalParadas = agrupadas.length;
+    const totalOriginal = linhasProcessadas.length;
+    const totalAgrupados = totalOriginal - totalParadas;
+
+    let resumo = `✓ ${totalParadas} paradas (${totalAgrupados} agrupadas) · ${totalCorrigidos} corrigidos`;
+    if (totalResgatados > 0) resumo += ` (${totalResgatados} resgatados)`;
+    if (totalSuspeitos > 0) resumo += ` · ${totalSuspeitos} suspeitos`;
+
+    label.textContent = resumo;
     bar.style.width = "100%";
-    btnDownload.style.display = "block";
+    btnRow.style.display = "flex";
+
+    // ── Exibir suspeitos dinamicamente ──
+    const anterior = document.getElementById("padronSuspeitosBox");
+    if (anterior) anterior.remove();
+
+    if (listaSuspeitos.length > 0) {
+      const box = document.createElement("div");
+      box.id = "padronSuspeitosBox";
+      Object.assign(box.style, {
+        marginTop: "12px",
+        background: "rgba(245,101,101,0.06)",
+        border: "1px solid rgba(245,101,101,0.25)",
+        borderRadius: "10px",
+        padding: "12px",
+      });
+
+      const titulo = document.createElement("div");
+      Object.assign(titulo.style, {
+        display: "flex",
+        alignItems: "center",
+        gap: "6px",
+        fontSize: "0.75rem",
+        fontWeight: "700",
+        color: "#e53e3e",
+        fontFamily: "'Montserrat', sans-serif",
+        marginBottom: "10px",
+      });
+      titulo.innerHTML = `<span class="material-symbols-outlined" style="font-size:16px">warning</span> Endereços suspeitos — revise manualmente`;
+      box.appendChild(titulo);
+
+      const ul = document.createElement("ul");
+      Object.assign(ul.style, {
+        listStyle: "none",
+        padding: "0",
+        margin: "0",
+        display: "flex",
+        flexDirection: "column",
+        gap: "8px",
+      });
+
+      for (const s of listaSuspeitos) {
+        const li = document.createElement("li");
+        Object.assign(li.style, {
+          display: "flex",
+          flexDirection: "column",
+          gap: "2px",
+          padding: "8px 10px",
+          background: "var(--cor-branco)",
+          borderRadius: "8px",
+          border: "1px solid var(--cor-borda)",
+          fontFamily: "'Montserrat', sans-serif",
+        });
+        li.innerHTML = `
+          <span style="font-size:0.7rem;font-weight:700;color:#e53e3e;text-transform:uppercase;letter-spacing:0.5px">
+            Linha ${s.linha} · CEP ${s.cep}
+          </span>
+          <span style="font-size:0.75rem;color:var(--cor-texto-secundario);line-height:1.4">
+            ✏ ${s.original}
+          </span>
+          <span style="font-size:0.75rem;color:var(--cor-texto-secundario);line-height:1.4">
+            📍 ViaCEP: ${s.viaCep}
+          </span>
+        `;
+        ul.appendChild(li);
+      }
+
+      box.appendChild(ul);
+      progress.insertAdjacentElement("afterend", box);
+    }
   }
 
-  // Download
+  // ── Download ──
   btnDownload.addEventListener("click", () => {
-    if (isXlsx && workbook) {
-      const ws = XLSX.utils.aoa_to_sheet(processedRows);
-      workbook.Sheets[sheetName] = ws;
-      XLSX.writeFile(workbook, "enderecos_padronizados.xlsx");
-    } else {
-      const csv = processedRows
-        .map((r) =>
-          r
-            .map((c) => {
-              const s = String(c ?? "");
-              return s.includes(",") || s.includes('"') || s.includes("\n")
-                ? '"' + s.replace(/"/g, '""') + '"'
-                : s;
-            })
-            .join(","),
-        )
-        .join("\r\n");
-      const blob = new Blob(["\uFEFF" + csv], {
-        type: "text/csv;charset=utf-8;",
-      });
-      const url = URL.createObjectURL(blob);
-      Object.assign(document.createElement("a"), {
-        href: url,
-        download: "enderecos_padronizados.csv",
-      }).click();
-      URL.revokeObjectURL(url);
+    if (!window.XLSX) {
+      console.error("XLSX não carregado");
+      return;
     }
+    const ws = XLSX.utils.aoa_to_sheet(processedRows);
+
+    const colWidths = processedRows[0].map((_, ci) => ({
+      wch: Math.max(
+        ...processedRows.map((r) => String(r[ci] || "").length),
+        10,
+      ),
+    }));
+    ws["!cols"] = colWidths;
+
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Paradas");
+    const hoje = new Date();
+    const dia = String(hoje.getDate()).padStart(2, "0");
+    const mes = String(hoje.getMonth() + 1).padStart(2, "0");
+    const ano = hoje.getFullYear();
+
+    const nomeArquivo = `${dia}-${mes}-${ano}-Rota-Aprimorada.xlsx`;
+
+    // Salva o arquivo com o novo nome
+    XLSX.writeFile(wb, nomeArquivo);
   });
 
   // ── Helpers ──
@@ -290,11 +635,4 @@ export function initPadronizador() {
       document.head.appendChild(s);
     });
   }
-}
-
-// Executa quando o DOM estiver pronto
-if (document.readyState === "loading") {
-  document.addEventListener("DOMContentLoaded", initPadronizador);
-} else {
-  initPadronizador();
 }
