@@ -15,8 +15,7 @@ import {
 import {
   getAuth,
   GoogleAuthProvider,
-  signInWithRedirect,
-  getRedirectResult,
+  signInWithPopup,
   signOut,
   onAuthStateChanged,
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
@@ -39,8 +38,7 @@ const provider = new GoogleAuthProvider();
 
 window.loginGoogle = async function () {
   try {
-    await signInWithRedirect(auth, provider);
-    // A página vai redirecionar para o Google e voltar automaticamente
+    await signInWithPopup(auth, provider);
   } catch (error) {
     alert("Erro ao entrar: " + error.message);
   }
@@ -69,14 +67,21 @@ async function salvarUsuarioFirestore(user) {
 }
 
 function atualizarUIAuth(user) {
+  console.log("atualizarUIAuth chamado, user:", user);
   const areaLogin = document.getElementById("area-login");
   const appEl = document.getElementById("app");
   const userNome = document.getElementById("user-nome");
   const userFoto = document.getElementById("user-foto");
+  const loadingEl = document.getElementById("area-loading");
+
+  // Esconde o loading sempre que o estado for resolvido
+  if (loadingEl) loadingEl.style.display = "none";
 
   if (user) {
-    areaLogin.classList.add("hidden");
-    appEl.classList.remove("hidden");
+    console.log("Usuário logado:", user.displayName);
+    areaLogin.style.display = "none";
+    appEl.style.display = "block";
+    console.log("app hidden?", appEl.classList.contains("hidden"));
 
     userNome.textContent = user.displayName || user.email;
     if (user.photoURL) {
@@ -84,26 +89,16 @@ function atualizarUIAuth(user) {
       userFoto.style.display = "block";
     }
 
-    // Inicia o app somente após login confirmado
     iniciarApp();
   } else {
-    areaLogin.classList.remove("hidden");
-    appEl.classList.add("hidden");
+    console.log("Sem usuário — mostrando login");
+    areaLogin.style.display = "block";
+    appEl.style.display = "none";
   }
 }
 
 // Listener de autenticação — ponto de entrada do app
 onAuthStateChanged(auth, async (user) => {
-  // Captura o resultado do redirect (caso o usuário tenha acabado de logar)
-  try {
-    const result = await getRedirectResult(auth);
-    if (result?.user) {
-      await salvarUsuarioFirestore(result.user);
-    }
-  } catch (e) {
-    console.error("Erro no redirect:", e);
-  }
-
   if (user) {
     await salvarUsuarioFirestore(user);
   }

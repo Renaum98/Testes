@@ -865,7 +865,7 @@ button .material-icons {
 
 /* Utility */
 .hidden {
-    display: none !important;
+    display: none;
 }
 
 .text-center {

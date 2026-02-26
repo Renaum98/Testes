@@ -17,8 +17,26 @@
 
 <body>
 
+    <!-- TELA DE LOADING (visível enquanto Firebase verifica sessão) -->
+    <div id="area-loading" style="text-align:center; margin-top:80px;">
+        <span class="material-icons"
+            style="font-size:48px; color:#6366f1; animation: spin 1s linear infinite;">sync</span>
+        <p style="margin-top:12px; color:#6b7280;">Carregando...</p>
+    </div>
+    <style>
+        @keyframes spin {
+            from {
+                transform: rotate(0deg);
+            }
+
+            to {
+                transform: rotate(360deg);
+            }
+        }
+    </style>
+
     <!-- TELA DE LOGIN -->
-    <div id="area-login" style="text-align:center; margin-top:40px;">
+    <div id="area-login" style="text-align:center; margin-top:40px; display:none;">
         <h2>Mercado Inteligente</h2>
         <button onclick="loginGoogle()" class="btn-primary" style="width: fit-content; margin: 8px auto;">
             <span class="material-icons">login</span>
