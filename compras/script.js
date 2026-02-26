@@ -16,6 +16,8 @@ import {
   getAuth,
   GoogleAuthProvider,
   signInWithPopup,
+  signInWithRedirect,
+  getRedirectResult,
   signOut,
   onAuthStateChanged,
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
@@ -36,9 +38,17 @@ const provider = new GoogleAuthProvider();
 
 // --- AUTENTICAÇÃO ---
 
+const isPWA =
+  window.matchMedia("(display-mode: standalone)").matches ||
+  window.navigator.standalone === true;
+
 window.loginGoogle = async function () {
   try {
-    await signInWithPopup(auth, provider);
+    if (isPWA) {
+      await signInWithRedirect(auth, provider);
+    } else {
+      await signInWithPopup(auth, provider);
+    }
   } catch (error) {
     alert("Erro ao entrar: " + error.message);
   }
@@ -80,7 +90,8 @@ function atualizarUIAuth(user) {
   if (user) {
     console.log("Usuário logado:", user.displayName);
     areaLogin.style.display = "none";
-    appEl.style.display = "block";
+    appEl.classList.remove("hidden");
+    appEl.style.setProperty("display", "block", "important");
     console.log("app hidden?", appEl.classList.contains("hidden"));
 
     userNome.textContent = user.displayName || user.email;
@@ -93,12 +104,24 @@ function atualizarUIAuth(user) {
   } else {
     console.log("Sem usuário — mostrando login");
     areaLogin.style.display = "block";
-    appEl.style.display = "none";
+    appEl.style.setProperty("display", "none", "important");
   }
 }
 
 // Listener de autenticação — ponto de entrada do app
 onAuthStateChanged(auth, async (user) => {
+  // No PWA, captura o resultado do redirect após voltar do Google
+  if (isPWA) {
+    try {
+      const result = await getRedirectResult(auth);
+      if (result?.user) {
+        await salvarUsuarioFirestore(result.user);
+      }
+    } catch (e) {
+      console.error("Erro no redirect result:", e);
+    }
+  }
+
   if (user) {
     await salvarUsuarioFirestore(user);
   }
