@@ -1,4 +1,4 @@
-const CACHE_NAME = 'classificador-v3';
+const CACHE_NAME = 'classificador-v4';
 const urlsToCache = [
   '/',
   '/index.html',
