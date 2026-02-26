@@ -13,14 +13,43 @@
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
     <title>Mercado Inteligente</title>
-
 </head>
 
 <body>
 
+    <!-- TELA DE LOGIN -->
+    <div id="area-login" style="text-align:center; margin-top:40px;">
+        <h2>Mercado Inteligente</h2>
+        <button onclick="loginGoogle()" class="btn-primary" style="width: fit-content; margin: 8px auto;">
+            <span class="material-icons">login</span>
+            Entrar com Google
+        </button>
+    </div>
+
     <div id="container-notificacoes"></div>
 
-    <div class="container">
+    <!-- APP (oculto até login) -->
+    <div class="container hidden" id="app">
+
+        <!-- Barra do usuário -->
+        <div id="user-bar" style="
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 16px;
+            background: var(--bg-card, #fff);
+            border-bottom: 1px solid #e5e7eb;
+            margin-bottom: 8px;
+        ">
+            <div style="display:flex; align-items:center; gap:10px;">
+                <img id="user-foto" src="" alt="foto" width="32" height="32" style="border-radius:50%; display:none;">
+                <span id="user-nome" style="font-size:0.875rem; font-weight:500;"></span>
+            </div>
+            <button onclick="logout()" class="btn-danger" style="padding:6px 12px; font-size:0.8rem; width: 60px; margin-top: 0;">
+                <span class="material-icons" style="font-size:16px;">logout</span>
+                Sair
+            </button>
+        </div>
 
         <!-- TELA INICIAL -->
         <div id="tela-inicial">
@@ -43,8 +72,8 @@
                 <div class="divider"></div>
 
                 <label
-                    style="display: flex; align-items: center; gap: 6px; margin-bottom: 8px; font-weight: 500; font-size: 0.875rem;">
-                    <span class="material-icons" style="font-size: 18px;">account_balance_wallet</span>
+                    style="display:flex; align-items:center; gap:6px; margin-bottom:8px; font-weight:500; font-size:0.875rem;">
+                    <span class="material-icons" style="font-size:18px;">account_balance_wallet</span>
                     Limite de orçamento
                 </label>
                 <input type="number" id="orcamento-inicial" placeholder="R$ 0,00" step="0.01" inputmode="decimal">
@@ -69,7 +98,7 @@
             </div>
 
             <div class="card">
-                <div class="input-group" style="position: relative;">
+                <div class="input-group" style="position:relative;">
                     <input type="text" id="input-item-lista" placeholder="Ex: Arroz, Leite..." autocomplete="off">
                     <div id="lista-sugestoes-editor" class="lista-suspensa hidden"></div>
                 </div>
@@ -108,12 +137,12 @@
                     <h3>Falta Comprar</h3>
                     <span class="badge" id="badge-pendentes">0</span>
                 </div>
-                <input type="text" id="busca-pendente" placeholder="Procurar na lista..." style="margin-bottom: 0;">
+                <input type="text" id="busca-pendente" placeholder="Procurar na lista..." style="margin-bottom:0;">
                 <div id="area-pendentes" class="area-pendentes"></div>
             </div>
 
             <div class="card">
-                <div class="input-group" style="position: relative;">
+                <div class="input-group" style="position:relative;">
                     <input type="text" id="input-nome" placeholder="Nome do produto" autocomplete="off">
                     <div id="lista-sugestoes" class="lista-suspensa hidden"></div>
                 </div>
@@ -161,7 +190,9 @@
         </div>
     </div>
 
+    <!-- Tudo em um único script -->
     <script type="module" src="script.js"></script>
+
 </body>
 
 </html>

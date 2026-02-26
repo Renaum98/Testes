@@ -7,11 +7,19 @@ import {
   orderBy,
   query,
   Timestamp,
-  doc, 
-  setDoc, 
-  onSnapshot, 
-  deleteDoc, 
+  doc,
+  setDoc,
+  onSnapshot,
+  deleteDoc,
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import {
+  getAuth,
+  GoogleAuthProvider,
+  signInWithRedirect,
+  getRedirectResult,
+  signOut,
+  onAuthStateChanged,
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyDAFvUYHdaNItt6zAbLaYxafzjifRkP0UU",
@@ -24,33 +32,107 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
+const auth = getAuth(app);
+const provider = new GoogleAuthProvider();
+
+// --- AUTENTICAÇÃO ---
+
+window.loginGoogle = async function () {
+  try {
+    await signInWithRedirect(auth, provider);
+    // A página vai redirecionar para o Google e voltar automaticamente
+  } catch (error) {
+    alert("Erro ao entrar: " + error.message);
+  }
+};
+
+window.logout = async function () {
+  try {
+    await signOut(auth);
+  } catch (error) {
+    alert("Erro ao sair: " + error.message);
+  }
+};
+
+async function salvarUsuarioFirestore(user) {
+  const ref = doc(db, "usuarios", user.uid);
+  await setDoc(
+    ref,
+    {
+      nome: user.displayName,
+      email: user.email,
+      foto: user.photoURL,
+      ultimoLogin: Timestamp.now(),
+    },
+    { merge: true },
+  );
+}
+
+function atualizarUIAuth(user) {
+  const areaLogin = document.getElementById("area-login");
+  const appEl = document.getElementById("app");
+  const userNome = document.getElementById("user-nome");
+  const userFoto = document.getElementById("user-foto");
+
+  if (user) {
+    areaLogin.classList.add("hidden");
+    appEl.classList.remove("hidden");
+
+    userNome.textContent = user.displayName || user.email;
+    if (user.photoURL) {
+      userFoto.src = user.photoURL;
+      userFoto.style.display = "block";
+    }
+
+    // Inicia o app somente após login confirmado
+    iniciarApp();
+  } else {
+    areaLogin.classList.remove("hidden");
+    appEl.classList.add("hidden");
+  }
+}
+
+// Listener de autenticação — ponto de entrada do app
+onAuthStateChanged(auth, async (user) => {
+  // Captura o resultado do redirect (caso o usuário tenha acabado de logar)
+  try {
+    const result = await getRedirectResult(auth);
+    if (result?.user) {
+      await salvarUsuarioFirestore(result.user);
+    }
+  } catch (e) {
+    console.error("Erro no redirect:", e);
+  }
+
+  if (user) {
+    await salvarUsuarioFirestore(user);
+  }
+  atualizarUIAuth(user);
+});
 
 // --- CONFIGURAÇÃO DA LISTA COMPARTILHADA ---
-// Usamos um ID fixo para que todos os dispositivos editem o mesmo documento
 const ID_LISTA_COMPARTILHADA = "sessao_familiar_unica";
 const docRef = doc(db, "lista_ativa", ID_LISTA_COMPARTILHADA);
 
-// --- ESTADO & PERSISTÊNCIA ---
+// --- ESTADO ---
 let carrinho = [];
 let listaPrevia = [];
 let orcamento = 0;
 let ultimosPrecos = {};
-let isUpdatingFromSnapshot = false; // Flag para evitar loops visuais desnecessários
+let isUpdatingFromSnapshot = false;
+let appIniciado = false; // Garante que o app não é iniciado duas vezes
 
-// Substitui o salvar no LocalStorage por Salvar no Firestore
+// --- PERSISTÊNCIA REMOTA ---
+
 const salvarEstadoRemoto = async () => {
-  // Se estivermos recebendo uma atualização do banco, não salvamos de volta imediatamente
   if (isUpdatingFromSnapshot) return;
-
   const estado = {
-    carrinho: carrinho,
-    listaPrevia: listaPrevia,
-    orcamento: orcamento,
+    carrinho,
+    listaPrevia,
+    orcamento,
     timestamp: Date.now(),
   };
-
   try {
-    // setDoc com merge: true ou sobrescrevendo o documento da sessão
     await setDoc(docRef, estado);
   } catch (e) {
     console.error("Erro ao sincronizar:", e);
@@ -58,10 +140,9 @@ const salvarEstadoRemoto = async () => {
   }
 };
 
-// Listener em tempo real (Substitui carregarEstadoLocal)
 const iniciarSincronizacao = () => {
   onSnapshot(docRef, (docSnap) => {
-    isUpdatingFromSnapshot = true; // Bloqueia salvamento reativo enquanto atualiza
+    isUpdatingFromSnapshot = true;
 
     if (docSnap.exists()) {
       const estado = docSnap.data();
@@ -69,31 +150,22 @@ const iniciarSincronizacao = () => {
       listaPrevia = estado.listaPrevia || [];
       orcamento = estado.orcamento || 0;
 
-      // Atualiza inputs de orçamento se necessário
       if (orcamento > 0) {
         document.getElementById("orcamento-inicial").value = orcamento;
       }
-
-      // Lógica para mostrar aviso de recuperação (agora sincronizada)
       if (carrinho.length > 0) {
         document.getElementById("aviso-recuperacao").classList.remove("hidden");
       }
-
-      // Se o orçamento já foi definido e estamos na tela inicial, talvez queira ir para tela de compras?
-      // Mantive a lógica original: só atualiza as variáveis e UI.
     } else {
-      // Se o documento não existe (foi excluído/finalizado), reseta tudo
       carrinho = [];
       listaPrevia = [];
       orcamento = 0;
       document.getElementById("orcamento-inicial").value = "";
     }
 
-    // Atualiza toda a interface visual com os dados novos do banco
     atualizarUI();
     renderizarListaPreviaEditor();
-
-    isUpdatingFromSnapshot = false; // Libera
+    isUpdatingFromSnapshot = false;
   });
 };
 
@@ -103,11 +175,12 @@ const limparEstadoRemoto = async () => {
     carrinho = [];
     orcamento = 0;
     listaPrevia = [];
-    // A UI será limpa automaticamente pelo onSnapshot
   } catch (e) {
     console.error("Erro ao limpar:", e);
   }
 };
+
+// --- PRODUTOS ---
 
 const produtosBasicos = [
   "Arroz Branco",
@@ -222,11 +295,11 @@ const produtosBasicos = [
 ];
 let produtosConhecidos = new Set(produtosBasicos);
 
-// --- FUNÇÕES ---
+// --- FUNÇÕES DE UI ---
 
 window.removerItem = (index) => {
   carrinho.splice(index, 1);
-  salvarEstadoRemoto(); // Atualizado
+  salvarEstadoRemoto();
   atualizarUI();
 };
 
@@ -255,26 +328,24 @@ const atualizarUI = () => {
 
   if (carrinho.length === 0) {
     listaDiv.innerHTML = `
-                    <div class="empty-state">
-                        <span class="material-icons empty-state-icon">shopping_cart</span>
-                        <p>Carrinho vazio</p>
-                    </div>
-                `;
+      <div class="empty-state">
+        <span class="material-icons empty-state-icon">shopping_cart</span>
+        <p>Carrinho vazio</p>
+      </div>`;
   } else {
     listaDiv.innerHTML = carrinho
       .map(
         (item, i) => `
-                    <div class="item-lista">
-                        <div class="item-info">
-                            <div class="item-nome">${item.nome}</div>
-                            <div class="item-detalhes">${item.qtd}x R$ ${item.preco.toFixed(2).replace(".", ",")}</div>
-                        </div>
-                        <div class="item-total">R$ ${item.total.toFixed(2).replace(".", ",")}</div>
-                        <button class="btn-remove" onclick="removerItem(${i})">
-                            <span class="material-icons">close</span>
-                        </button>
-                    </div>
-                `,
+      <div class="item-lista">
+        <div class="item-info">
+          <div class="item-nome">${item.nome}</div>
+          <div class="item-detalhes">${item.qtd}x R$ ${item.preco.toFixed(2).replace(".", ",")}</div>
+        </div>
+        <div class="item-total">R$ ${item.total.toFixed(2).replace(".", ",")}</div>
+        <button class="btn-remove" onclick="removerItem(${i})">
+          <span class="material-icons">close</span>
+        </button>
+      </div>`,
       )
       .reverse()
       .join("");
@@ -283,16 +354,13 @@ const atualizarUI = () => {
   atualizarListaPendenteVisual();
 };
 
-const inputBuscaPendente = document.getElementById("busca-pendente");
-inputBuscaPendente.addEventListener("input", () => {
-  atualizarListaPendenteVisual();
-});
-
 const atualizarListaPendenteVisual = () => {
   const divPendentes = document.getElementById("area-pendentes");
   const painelPendentes = document.getElementById("painel-lista-pendente");
   const badgePendentes = document.getElementById("badge-pendentes");
-  const termoBusca = inputBuscaPendente.value.toLowerCase();
+  const termoBusca = document
+    .getElementById("busca-pendente")
+    .value.toLowerCase();
 
   let pendentes = listaPrevia.filter(
     (p) => !carrinho.some((c) => c.nome.toLowerCase() === p.toLowerCase()),
@@ -309,16 +377,15 @@ const atualizarListaPendenteVisual = () => {
 
     if (pendentes.length === 0 && termoBusca) {
       divPendentes.innerHTML =
-        '<p class="text-center text-muted" style="margin-top: 12px; font-size: 0.875rem;">Nenhum item encontrado</p>';
+        '<p class="text-center text-muted" style="margin-top:12px;font-size:0.875rem;">Nenhum item encontrado</p>';
     } else {
       divPendentes.innerHTML = pendentes
         .sort((a, b) => a.localeCompare(b, "pt-BR"))
         .map(
           (item) => `
-                <span class="chip-pendente" onclick="selecionarPendente('${item.replace(/'/g, "\\'")}')">
-                    ${item}
-                </span>
-            `,
+          <span class="chip-pendente" onclick="selecionarPendente('${item.replace(/'/g, "\\'")}')">
+            ${item}
+          </span>`,
         )
         .join("");
     }
@@ -331,7 +398,6 @@ window.selecionarPendente = (nomeItem) => {
   document.getElementById("input-nome").value = nomeItem;
   document.getElementById("input-qtd").value = 1;
   document.getElementById("input-preco").focus();
-
   if (ultimosPrecos[nomeItem]) {
     mostrarNotificacao(
       `Último preço: R$ ${ultimosPrecos[nomeItem].toFixed(2).replace(".", ",")}`,
@@ -341,78 +407,18 @@ window.selecionarPendente = (nomeItem) => {
   }
 };
 
-// Autocomplete Compras
-const inputNome = document.getElementById("input-nome");
-const listaSugestoes = document.getElementById("lista-sugestoes");
-const inputPreco = document.getElementById("input-preco");
-
-inputNome.addEventListener("input", (e) => {
-  const termo = e.target.value.toLowerCase();
-  listaSugestoes.innerHTML = "";
-  if (termo.length < 1) {
-    listaSugestoes.classList.add("hidden");
-    return;
-  }
-  const sugestoes = Array.from(produtosConhecidos)
-    .filter((p) => p.toLowerCase().includes(termo))
-    .slice(0, 10);
-  if (sugestoes.length > 0) {
-    listaSugestoes.classList.remove("hidden");
-    sugestoes.forEach((produto) => {
-      const div = document.createElement("div");
-      div.classList.add("item-sugestao");
-      div.innerText = produto;
-      div.onclick = () => {
-        inputNome.value = produto;
-        listaSugestoes.classList.add("hidden");
-        inputPreco.focus();
-        verificarHistoricoPreco(produto, parseFloat(inputPreco.value));
-      };
-      listaSugestoes.appendChild(div);
-    });
-  } else {
-    listaSugestoes.classList.add("hidden");
-  }
-});
-
-// Autocomplete Editor
-const inputItemLista = document.getElementById("input-item-lista");
-const listaSugestoesEditor = document.getElementById("lista-sugestoes-editor");
-
-inputItemLista.addEventListener("input", (e) => {
-  const termo = e.target.value.toLowerCase();
-  listaSugestoesEditor.innerHTML = "";
-  if (termo.length < 1) {
-    listaSugestoesEditor.classList.add("hidden");
-    return;
-  }
-  const sugestoes = Array.from(produtosConhecidos)
-    .filter((p) => p.toLowerCase().includes(termo))
-    .slice(0, 10);
-  if (sugestoes.length > 0) {
-    listaSugestoesEditor.classList.remove("hidden");
-    sugestoes.forEach((produto) => {
-      const div = document.createElement("div");
-      div.classList.add("item-sugestao");
-      div.innerText = produto;
-      div.onclick = () => {
-        inputItemLista.value = produto;
-        listaSugestoesEditor.classList.add("hidden");
-        inputItemLista.focus();
-      };
-      listaSugestoesEditor.appendChild(div);
-    });
-  } else {
-    listaSugestoesEditor.classList.add("hidden");
-  }
-});
-
-document.addEventListener("click", (e) => {
-  if (!e.target.closest(".input-group")) {
-    listaSugestoes.classList.add("hidden");
-    listaSugestoesEditor.classList.add("hidden");
-  }
-});
+const mostrarNotificacao = (msg, tipo, icone = "info") => {
+  const container = document.getElementById("container-notificacoes");
+  const toast = document.createElement("div");
+  toast.className = `toast ${tipo}`;
+  toast.innerHTML = `<span class="material-icons">${icone}</span><span>${msg}</span>`;
+  container.appendChild(toast);
+  setTimeout(() => {
+    toast.style.opacity = "0";
+    toast.style.transform = "translateX(100%)";
+    setTimeout(() => toast.remove(), 300);
+  }, 4000);
+};
 
 const verificarHistoricoPreco = (nome, precoAtual) => {
   if (!precoAtual) return;
@@ -437,243 +443,309 @@ const verificarHistoricoPreco = (nome, precoAtual) => {
   }
 };
 
-const mostrarNotificacao = (msg, tipo, icone = "info") => {
-  const container = document.getElementById("container-notificacoes");
-  const toast = document.createElement("div");
-  toast.className = `toast ${tipo}`;
-  toast.innerHTML = `<span class="material-icons">${icone}</span><span>${msg}</span>`;
-  container.appendChild(toast);
-  setTimeout(() => {
-    toast.style.opacity = "0";
-    toast.style.transform = "translateX(100%)";
-    setTimeout(() => toast.remove(), 300);
-  }, 4000);
-};
-
-// Navegação e Eventos
-document.getElementById("btn-criar-lista").addEventListener("click", () => {
-  document.getElementById("tela-inicial").classList.add("hidden");
-  document.getElementById("tela-editor-lista").classList.remove("hidden");
-  renderizarListaPreviaEditor();
-});
-
-document.getElementById("btn-salvar-lista").addEventListener("click", () => {
-  salvarEstadoRemoto(); // Atualizado
-  document.getElementById("tela-editor-lista").classList.add("hidden");
-  document.getElementById("tela-inicial").classList.remove("hidden");
-  if (listaPrevia.length > 0) {
-    mostrarNotificacao(
-      `Lista salva com ${listaPrevia.length} itens`,
-      "positivo",
-      "check_circle",
-    );
-  }
-});
-
-document.getElementById("btn-add-item-lista").addEventListener("click", () => {
-  const item = inputItemLista.value.trim();
-  if (item) {
-    listaPrevia.push(item);
-    produtosConhecidos.add(item);
-    salvarEstadoRemoto(); // Atualizado
-    inputItemLista.value = "";
-    inputItemLista.focus();
-    renderizarListaPreviaEditor();
-  }
-});
-
-inputItemLista.addEventListener("keypress", (e) => {
-  if (e.key === "Enter") {
-    document.getElementById("btn-add-item-lista").click();
-  }
-});
-
-window.removerItemPrevia = (idx) => {
-  listaPrevia.splice(idx, 1);
-  salvarEstadoRemoto(); // Atualizado
-  renderizarListaPreviaEditor();
-};
-
 const renderizarListaPreviaEditor = () => {
   const div = document.getElementById("lista-previa-itens");
   if (listaPrevia.length === 0) {
     div.innerHTML = `
-                    <div class="empty-state">
-                        <span class="material-icons empty-state-icon">list_alt</span>
-                        <p>Sua lista está vazia</p>
-                    </div>
-                `;
+      <div class="empty-state">
+        <span class="material-icons empty-state-icon">list_alt</span>
+        <p>Sua lista está vazia</p>
+      </div>`;
     return;
   }
   div.innerHTML = listaPrevia
     .map(
       (item, i) => `
-                <div class="item-lista">
-                    <div class="item-info">
-                        <div class="item-nome">${item}</div>
-                    </div>
-                    <button class="btn-remove" onclick="removerItemPrevia(${i})">
-                        <span class="material-icons">close</span>
-                    </button>
-                </div>
-            `,
+    <div class="item-lista">
+      <div class="item-info">
+        <div class="item-nome">${item}</div>
+      </div>
+      <button class="btn-remove" onclick="removerItemPrevia(${i})">
+        <span class="material-icons">close</span>
+      </button>
+    </div>`,
     )
     .join("");
 };
 
-document.getElementById("btn-iniciar").addEventListener("click", () => {
-  const valorInput = parseFloat(
-    document.getElementById("orcamento-inicial").value,
-  );
-  if (valorInput) orcamento = valorInput;
-  salvarEstadoRemoto(); // Atualizado
-  document.getElementById("tela-inicial").classList.add("hidden");
-  document.getElementById("tela-compras").classList.remove("hidden");
-  atualizarUI();
-});
+// --- INICIALIZAÇÃO DO APP (só após login) ---
 
-document.getElementById("btn-adicionar").addEventListener("click", () => {
-  const nome = document.getElementById("input-nome").value.trim();
-  const qtd = parseFloat(document.getElementById("input-qtd").value) || 1;
-  const preco = parseFloat(document.getElementById("input-preco").value);
+function iniciarApp() {
+  if (appIniciado) return;
+  appIniciado = true;
 
-  if (nome && preco) {
-    carrinho.push({ nome, qtd, preco, total: qtd * preco });
-    produtosConhecidos.add(nome);
-    ultimosPrecos[nome] = preco;
+  // Autocomplete — Compras
+  const inputNome = document.getElementById("input-nome");
+  const listaSugestoes = document.getElementById("lista-sugestoes");
+  const inputPreco = document.getElementById("input-preco");
 
-    salvarEstadoRemoto(); // Atualizado (sincroniza com outros)
-
-    document.getElementById("input-nome").value = "";
-    document.getElementById("input-preco").value = "";
-    document.getElementById("input-qtd").value = 1;
-    document.getElementById("input-nome").focus();
-
-    atualizarUI();
-
-    mostrarNotificacao(
-      `${nome} adicionado ao carrinho`,
-      "positivo",
-      "check_circle",
-    );
-  } else {
-    mostrarNotificacao(
-      "Preencha o nome e o preço do produto",
-      "negativo",
-      "warning",
-    );
-  }
-});
-
-inputPreco.addEventListener("keypress", (e) => {
-  if (e.key === "Enter") {
-    document.getElementById("btn-adicionar").click();
-  }
-});
-
-document.getElementById("btn-finalizar").addEventListener("click", async () => {
-  if (carrinho.length === 0) {
-    mostrarNotificacao("Carrinho vazio", "negativo", "warning");
-    return;
-  }
-  if (!confirm("Deseja finalizar a compra?")) return;
-
-  const total = carrinho.reduce((sum, item) => sum + item.total, 0);
-  try {
-    await addDoc(collection(db, "compras_finalizadas"), {
-      data: Timestamp.now(),
-      total: total,
-      itens: carrinho,
-    });
-
-    mostrarNotificacao(
-      "Compra finalizada com sucesso!",
-      "positivo",
-      "check_circle",
-    );
-
-    // Limpa a lista temporária no Firestore (acionando a limpeza em todos os dispositivos)
-    await limparEstadoRemoto();
-
-    setTimeout(() => location.reload(), 1500);
-  } catch (e) {
-    mostrarNotificacao("Erro ao finalizar: " + e.message, "negativo", "error");
-  }
-});
-
-document.getElementById("btn-cancelar").addEventListener("click", async () => {
-  if (confirm("Tem certeza que deseja cancelar tudo?")) {
-    await limparEstadoRemoto(); // Limpa no banco
-    location.reload();
-  }
-});
-
-// Inicialização
-(async () => {
-  iniciarSincronizacao(); // Inicia o listener em vez de carregar do localStorage
-
-  const q = query(
-    collection(db, "compras_finalizadas"),
-    orderBy("data", "desc"),
-  );
-  const snap = await getDocs(q);
-  const histDiv = document.getElementById("lista-historico");
-
-  if (snap.empty) {
-    histDiv.innerHTML = `
-                    <div class="empty-state">
-                        <span class="material-icons empty-state-icon">receipt_long</span>
-                        <p>Nenhuma compra registrada ainda</p>
-                    </div>
-                `;
-  } else {
-    histDiv.innerHTML = "";
-    snap.forEach((doc) => {
-      const d = doc.data();
-      if (d.itens) {
-        d.itens.forEach((i) => {
-          produtosConhecidos.add(i.nome);
-          if (!ultimosPrecos[i.nome]) ultimosPrecos[i.nome] = i.preco;
-        });
-      }
-      const dataFormatada = d.data.toDate().toLocaleDateString("pt-BR", {
-        day: "2-digit",
-        month: "short",
-        year: "numeric",
+  inputNome.addEventListener("input", (e) => {
+    const termo = e.target.value.toLowerCase();
+    listaSugestoes.innerHTML = "";
+    if (termo.length < 1) {
+      listaSugestoes.classList.add("hidden");
+      return;
+    }
+    const sugestoes = Array.from(produtosConhecidos)
+      .filter((p) => p.toLowerCase().includes(termo))
+      .slice(0, 10);
+    if (sugestoes.length > 0) {
+      listaSugestoes.classList.remove("hidden");
+      sugestoes.forEach((produto) => {
+        const div = document.createElement("div");
+        div.classList.add("item-sugestao");
+        div.innerText = produto;
+        div.onclick = () => {
+          inputNome.value = produto;
+          listaSugestoes.classList.add("hidden");
+          inputPreco.focus();
+          verificarHistoricoPreco(produto, parseFloat(inputPreco.value));
+        };
+        listaSugestoes.appendChild(div);
       });
-      histDiv.innerHTML += `
-                        <div class="historico-card" onclick='abrirModal(${JSON.stringify(d.itens)}, ${d.total})'>
-                            <div class="historico-data">
-                                <span class="material-icons">event</span>
-                                <span>${dataFormatada}</span>
-                            </div>
-                            <div class="historico-total">R$ ${d.total.toFixed(2).replace(".", ",")}</div>
-                        </div>
-                    `;
+    } else {
+      listaSugestoes.classList.add("hidden");
+    }
+  });
+
+  // Autocomplete — Editor
+  const inputItemLista = document.getElementById("input-item-lista");
+  const listaSugestoesEditor = document.getElementById(
+    "lista-sugestoes-editor",
+  );
+
+  inputItemLista.addEventListener("input", (e) => {
+    const termo = e.target.value.toLowerCase();
+    listaSugestoesEditor.innerHTML = "";
+    if (termo.length < 1) {
+      listaSugestoesEditor.classList.add("hidden");
+      return;
+    }
+    const sugestoes = Array.from(produtosConhecidos)
+      .filter((p) => p.toLowerCase().includes(termo))
+      .slice(0, 10);
+    if (sugestoes.length > 0) {
+      listaSugestoesEditor.classList.remove("hidden");
+      sugestoes.forEach((produto) => {
+        const div = document.createElement("div");
+        div.classList.add("item-sugestao");
+        div.innerText = produto;
+        div.onclick = () => {
+          inputItemLista.value = produto;
+          listaSugestoesEditor.classList.add("hidden");
+          inputItemLista.focus();
+        };
+        listaSugestoesEditor.appendChild(div);
+      });
+    } else {
+      listaSugestoesEditor.classList.add("hidden");
+    }
+  });
+
+  document.addEventListener("click", (e) => {
+    if (!e.target.closest(".input-group")) {
+      listaSugestoes.classList.add("hidden");
+      listaSugestoesEditor.classList.add("hidden");
+    }
+  });
+
+  document.getElementById("busca-pendente").addEventListener("input", () => {
+    atualizarListaPendenteVisual();
+  });
+
+  // Navegação
+  document.getElementById("btn-criar-lista").addEventListener("click", () => {
+    document.getElementById("tela-inicial").classList.add("hidden");
+    document.getElementById("tela-editor-lista").classList.remove("hidden");
+    renderizarListaPreviaEditor();
+  });
+
+  document.getElementById("btn-salvar-lista").addEventListener("click", () => {
+    salvarEstadoRemoto();
+    document.getElementById("tela-editor-lista").classList.add("hidden");
+    document.getElementById("tela-inicial").classList.remove("hidden");
+    if (listaPrevia.length > 0) {
+      mostrarNotificacao(
+        `Lista salva com ${listaPrevia.length} itens`,
+        "positivo",
+        "check_circle",
+      );
+    }
+  });
+
+  document
+    .getElementById("btn-add-item-lista")
+    .addEventListener("click", () => {
+      const item = inputItemLista.value.trim();
+      if (item) {
+        listaPrevia.push(item);
+        produtosConhecidos.add(item);
+        salvarEstadoRemoto();
+        inputItemLista.value = "";
+        inputItemLista.focus();
+        renderizarListaPreviaEditor();
+      }
     });
-  }
-})();
 
-// Modal Logic
-const modal = document.getElementById("modal-cupom");
-window.abrirModal = (itens, total) => {
-  document.getElementById("conteudo-cupom").innerHTML = itens
-    .map(
-      (i) => `
-                <div class="linha-cupom">
-                    <span>${i.nome} ${i.qtd}x</span>
-                    <span>R$ ${i.total.toFixed(2).replace(".", ",")}</span>
-                </div>
-            `,
-    )
-    .join("");
-  document.getElementById("total-cupom").innerText =
-    `TOTAL: R$ ${total.toFixed(2).replace(".", ",")}`;
-  modal.classList.remove("hidden");
-};
+  inputItemLista.addEventListener("keypress", (e) => {
+    if (e.key === "Enter")
+      document.getElementById("btn-add-item-lista").click();
+  });
 
-document.querySelector(".close-modal").onclick = () =>
-  modal.classList.add("hidden");
-modal.onclick = (e) => {
-  if (e.target === modal) modal.classList.add("hidden");
-};
+  window.removerItemPrevia = (idx) => {
+    listaPrevia.splice(idx, 1);
+    salvarEstadoRemoto();
+    renderizarListaPreviaEditor();
+  };
+
+  document.getElementById("btn-iniciar").addEventListener("click", () => {
+    const valorInput = parseFloat(
+      document.getElementById("orcamento-inicial").value,
+    );
+    if (valorInput) orcamento = valorInput;
+    salvarEstadoRemoto();
+    document.getElementById("tela-inicial").classList.add("hidden");
+    document.getElementById("tela-compras").classList.remove("hidden");
+    atualizarUI();
+  });
+
+  document.getElementById("btn-adicionar").addEventListener("click", () => {
+    const nome = document.getElementById("input-nome").value.trim();
+    const qtd = parseFloat(document.getElementById("input-qtd").value) || 1;
+    const preco = parseFloat(document.getElementById("input-preco").value);
+
+    if (nome && preco) {
+      carrinho.push({ nome, qtd, preco, total: qtd * preco });
+      produtosConhecidos.add(nome);
+      ultimosPrecos[nome] = preco;
+      salvarEstadoRemoto();
+      document.getElementById("input-nome").value = "";
+      document.getElementById("input-preco").value = "";
+      document.getElementById("input-qtd").value = 1;
+      document.getElementById("input-nome").focus();
+      atualizarUI();
+      mostrarNotificacao(
+        `${nome} adicionado ao carrinho`,
+        "positivo",
+        "check_circle",
+      );
+    } else {
+      mostrarNotificacao(
+        "Preencha o nome e o preço do produto",
+        "negativo",
+        "warning",
+      );
+    }
+  });
+
+  inputPreco.addEventListener("keypress", (e) => {
+    if (e.key === "Enter") document.getElementById("btn-adicionar").click();
+  });
+
+  document
+    .getElementById("btn-finalizar")
+    .addEventListener("click", async () => {
+      if (carrinho.length === 0) {
+        mostrarNotificacao("Carrinho vazio", "negativo", "warning");
+        return;
+      }
+      if (!confirm("Deseja finalizar a compra?")) return;
+
+      const total = carrinho.reduce((sum, item) => sum + item.total, 0);
+      try {
+        await addDoc(collection(db, "compras_finalizadas"), {
+          data: Timestamp.now(),
+          total,
+          itens: carrinho,
+        });
+        mostrarNotificacao(
+          "Compra finalizada com sucesso!",
+          "positivo",
+          "check_circle",
+        );
+        await limparEstadoRemoto();
+        setTimeout(() => location.reload(), 1500);
+      } catch (e) {
+        mostrarNotificacao(
+          "Erro ao finalizar: " + e.message,
+          "negativo",
+          "error",
+        );
+      }
+    });
+
+  document
+    .getElementById("btn-cancelar")
+    .addEventListener("click", async () => {
+      if (confirm("Tem certeza que deseja cancelar tudo?")) {
+        await limparEstadoRemoto();
+        location.reload();
+      }
+    });
+
+  // Modal
+  const modal = document.getElementById("modal-cupom");
+  window.abrirModal = (itens, total) => {
+    document.getElementById("conteudo-cupom").innerHTML = itens
+      .map(
+        (i) => `
+      <div class="linha-cupom">
+        <span>${i.nome} ${i.qtd}x</span>
+        <span>R$ ${i.total.toFixed(2).replace(".", ",")}</span>
+      </div>`,
+      )
+      .join("");
+    document.getElementById("total-cupom").innerText =
+      `TOTAL: R$ ${total.toFixed(2).replace(".", ",")}`;
+    modal.classList.remove("hidden");
+  };
+  document.querySelector(".close-modal").onclick = () =>
+    modal.classList.add("hidden");
+  modal.onclick = (e) => {
+    if (e.target === modal) modal.classList.add("hidden");
+  };
+
+  // Histórico + sincronização
+  iniciarSincronizacao();
+
+  (async () => {
+    const q = query(
+      collection(db, "compras_finalizadas"),
+      orderBy("data", "desc"),
+    );
+    const snap = await getDocs(q);
+    const histDiv = document.getElementById("lista-historico");
+
+    if (snap.empty) {
+      histDiv.innerHTML = `
+        <div class="empty-state">
+          <span class="material-icons empty-state-icon">receipt_long</span>
+          <p>Nenhuma compra registrada ainda</p>
+        </div>`;
+    } else {
+      histDiv.innerHTML = "";
+      snap.forEach((docSnap) => {
+        const d = docSnap.data();
+        if (d.itens) {
+          d.itens.forEach((i) => {
+            produtosConhecidos.add(i.nome);
+            if (!ultimosPrecos[i.nome]) ultimosPrecos[i.nome] = i.preco;
+          });
+        }
+        const dataFormatada = d.data.toDate().toLocaleDateString("pt-BR", {
+          day: "2-digit",
+          month: "short",
+          year: "numeric",
+        });
+        histDiv.innerHTML += `
+          <div class="historico-card" onclick='abrirModal(${JSON.stringify(d.itens)}, ${d.total})'>
+            <div class="historico-data">
+              <span class="material-icons">event</span>
+              <span>${dataFormatada}</span>
+            </div>
+            <div class="historico-total">R$ ${d.total.toFixed(2).replace(".", ",")}</div>
+          </div>`;
+      });
+    }
+  })();
+}
