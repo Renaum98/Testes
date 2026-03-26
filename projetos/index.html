@@ -30,17 +30,21 @@
 
     .container {
         margin: auto;
-        max-width: 600px;
+        max-width: 300px;
+        height: 300px;
         padding: 0 1rem;
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        text-align: center;
-        gap: 1rem;
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        grid-template-rows: repeat(2, 1fr);
+        gap: 10px;
 
     }
 
     .filho {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
         text-decoration: none;
         color: white;
         font-size: 1rem;
