@@ -11,6 +11,7 @@ import {
   setDoc,
   onSnapshot,
   deleteDoc,
+  getDoc,
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 import {
   getAuth,
@@ -23,12 +24,12 @@ import {
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyDAFvUYHdaNItt6zAbLaYxafzjifRkP0UU",
-  authDomain: "compras-158d1.firebaseapp.com",
-  projectId: "compras-158d1",
-  storageBucket: "compras-158d1.firebasestorage.app",
-  messagingSenderId: "740402019679",
-  appId: "1:740402019679:web:e3a996f6844ac0f698caea",
+  apiKey: "",
+  authDomain: "",
+  projectId: "",
+  storageBucket: "",
+  messagingSenderId: "",
+  appId: "",
 };
 
 const app = initializeApp(firebaseConfig);
@@ -131,14 +132,16 @@ onAuthStateChanged(auth, async (user) => {
 // --- CONFIGURAÇÃO DA LISTA COMPARTILHADA ---
 const ID_LISTA_COMPARTILHADA = "sessao_familiar_unica";
 const docRef = doc(db, "lista_ativa", ID_LISTA_COMPARTILHADA);
+const docRefHistoricoPrecos = doc(db, "historico_precos", "dados_familia");
 
 // --- ESTADO ---
 let carrinho = [];
 let listaPrevia = [];
 let orcamento = 0;
 let ultimosPrecos = {};
+let historicoPrecos = {}; // { "Arroz": [{ preco: 10.5, data: timestamp }, ...] }
 let isUpdatingFromSnapshot = false;
-let appIniciado = false; // Garante que o app não é iniciado duas vezes
+let appIniciado = false;
 
 // --- PERSISTÊNCIA REMOTA ---
 
@@ -156,6 +159,73 @@ const salvarEstadoRemoto = async () => {
     console.error("Erro ao sincronizar:", e);
     mostrarNotificacao("Erro de conexão ao salvar", "negativo", "wifi_off");
   }
+};
+
+// Salvar histórico de preços no Firestore
+const salvarHistoricoPrecos = async () => {
+  try {
+    await setDoc(docRefHistoricoPrecos, {
+      precos: historicoPrecos,
+      ultimaAtualizacao: Timestamp.now(),
+    });
+  } catch (e) {
+    console.error("Erro ao salvar histórico de preços:", e);
+  }
+};
+
+// Carregar histórico de preços do Firestore
+const carregarHistoricoPrecos = async () => {
+  try {
+    const docSnap = await getDoc(docRefHistoricoPrecos);
+    if (docSnap.exists()) {
+      historicoPrecos = docSnap.data().precos || {};
+      console.log("Histórico de preços carregado:", historicoPrecos);
+    }
+  } catch (e) {
+    console.error("Erro ao carregar histórico de preços:", e);
+  }
+};
+
+// Adicionar preço ao histórico
+const adicionarPrecoHistorico = async (nomeProduto, preco) => {
+  if (!nomeProduto || !preco) return;
+
+  if (!historicoPrecos[nomeProduto]) {
+    historicoPrecos[nomeProduto] = [];
+  }
+
+  // Adiciona o novo preço com timestamp
+  historicoPrecos[nomeProduto].push({
+    preco: preco,
+    data: Date.now(),
+  });
+
+  // Mantém apenas os últimos 50 registros por produto
+  if (historicoPrecos[nomeProduto].length > 50) {
+    historicoPrecos[nomeProduto] = historicoPrecos[nomeProduto].slice(-50);
+  }
+
+  await salvarHistoricoPrecos();
+};
+
+// Calcular estatísticas de preço
+const calcularEstatisticasPreco = (nomeProduto) => {
+  const historico = historicoPrecos[nomeProduto];
+  if (!historico || historico.length === 0) return null;
+
+  const precos = historico.map((h) => h.preco);
+  const precoMinimo = Math.min(...precos);
+  const precoMaximo = Math.max(...precos);
+  const precoMedio = precos.reduce((a, b) => a + b, 0) / precos.length;
+  const ultimoPreco = precos[precos.length - 1];
+
+  return {
+    minimo: precoMinimo,
+    maximo: precoMaximo,
+    medio: precoMedio,
+    ultimo: ultimoPreco,
+    totalRegistros: precos.length,
+  };
 };
 
 const iniciarSincronizacao = () => {
@@ -389,6 +459,11 @@ const atualizarListaPendenteVisual = () => {
     pendentes = pendentes.filter((p) => p.toLowerCase().includes(termoBusca));
   }
 
+  // Ordenar alfabeticamente (A-Z)
+  pendentes.sort((a, b) =>
+    a.localeCompare(b, "pt-BR", { sensitivity: "base" }),
+  );
+
   if (totalPendentes > 0) {
     painelPendentes.classList.remove("hidden");
     badgePendentes.innerText = totalPendentes;
@@ -398,7 +473,6 @@ const atualizarListaPendenteVisual = () => {
         '<p class="text-center text-muted" style="margin-top:12px;font-size:0.875rem;">Nenhum item encontrado</p>';
     } else {
       divPendentes.innerHTML = pendentes
-        .sort((a, b) => a.localeCompare(b, "pt-BR"))
         .map(
           (item) => `
           <span class="chip-pendente" onclick="selecionarPendente('${item.replace(/'/g, "\\'")}')">
@@ -416,11 +490,14 @@ window.selecionarPendente = (nomeItem) => {
   document.getElementById("input-nome").value = nomeItem;
   document.getElementById("input-qtd").value = 1;
   document.getElementById("input-preco").focus();
-  if (ultimosPrecos[nomeItem]) {
+
+  // Mostrar estatísticas de preço
+  const stats = calcularEstatisticasPreco(nomeItem);
+  if (stats) {
     mostrarNotificacao(
-      `Último preço: R$ ${ultimosPrecos[nomeItem].toFixed(2).replace(".", ",")}`,
+      `💰 Último: R$ ${stats.ultimo.toFixed(2)} | Mín: R$ ${stats.minimo.toFixed(2)} | Máx: R$ ${stats.maximo.toFixed(2)}`,
       "neutro",
-      "info",
+      "analytics",
     );
   }
 };
@@ -435,29 +512,55 @@ const mostrarNotificacao = (msg, tipo, icone = "info") => {
     toast.style.opacity = "0";
     toast.style.transform = "translateX(100%)";
     setTimeout(() => toast.remove(), 300);
-  }, 4000);
+  }, 5000);
 };
 
 const verificarHistoricoPreco = (nome, precoAtual) => {
   if (!precoAtual) return;
-  const nomeKey = Object.keys(ultimosPrecos).find(
-    (k) => k.toLowerCase() === nome.toLowerCase(),
-  );
-  if (nomeKey) {
-    const ultimoPreco = ultimosPrecos[nomeKey];
-    const diff = precoAtual - ultimoPreco;
-    if (diff > 0.05)
-      mostrarNotificacao(
-        `Mais caro! Você pagou R$ ${ultimoPreco.toFixed(2).replace(".", ",")} na última vez`,
-        "negativo",
-        "trending_up",
-      );
-    else if (diff < -0.05)
-      mostrarNotificacao(
-        `Mais barato! Você pagou R$ ${ultimoPreco.toFixed(2).replace(".", ",")} na última vez`,
-        "positivo",
-        "trending_down",
-      );
+
+  const stats = calcularEstatisticasPreco(nome);
+  if (!stats) return;
+
+  const diff = precoAtual - stats.ultimo;
+  const diffMinimo = precoAtual - stats.minimo;
+  const diffMaximo = precoAtual - stats.maximo;
+
+  // Comparação com o último preço
+  if (diff > 0.05) {
+    const percentual = ((diff / stats.ultimo) * 100).toFixed(1);
+    mostrarNotificacao(
+      `📈 Mais caro! Última vez: R$ ${stats.ultimo.toFixed(2)} (+${percentual}%)`,
+      "negativo",
+      "trending_up",
+    );
+  } else if (diff < -0.05) {
+    const percentual = ((Math.abs(diff) / stats.ultimo) * 100).toFixed(1);
+    mostrarNotificacao(
+      `📉 Mais barato! Última vez: R$ ${stats.ultimo.toFixed(2)} (-${percentual}%)`,
+      "positivo",
+      "trending_down",
+    );
+  }
+
+  // Comparação com melhor preço histórico
+  if (diffMinimo < -0.01) {
+    mostrarNotificacao(
+      `🏆 MELHOR PREÇO! Anterior: R$ ${stats.minimo.toFixed(2)}`,
+      "positivo",
+      "emoji_events",
+    );
+  } else if (precoAtual > stats.medio + 0.5) {
+    mostrarNotificacao(
+      `⚠️ Acima da média! Média histórica: R$ ${stats.medio.toFixed(2)}`,
+      "negativo",
+      "warning",
+    );
+  } else if (precoAtual < stats.medio - 0.5) {
+    mostrarNotificacao(
+      `✅ Abaixo da média! Média: R$ ${stats.medio.toFixed(2)}`,
+      "positivo",
+      "check_circle",
+    );
   }
 };
 
@@ -492,6 +595,9 @@ function iniciarApp() {
   if (appIniciado) return;
   appIniciado = true;
 
+  // Carregar histórico de preços
+  carregarHistoricoPrecos();
+
   // Autocomplete — Compras
   const inputNome = document.getElementById("input-nome");
   const listaSugestoes = document.getElementById("lista-sugestoes");
@@ -517,12 +623,30 @@ function iniciarApp() {
           inputNome.value = produto;
           listaSugestoes.classList.add("hidden");
           inputPreco.focus();
-          verificarHistoricoPreco(produto, parseFloat(inputPreco.value));
+
+          // Mostrar estatísticas ao selecionar
+          const stats = calcularEstatisticasPreco(produto);
+          if (stats) {
+            mostrarNotificacao(
+              `💰 Último: R$ ${stats.ultimo.toFixed(2)} | Mín: R$ ${stats.minimo.toFixed(2)} | Máx: R$ ${stats.maximo.toFixed(2)}`,
+              "neutro",
+              "analytics",
+            );
+          }
         };
         listaSugestoes.appendChild(div);
       });
     } else {
       listaSugestoes.classList.add("hidden");
+    }
+  });
+
+  // Verificar preço quando digitar
+  inputPreco.addEventListener("input", (e) => {
+    const nome = inputNome.value.trim();
+    const preco = parseFloat(e.target.value);
+    if (nome && preco) {
+      verificarHistoricoPreco(nome, preco);
     }
   });
 
@@ -627,34 +751,40 @@ function iniciarApp() {
     atualizarUI();
   });
 
-  document.getElementById("btn-adicionar").addEventListener("click", () => {
-    const nome = document.getElementById("input-nome").value.trim();
-    const qtd = parseFloat(document.getElementById("input-qtd").value) || 1;
-    const preco = parseFloat(document.getElementById("input-preco").value);
+  document
+    .getElementById("btn-adicionar")
+    .addEventListener("click", async () => {
+      const nome = document.getElementById("input-nome").value.trim();
+      const qtd = parseFloat(document.getElementById("input-qtd").value) || 1;
+      const preco = parseFloat(document.getElementById("input-preco").value);
 
-    if (nome && preco) {
-      carrinho.push({ nome, qtd, preco, total: qtd * preco });
-      produtosConhecidos.add(nome);
-      ultimosPrecos[nome] = preco;
-      salvarEstadoRemoto();
-      document.getElementById("input-nome").value = "";
-      document.getElementById("input-preco").value = "";
-      document.getElementById("input-qtd").value = 1;
-      document.getElementById("input-nome").focus();
-      atualizarUI();
-      mostrarNotificacao(
-        `${nome} adicionado ao carrinho`,
-        "positivo",
-        "check_circle",
-      );
-    } else {
-      mostrarNotificacao(
-        "Preencha o nome e o preço do produto",
-        "negativo",
-        "warning",
-      );
-    }
-  });
+      if (nome && preco) {
+        carrinho.push({ nome, qtd, preco, total: qtd * preco });
+        produtosConhecidos.add(nome);
+
+        // Adicionar ao histórico de preços
+        await adicionarPrecoHistorico(nome, preco);
+
+        ultimosPrecos[nome] = preco;
+        salvarEstadoRemoto();
+        document.getElementById("input-nome").value = "";
+        document.getElementById("input-preco").value = "";
+        document.getElementById("input-qtd").value = 1;
+        document.getElementById("input-nome").focus();
+        atualizarUI();
+        mostrarNotificacao(
+          `${nome} adicionado ao carrinho`,
+          "positivo",
+          "check_circle",
+        );
+      } else {
+        mostrarNotificacao(
+          "Preencha o nome e o preço do produto",
+          "negativo",
+          "warning",
+        );
+      }
+    });
 
   inputPreco.addEventListener("keypress", (e) => {
     if (e.key === "Enter") document.getElementById("btn-adicionar").click();
@@ -671,11 +801,18 @@ function iniciarApp() {
 
       const total = carrinho.reduce((sum, item) => sum + item.total, 0);
       try {
+        // Salvar compra finalizada
         await addDoc(collection(db, "compras_finalizadas"), {
           data: Timestamp.now(),
           total,
           itens: carrinho,
         });
+
+        // Adicionar todos os preços ao histórico
+        for (const item of carrinho) {
+          await adicionarPrecoHistorico(item.nome, item.preco);
+        }
+
         mostrarNotificacao(
           "Compra finalizada com sucesso!",
           "positivo",
