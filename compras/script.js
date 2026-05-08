@@ -108,20 +108,17 @@ function atualizarUIAuth(user) {
   }
 }
 
+// No PWA, captura o resultado do redirect uma única vez no carregamento
+if (isPWA) {
+  getRedirectResult(auth)
+    .then((result) => {
+      if (result?.user) salvarUsuarioFirestore(result.user);
+    })
+    .catch((e) => console.error("Erro no redirect result:", e));
+}
+
 // Listener de autenticação — ponto de entrada do app
 onAuthStateChanged(auth, async (user) => {
-  // No PWA, captura o resultado do redirect após voltar do Google
-  if (isPWA) {
-    try {
-      const result = await getRedirectResult(auth);
-      if (result?.user) {
-        await salvarUsuarioFirestore(result.user);
-      }
-    } catch (e) {
-      console.error("Erro no redirect result:", e);
-    }
-  }
-
   if (user) {
     await salvarUsuarioFirestore(user);
   }
@@ -142,20 +139,28 @@ let appIniciado = false; // Garante que o app não é iniciado duas vezes
 
 // --- PERSISTÊNCIA REMOTA ---
 
-const salvarEstadoRemoto = async () => {
+let saveTimer = null;
+const SAVE_DEBOUNCE_MS = 400;
+
+const salvarEstadoRemoto = () => {
   if (isUpdatingFromSnapshot) return;
-  const estado = {
-    carrinho,
-    listaPrevia,
-    orcamento,
-    timestamp: Date.now(),
-  };
-  try {
-    await setDoc(docRef, estado);
-  } catch (e) {
-    console.error("Erro ao sincronizar:", e);
-    mostrarNotificacao("Erro de conexão ao salvar", "negativo", "wifi_off");
-  }
+  if (saveTimer) clearTimeout(saveTimer);
+  saveTimer = setTimeout(async () => {
+    saveTimer = null;
+    const estado = {
+      carrinho,
+      listaPrevia,
+      orcamento,
+      ultimosPrecos,
+      timestamp: Date.now(),
+    };
+    try {
+      await setDoc(docRef, estado);
+    } catch (e) {
+      console.error("Erro ao sincronizar:", e);
+      mostrarNotificacao("Erro de conexão ao salvar", "negativo", "wifi_off");
+    }
+  }, SAVE_DEBOUNCE_MS);
 };
 
 const iniciarSincronizacao = () => {
@@ -164,9 +169,17 @@ const iniciarSincronizacao = () => {
 
     if (docSnap.exists()) {
       const estado = docSnap.data();
-      carrinho = estado.carrinho || [];
-      listaPrevia = estado.listaPrevia || [];
+      carrinho = (estado.carrinho || []).map((item) => ({
+        ...item,
+        id: item.id || gerarId(),
+      }));
+      listaPrevia = (estado.listaPrevia || []).map((p) =>
+        typeof p === "string" ? { id: gerarId(), nome: p } : p,
+      );
       orcamento = estado.orcamento || 0;
+      if (estado.ultimosPrecos) {
+        ultimosPrecos = { ...ultimosPrecos, ...estado.ultimosPrecos };
+      }
 
       if (orcamento > 0) {
         document.getElementById("orcamento-inicial").value = orcamento;
@@ -188,6 +201,10 @@ const iniciarSincronizacao = () => {
 };
 
 const limparEstadoRemoto = async () => {
+  if (saveTimer) {
+    clearTimeout(saveTimer);
+    saveTimer = null;
+  }
   try {
     await deleteDoc(docRef);
     carrinho = [];
@@ -197,6 +214,21 @@ const limparEstadoRemoto = async () => {
     console.error("Erro ao limpar:", e);
   }
 };
+
+// Flush de mutação pendente antes de fechar/recarregar
+window.addEventListener("beforeunload", () => {
+  if (saveTimer) {
+    clearTimeout(saveTimer);
+    saveTimer = null;
+    setDoc(docRef, {
+      carrinho,
+      listaPrevia,
+      orcamento,
+      ultimosPrecos,
+      timestamp: Date.now(),
+    }).catch((e) => console.error("Erro no flush:", e));
+  }
+});
 
 // --- PRODUTOS ---
 
@@ -315,8 +347,21 @@ let produtosConhecidos = new Set(produtosBasicos);
 
 // --- FUNÇÕES DE UI ---
 
-window.removerItem = (index) => {
-  carrinho.splice(index, 1);
+const escapeHtml = (str) => {
+  if (str == null) return "";
+  return String(str)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+};
+
+const gerarId = () =>
+  Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+
+window.removerItem = (id) => {
+  carrinho = carrinho.filter((item) => item.id !== id);
   salvarEstadoRemoto();
   atualizarUI();
 };
@@ -353,20 +398,23 @@ const atualizarUI = () => {
   } else {
     listaDiv.innerHTML = carrinho
       .map(
-        (item, i) => `
+        (item) => `
       <div class="item-lista">
         <div class="item-info">
-          <div class="item-nome">${item.nome}</div>
+          <div class="item-nome">${escapeHtml(item.nome)}</div>
           <div class="item-detalhes">${item.qtd}x R$ ${item.preco.toFixed(2).replace(".", ",")}</div>
         </div>
         <div class="item-total">R$ ${item.total.toFixed(2).replace(".", ",")}</div>
-        <button class="btn-remove" onclick="removerItem(${i})">
+        <button class="btn-remove" data-id="${escapeHtml(item.id)}">
           <span class="material-icons">close</span>
         </button>
       </div>`,
       )
       .reverse()
       .join("");
+    listaDiv.querySelectorAll(".btn-remove[data-id]").forEach((btn) => {
+      btn.addEventListener("click", () => window.removerItem(btn.dataset.id));
+    });
   }
 
   atualizarListaPendenteVisual();
@@ -381,12 +429,14 @@ const atualizarListaPendenteVisual = () => {
     .value.toLowerCase();
 
   let pendentes = listaPrevia.filter(
-    (p) => !carrinho.some((c) => c.nome.toLowerCase() === p.toLowerCase()),
+    (p) => !carrinho.some((c) => c.nome.toLowerCase() === p.nome.toLowerCase()),
   );
   const totalPendentes = pendentes.length;
 
   if (termoBusca) {
-    pendentes = pendentes.filter((p) => p.toLowerCase().includes(termoBusca));
+    pendentes = pendentes.filter((p) =>
+      p.nome.toLowerCase().includes(termoBusca),
+    );
   }
 
   if (totalPendentes > 0) {
@@ -398,14 +448,19 @@ const atualizarListaPendenteVisual = () => {
         '<p class="text-center text-muted" style="margin-top:12px;font-size:0.875rem;">Nenhum item encontrado</p>';
     } else {
       divPendentes.innerHTML = pendentes
-        .sort((a, b) => a.localeCompare(b, "pt-BR"))
+        .sort((a, b) => a.nome.localeCompare(b.nome, "pt-BR"))
         .map(
           (item) => `
-          <span class="chip-pendente" onclick="selecionarPendente('${item.replace(/'/g, "\\'")}')">
-            ${item}
+          <span class="chip-pendente" data-item="${escapeHtml(item.nome)}">
+            ${escapeHtml(item.nome)}
           </span>`,
         )
         .join("");
+      divPendentes.querySelectorAll(".chip-pendente").forEach((el) => {
+        el.addEventListener("click", () => {
+          window.selecionarPendente(el.dataset.item);
+        });
+      });
     }
   } else {
     painelPendentes.classList.add("hidden");
@@ -429,7 +484,7 @@ const mostrarNotificacao = (msg, tipo, icone = "info") => {
   const container = document.getElementById("container-notificacoes");
   const toast = document.createElement("div");
   toast.className = `toast ${tipo}`;
-  toast.innerHTML = `<span class="material-icons">${icone}</span><span>${msg}</span>`;
+  toast.innerHTML = `<span class="material-icons">${escapeHtml(icone)}</span><span>${escapeHtml(msg)}</span>`;
   container.appendChild(toast);
   setTimeout(() => {
     toast.style.opacity = "0";
@@ -473,17 +528,22 @@ const renderizarListaPreviaEditor = () => {
   }
   div.innerHTML = listaPrevia
     .map(
-      (item, i) => `
+      (item) => `
     <div class="item-lista">
       <div class="item-info">
-        <div class="item-nome">${item}</div>
+        <div class="item-nome">${escapeHtml(item.nome)}</div>
       </div>
-      <button class="btn-remove" onclick="removerItemPrevia(${i})">
+      <button class="btn-remove" data-id="${escapeHtml(item.id)}">
         <span class="material-icons">close</span>
       </button>
     </div>`,
     )
     .join("");
+  div.querySelectorAll(".btn-remove[data-id]").forEach((btn) => {
+    btn.addEventListener("click", () =>
+      window.removerItemPrevia(btn.dataset.id),
+    );
+  });
 };
 
 // --- INICIALIZAÇÃO DO APP (só após login) ---
@@ -517,7 +577,14 @@ function iniciarApp() {
           inputNome.value = produto;
           listaSugestoes.classList.add("hidden");
           inputPreco.focus();
-          verificarHistoricoPreco(produto, parseFloat(inputPreco.value));
+          const ultimo = ultimosPrecos[produto];
+          if (ultimo) {
+            mostrarNotificacao(
+              `Último preço: R$ ${ultimo.toFixed(2).replace(".", ",")}`,
+              "neutro",
+              "info",
+            );
+          }
         };
         listaSugestoes.appendChild(div);
       });
@@ -595,14 +662,27 @@ function iniciarApp() {
     .getElementById("btn-add-item-lista")
     .addEventListener("click", () => {
       const item = inputItemLista.value.trim();
-      if (item) {
-        listaPrevia.push(item);
-        produtosConhecidos.add(item);
-        salvarEstadoRemoto();
-        inputItemLista.value = "";
-        inputItemLista.focus();
-        renderizarListaPreviaEditor();
+      if (!item) return;
+
+      const jaExiste = listaPrevia.some(
+        (p) => p.nome.toLowerCase() === item.toLowerCase(),
+      );
+      if (jaExiste) {
+        mostrarNotificacao(
+          `"${item}" já está na lista`,
+          "negativo",
+          "warning",
+        );
+        return;
       }
+
+      listaPrevia.push({ id: gerarId(), nome: item });
+      produtosConhecidos.add(item);
+      salvarEstadoRemoto();
+      inputItemLista.value = "";
+      listaSugestoesEditor.classList.add("hidden");
+      inputItemLista.focus();
+      renderizarListaPreviaEditor();
     });
 
   inputItemLista.addEventListener("keypress", (e) => {
@@ -610,8 +690,8 @@ function iniciarApp() {
       document.getElementById("btn-add-item-lista").click();
   });
 
-  window.removerItemPrevia = (idx) => {
-    listaPrevia.splice(idx, 1);
+  window.removerItemPrevia = (id) => {
+    listaPrevia = listaPrevia.filter((p) => p.id !== id);
     salvarEstadoRemoto();
     renderizarListaPreviaEditor();
   };
@@ -620,7 +700,7 @@ function iniciarApp() {
     const valorInput = parseFloat(
       document.getElementById("orcamento-inicial").value,
     );
-    if (valorInput) orcamento = valorInput;
+    if (!isNaN(valorInput) && valorInput >= 0) orcamento = valorInput;
     salvarEstadoRemoto();
     document.getElementById("tela-inicial").classList.add("hidden");
     document.getElementById("tela-compras").classList.remove("hidden");
@@ -633,7 +713,8 @@ function iniciarApp() {
     const preco = parseFloat(document.getElementById("input-preco").value);
 
     if (nome && preco) {
-      carrinho.push({ nome, qtd, preco, total: qtd * preco });
+      verificarHistoricoPreco(nome, preco);
+      carrinho.push({ id: gerarId(), nome, qtd, preco, total: qtd * preco });
       produtosConhecidos.add(nome);
       ultimosPrecos[nome] = preco;
       salvarEstadoRemoto();
@@ -708,7 +789,7 @@ function iniciarApp() {
       .map(
         (i) => `
       <div class="linha-cupom">
-        <span>${i.nome} ${i.qtd}x</span>
+        <span>${escapeHtml(i.nome)} ${i.qtd}x</span>
         <span>R$ ${i.total.toFixed(2).replace(".", ",")}</span>
       </div>`,
       )
@@ -744,6 +825,7 @@ function iniciarApp() {
       histDiv.innerHTML = "";
       snap.forEach((docSnap) => {
         const d = docSnap.data();
+        if (!d.data) return;
         if (d.itens) {
           d.itens.forEach((i) => {
             produtosConhecidos.add(i.nome);
@@ -755,14 +837,18 @@ function iniciarApp() {
           month: "short",
           year: "numeric",
         });
-        histDiv.innerHTML += `
-          <div class="historico-card" onclick='abrirModal(${JSON.stringify(d.itens)}, ${d.total})'>
+        const card = document.createElement("div");
+        card.className = "historico-card";
+        card.innerHTML = `
             <div class="historico-data">
               <span class="material-icons">event</span>
-              <span>${dataFormatada}</span>
+              <span>${escapeHtml(dataFormatada)}</span>
             </div>
-            <div class="historico-total">R$ ${d.total.toFixed(2).replace(".", ",")}</div>
-          </div>`;
+            <div class="historico-total">R$ ${d.total.toFixed(2).replace(".", ",")}</div>`;
+        card.addEventListener("click", () => {
+          window.abrirModal(d.itens, d.total);
+        });
+        histDiv.appendChild(card);
       });
     }
   })();
