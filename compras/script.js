@@ -58,6 +58,11 @@ const isPWA =
   window.matchMedia("(display-mode: standalone)").matches ||
   window.navigator.standalone === true;
 
+// O iPad moderno se apresenta como Mac; o que o entrega é ter toque
+const EH_IOS =
+  /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+  (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+
 // O usuário cancelar não é erro: não vale mostrar aviso nem tentar de novo
 const CANCELAMENTOS = new Set([
   "auth/popup-closed-by-user",
@@ -73,6 +78,12 @@ const mensagemDeLogin = (erro) => {
       return "Sem conexão com o servidor de login. Verifique a internet.";
     case "auth/popup-blocked":
       return "O navegador bloqueou a janela de login. Libere os pop-ups para este app.";
+    case "redirect_uri_mismatch":
+      return `O Google recusou o endereço de retorno. Adicione ${urlDeRetorno()} em "URIs de redirecionamento autorizados" no cliente OAuth.`;
+    case "access_denied":
+      return "Login cancelado.";
+    case "state-invalido":
+      return "A resposta do Google não confere com o pedido. Tente entrar de novo.";
     default:
       return "Não foi possível entrar. Tente de novo.";
   }
@@ -137,6 +148,98 @@ const definirCarregandoLogin = (carregando) => {
  */
 const GIS_SRC = "https://accounts.google.com/gsi/client";
 
+/*
+ * Caminho do iPhone instalado (standalone).
+ *
+ * Ali NADA que dependa de popup funciona: window.open abre no Safari como
+ * contexto separado e a resposta nunca volta para o app — confirmado em
+ * teste, o retorno de chamada do Google simplesmente não acontece. Vale
+ * para o GIS e para o signInWithPopup do SDK.
+ *
+ * E o signInWithRedirect do Firebase também não serve: ele passa por
+ * compras-158d1.firebaseapp.com e depende de armazenamento de terceiro
+ * para devolver a sessão, que é justamente o que os navegadores
+ * particionaram.
+ *
+ * Então aqui a página vai direto ao Google e pede que o id_token volte no
+ * FRAGMENTO da URL do próprio site (fluxo implícito do OpenID Connect).
+ * Nenhuma janela extra, nenhum domínio de terceiro no meio.
+ *
+ * state e nonce protegem contra reaproveitar uma resposta antiga ou forjada.
+ */
+const AUTORIZACAO_GOOGLE = "https://accounts.google.com/o/oauth2/v2/auth";
+const CHAVE_STATE = "mercado:oauth-state";
+
+const aleatorio = () => {
+  const bytes = new Uint8Array(16);
+  crypto.getRandomValues(bytes);
+  return Array.from(bytes, (b) => b.toString(16).padStart(2, "0")).join("");
+};
+
+// Precisa bater exatamente com o URI autorizado no cliente OAuth
+const urlDeRetorno = () =>
+  location.origin + location.pathname.replace(/index\.html$/, "");
+
+const entrarPorRedirecionamento = () => {
+  const state = aleatorio();
+  const nonce = aleatorio();
+  // localStorage e não sessionStorage: sobrevive melhor à ida e volta no iOS
+  localStorage.setItem(CHAVE_STATE, state);
+
+  const params = new URLSearchParams({
+    client_id: GOOGLE_WEB_CLIENT_ID,
+    response_type: "id_token",
+    scope: "openid email profile",
+    redirect_uri: urlDeRetorno(),
+    nonce,
+    state,
+    prompt: "select_account",
+  });
+
+  registrarEtapa("A. indo ao Google (redirecionamento)");
+  location.href = `${AUTORIZACAO_GOOGLE}?${params}`;
+};
+
+// Na volta do Google o token vem no fragmento; troca por sessão do Firebase
+const concluirRedirecionamento = async () => {
+  if (!location.hash.includes("id_token") && !location.hash.includes("error"))
+    return;
+
+  const resposta = new URLSearchParams(location.hash.slice(1));
+  const esperado = localStorage.getItem(CHAVE_STATE);
+  localStorage.removeItem(CHAVE_STATE);
+
+  // Tira o token da barra de endereço antes de qualquer outra coisa
+  history.replaceState(null, "", urlDeRetorno() + location.search);
+
+  const erroGoogle = resposta.get("error");
+  if (erroGoogle) {
+    registrarEtapa(`!! Google recusou: ${erroGoogle}`);
+    mostrarErroLogin({ code: erroGoogle, message: erroGoogle });
+    return;
+  }
+
+  registrarEtapa("B. voltou do Google com token");
+
+  if (!esperado || resposta.get("state") !== esperado) {
+    registrarEtapa("!! state não confere");
+    mostrarErroLogin({ code: "state-invalido" });
+    return;
+  }
+
+  try {
+    registrarEtapa("C. criando sessão no Firebase");
+    await signInWithCredential(
+      auth,
+      GoogleAuthProvider.credential(resposta.get("id_token")),
+    );
+    registrarEtapa("D. sessão criada");
+  } catch (e) {
+    registrarEtapa(`!! Firebase recusou: ${e?.code || e?.message}`);
+    mostrarErroLogin(e);
+  }
+};
+
 let gisCarregando = null;
 let gisIniciado = false;
 
@@ -192,9 +295,22 @@ const iniciarGisUmaVez = (gis) => {
 };
 
 // Desenha o botão do Google na tela de login; se não der, usa o botão próprio
+// No iPhone instalado, popup não volta: o único caminho é o redirecionamento
+const PRECISA_REDIRECIONAR = EH_IOS && isPWA;
+
 const prepararLogin = async () => {
   const alvo = document.getElementById("botao-google");
   const proprio = document.getElementById("btn-login");
+
+  if (PRECISA_REDIRECIONAR) {
+    alvo.classList.add("hidden");
+    proprio.classList.remove("hidden");
+    document
+      .getElementById("btn-login-alternativo")
+      .classList.remove("hidden");
+    registrarEtapa("1. modo redirecionamento (iPhone instalado)");
+    return;
+  }
 
   if (!GOOGLE_WEB_CLIENT_ID.trim()) {
     proprio.classList.remove("hidden");
@@ -219,14 +335,8 @@ const prepararLogin = async () => {
     alvo.classList.remove("hidden");
     proprio.classList.add("hidden");
     registrarEtapa(
-      `1. botão do Google pronto (${PLATAFORMA}${isPWA ? ", instalado" : ", navegador"})`,
+      `1. botão do Google pronto (${EH_IOS ? "ios" : "outro"}${isPWA ? ", instalado" : ", navegador"})`,
     );
-
-    // No iPhone instalado, window.open abre fora do app e a resposta pode
-    // nunca voltar. Deixa o caminho alternativo à mão para comparar.
-    if (PLATAFORMA === "ios" && isPWA) {
-      document.getElementById("btn-login-alternativo").classList.remove("hidden");
-    }
 
     // Origem não autorizada no cliente OAuth não vira exceção: o GIS só
     // reclama no console e deixa o contêiner vazio. Sem esta checagem o
@@ -248,6 +358,13 @@ const prepararLogin = async () => {
 // Caminho reserva: popup do próprio SDK do Firebase (nunca redirect)
 window.loginGoogle = async function () {
   document.getElementById("erro-login").classList.add("hidden");
+
+  // No iPhone instalado não adianta abrir janela: vai por redirecionamento
+  if (PRECISA_REDIRECIONAR) {
+    entrarPorRedirecionamento();
+    return;
+  }
+
   definirCarregandoLogin(true);
   registrarEtapa("A. abrindo popup do SDK");
   try {
@@ -261,9 +378,23 @@ window.loginGoogle = async function () {
   }
 };
 
+// Alternativo: tenta a janela do Google, para comparar quando algo falhar
 document
   .getElementById("btn-login-alternativo")
-  .addEventListener("click", () => window.loginGoogle());
+  .addEventListener("click", async () => {
+    document.getElementById("erro-login").classList.add("hidden");
+    registrarEtapa("A. abrindo popup do SDK (alternativo)");
+    try {
+      await signInWithPopup(auth, provider);
+      registrarEtapa("B. popup do SDK criou a sessão");
+    } catch (erro) {
+      registrarEtapa(`!! popup do SDK: ${erro?.code || erro?.message}`);
+      if (!CANCELAMENTOS.has(erro?.code)) mostrarErroLogin(erro);
+    }
+  });
+
+// Se a página está voltando do Google, conclui antes de qualquer outra coisa
+concluirRedirecionamento();
 
 window.logout = async function () {
   try {
@@ -484,13 +615,8 @@ let promptInstalacao = null;
  * compartilhar do Safari. Por isso cada plataforma tem seu conteúdo.
  */
 const detectarPlataforma = () => {
-  const ua = navigator.userAgent;
-  // O iPad moderno se apresenta como Mac; o que o entrega é ter toque
-  const ehIOS =
-    /iPad|iPhone|iPod/.test(ua) ||
-    (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
-  if (ehIOS) return "ios";
-  if (/Android/.test(ua)) return "android";
+  if (EH_IOS) return "ios";
+  if (/Android/.test(navigator.userAgent)) return "android";
   return "desktop";
 };
 
