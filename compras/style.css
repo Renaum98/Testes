@@ -128,6 +128,24 @@ h4 {
     user-select: text;
 }
 
+/* Registro das etapas do login, para diagnosticar no aparelho */
+.diag-login {
+    font-family: "SF Mono", "Monaco", "Courier New", monospace;
+    font-size: 0.6875rem;
+    line-height: 1.5;
+    color: var(--gray-600);
+    background: var(--gray-100);
+    border: 1px solid var(--gray-200);
+    border-radius: 10px;
+    padding: 10px 12px;
+    max-width: 320px;
+    width: 100%;
+    white-space: pre-wrap;
+    word-break: break-word;
+    user-select: text;
+    -webkit-user-select: text;
+}
+
 .marca-icone.erro {
     background: var(--danger);
     color: #fff;

@@ -78,6 +78,25 @@ const mensagemDeLogin = (erro) => {
   }
 };
 
+/*
+ * Registro visível das etapas do login.
+ *
+ * Depurar isso no aparelho é as cegas: não há console à mão num PWA
+ * instalado no iPhone. Cada passo do fluxo escreve aqui, então dá para ver
+ * ONDE parou — se o botão do Google chegou a chamar de volta, se a
+ * credencial veio, se o Firebase aceitou.
+ */
+const etapasLogin = [];
+
+const registrarEtapa = (texto) => {
+  const t = new Date().toLocaleTimeString("pt-BR", { hour12: false });
+  etapasLogin.push(`${t} ${texto}`);
+  const el = document.getElementById("diag-login");
+  el.textContent = etapasLogin.slice(-8).join("\n");
+  el.classList.remove("hidden");
+  console.log("[login]", texto);
+};
+
 const mostrarErroLogin = (erro) => {
   console.error("Erro de login:", erro);
   const el = document.getElementById("erro-login");
@@ -153,14 +172,19 @@ const iniciarGisUmaVez = (gis) => {
     ux_mode: "popup",
     auto_select: false,
     callback: async (resposta) => {
+      registrarEtapa("2. Google chamou de volta");
       if (!resposta?.credential) {
+        registrarEtapa("!! sem credencial na resposta");
         mostrarErroLogin(new Error("O Google não devolveu credencial."));
         return;
       }
       try {
+        registrarEtapa("3. credencial recebida, criando sessão");
         const credencial = GoogleAuthProvider.credential(resposta.credential);
         await signInWithCredential(auth, credencial);
+        registrarEtapa("4. sessão criada no Firebase");
       } catch (e) {
+        registrarEtapa(`!! falhou: ${e?.code || e?.message}`);
         mostrarErroLogin(e);
       }
     },
@@ -194,6 +218,15 @@ const prepararLogin = async () => {
     });
     alvo.classList.remove("hidden");
     proprio.classList.add("hidden");
+    registrarEtapa(
+      `1. botão do Google pronto (${PLATAFORMA}${isPWA ? ", instalado" : ", navegador"})`,
+    );
+
+    // No iPhone instalado, window.open abre fora do app e a resposta pode
+    // nunca voltar. Deixa o caminho alternativo à mão para comparar.
+    if (PLATAFORMA === "ios" && isPWA) {
+      document.getElementById("btn-login-alternativo").classList.remove("hidden");
+    }
 
     // Origem não autorizada no cliente OAuth não vira exceção: o GIS só
     // reclama no console e deixa o contêiner vazio. Sem esta checagem o
@@ -216,14 +249,21 @@ const prepararLogin = async () => {
 window.loginGoogle = async function () {
   document.getElementById("erro-login").classList.add("hidden");
   definirCarregandoLogin(true);
+  registrarEtapa("A. abrindo popup do SDK");
   try {
     await signInWithPopup(auth, provider);
+    registrarEtapa("B. popup do SDK criou a sessão");
   } catch (erro) {
+    registrarEtapa(`!! popup do SDK: ${erro?.code || erro?.message}`);
     if (!CANCELAMENTOS.has(erro?.code)) mostrarErroLogin(erro);
   } finally {
     definirCarregandoLogin(false);
   }
 };
+
+document
+  .getElementById("btn-login-alternativo")
+  .addEventListener("click", () => window.loginGoogle());
 
 window.logout = async function () {
   try {
@@ -356,6 +396,7 @@ document.getElementById("btn-sair-erro").addEventListener("click", () => {
 // Listener de autenticação — ponto de entrada do app
 onAuthStateChanged(auth, async (user) => {
   usuarioAtual = user;
+  registrarEtapa(user ? "5. sessão reconhecida pelo app" : "0. nenhuma sessão");
 
   if (user) {
     // Sai da tela de login na hora: o login já deu certo, e o que vem
