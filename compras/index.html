@@ -48,10 +48,14 @@
             <h1 class="marca-nome">Mercado Inteligente</h1>
             <p class="marca-sub">Sua lista e seu orçamento, sempre à mão</p>
         </div>
-        <button id="btn-login" class="btn-primary btn-login">
+        <!-- Botão oficial do Google Identity Services (desenhado por JS) -->
+        <div id="botao-google" class="botao-google hidden"></div>
+        <!-- Reserva: popup do SDK do Firebase, se o GIS não estiver disponível -->
+        <button id="btn-login" class="btn-primary btn-login hidden">
             <span class="material-icons">login</span>
             <span>Entrar com Google</span>
         </button>
+        <p id="erro-login" class="erro-login hidden"></p>
     </div>
 
     <!-- FALHA AO PREPARAR A CONTA -->
@@ -345,7 +349,7 @@
                 </button>
             </div>
 
-            <p class="rodape-conta">Mercado Inteligente · <span id="versao-app">v10</span></p>
+            <p class="rodape-conta">Mercado Inteligente · <span id="versao-app">v13</span></p>
         </div>
     </div>
 

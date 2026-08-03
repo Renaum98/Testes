@@ -20,8 +20,7 @@ import {
   getAuth,
   GoogleAuthProvider,
   signInWithPopup,
-  signInWithRedirect,
-  getRedirectResult,
+  signInWithCredential,
   signOut,
   onAuthStateChanged,
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
@@ -35,6 +34,19 @@ const firebaseConfig = {
   appId: "1:740402019679:web:e3a996f6844ac0f698caea",
 };
 
+/**
+ * Client ID do cliente OAuth do tipo **Web** do projeto compras-158d1.
+ *
+ * Pegue em: Firebase Console > Authentication > Sign-in method > Google >
+ * "Configuração do SDK da Web" > ID do cliente da Web.
+ * Começa com 740402019679- (o número do projeto) e termina em
+ * .apps.googleusercontent.com
+ *
+ * Vazio = o app cai no login por popup do SDK do Firebase, que funciona,
+ * mas depende mais do navegador. Preenchido = botão oficial do Google.
+ */
+const GOOGLE_WEB_CLIENT_ID = "740402019679-c1tfs5uuaq6boo3uujck2ddra4qqcj1r.apps.googleusercontent.com";
+
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const auth = getAuth(app);
@@ -46,15 +58,170 @@ const isPWA =
   window.matchMedia("(display-mode: standalone)").matches ||
   window.navigator.standalone === true;
 
-window.loginGoogle = async function () {
+// O usuário cancelar não é erro: não vale mostrar aviso nem tentar de novo
+const CANCELAMENTOS = new Set([
+  "auth/popup-closed-by-user",
+  "auth/cancelled-popup-request",
+  "auth/user-cancelled",
+]);
+
+const mensagemDeLogin = (erro) => {
+  switch (erro?.code) {
+    case "auth/unauthorized-domain":
+      return "Este endereço não está liberado no Firebase. Adicione-o em Authentication > Settings > Authorized domains.";
+    case "auth/network-request-failed":
+      return "Sem conexão com o servidor de login. Verifique a internet.";
+    case "auth/popup-blocked":
+      return "O navegador bloqueou a janela de login. Libere os pop-ups para este app.";
+    default:
+      return "Não foi possível entrar. Tente de novo.";
+  }
+};
+
+const mostrarErroLogin = (erro) => {
+  console.error("Erro de login:", erro);
+  const el = document.getElementById("erro-login");
+  el.textContent = `${mensagemDeLogin(erro)} (${erro?.code || erro?.message || erro})`;
+  el.classList.remove("hidden");
+};
+
+const definirCarregandoLogin = (carregando) => {
+  const btn = document.getElementById("btn-login");
+  btn.disabled = carregando;
+  btn.querySelector("span:last-child").textContent = carregando
+    ? "Entrando..."
+    : "Entrar com Google";
+  btn.querySelector(".material-icons").textContent = carregando
+    ? "progress_activity"
+    : "login";
+  btn.querySelector(".material-icons").classList.toggle("girando", carregando);
+};
+
+/**
+ * Login com Google — botão oficial do Google Identity Services, em popup.
+ *
+ * Por que não signInWithRedirect: o app está em renaum98.github.io e o
+ * authDomain do Firebase em compras-158d1.firebaseapp.com. Com o
+ * particionamento de armazenamento de terceiros (Chrome 115+, Safari/ITP),
+ * o SDK não consegue ler a sessão na volta do redirect — o login completa
+ * no Google e o app continua achando que ninguém entrou. Era esse o
+ * travamento na tela de login do PWA instalado.
+ *
+ * O GIS resolve na raiz: o popup é janela de primeira parte e o id_token do
+ * Google chega na própria página, sem depender de cookie de terceiro. Aqui
+ * ele é trocado por uma sessão do Firebase com signInWithCredential, para o
+ * SDK do Firestore continuar autenticando sozinho.
+ *
+ * O botão TEM de ser o desenhado pelo GIS: não existe mais disparo
+ * programático, e é o clique nele que abre o popup — o que também impede o
+ * navegador de bloquear a janela.
+ */
+const GIS_SRC = "https://accounts.google.com/gsi/client";
+
+let gisCarregando = null;
+let gisIniciado = false;
+
+const carregarGis = () => {
+  const pronto = window.google?.accounts?.id;
+  if (pronto) return Promise.resolve(pronto);
+
+  gisCarregando ??= new Promise((resolve, reject) => {
+    const tag = document.createElement("script");
+    tag.src = GIS_SRC;
+    tag.async = true;
+    tag.onload = () => {
+      const api = window.google?.accounts?.id;
+      if (api) resolve(api);
+      else reject(new Error("O Google Identity Services carregou sem a API esperada."));
+    };
+    tag.onerror = () => {
+      gisCarregando = null;
+      reject(new Error("Não foi possível carregar o login do Google (sem rede?)."));
+    };
+    document.head.appendChild(tag);
+  });
+  return gisCarregando;
+};
+
+// O initialize do GIS é global e só vale uma vez por página
+const iniciarGisUmaVez = (gis) => {
+  if (gisIniciado) return;
+  gisIniciado = true;
+
+  gis.initialize({
+    client_id: GOOGLE_WEB_CLIENT_ID,
+    ux_mode: "popup",
+    auto_select: false,
+    callback: async (resposta) => {
+      if (!resposta?.credential) {
+        mostrarErroLogin(new Error("O Google não devolveu credencial."));
+        return;
+      }
+      try {
+        const credencial = GoogleAuthProvider.credential(resposta.credential);
+        await signInWithCredential(auth, credencial);
+      } catch (e) {
+        mostrarErroLogin(e);
+      }
+    },
+  });
+};
+
+// Desenha o botão do Google na tela de login; se não der, usa o botão próprio
+const prepararLogin = async () => {
+  const alvo = document.getElementById("botao-google");
+  const proprio = document.getElementById("btn-login");
+
+  if (!GOOGLE_WEB_CLIENT_ID.trim()) {
+    proprio.classList.remove("hidden");
+    return;
+  }
+
   try {
-    if (isPWA) {
-      await signInWithRedirect(auth, provider);
-    } else {
-      await signInWithPopup(auth, provider);
-    }
-  } catch (error) {
-    alert("Erro ao entrar: " + error.message);
+    const gis = await carregarGis();
+    iniciarGisUmaVez(gis);
+    alvo.innerHTML = "";
+    gis.renderButton(alvo, {
+      type: "standard",
+      theme: "filled_black",
+      size: "large",
+      shape: "pill",
+      text: "signin_with",
+      locale: "pt-BR",
+      // O GIS não mede o contêiner: sem width explícito ele TRUNCA o rótulo
+      // em pt-BR num aparelho de 375px em vez de quebrar a linha.
+      width: Math.max(200, Math.min(400, Math.round(alvo.clientWidth) || 300)),
+    });
+    alvo.classList.remove("hidden");
+    proprio.classList.add("hidden");
+
+    // Origem não autorizada no cliente OAuth não vira exceção: o GIS só
+    // reclama no console e deixa o contêiner vazio. Sem esta checagem o
+    // usuário ficaria sem nenhum botão de entrar.
+    setTimeout(() => {
+      if (alvo.children.length === 0) {
+        console.warn("O GIS não desenhou o botão; usando o login do SDK.");
+        alvo.classList.add("hidden");
+        proprio.classList.remove("hidden");
+      }
+    }, 1500);
+  } catch (e) {
+    console.warn("GIS indisponível, usando o login do SDK:", e);
+    alvo.classList.add("hidden");
+    proprio.classList.remove("hidden");
+  }
+};
+
+// Caminho reserva: popup do próprio SDK do Firebase (nunca redirect)
+window.loginGoogle = async function () {
+  document.getElementById("erro-login").classList.add("hidden");
+  definirCarregandoLogin(true);
+  try {
+    await signInWithPopup(auth, provider);
+  } catch (erro) {
+    if (!CANCELAMENTOS.has(erro?.code)) mostrarErroLogin(erro);
+  } finally {
+    definirCarregandoLogin(false);
   }
 };
 
@@ -62,7 +229,8 @@ window.logout = async function () {
   try {
     await signOut(auth);
   } catch (error) {
-    alert("Erro ao sair: " + error.message);
+    console.error("Erro ao sair:", error);
+    mostrarNotificacao("Erro ao sair: " + error.message, "negativo", "error");
   }
 };
 
@@ -111,6 +279,8 @@ function atualizarUIAuth(user) {
   } else {
     areaLogin.classList.remove("hidden");
     appEl.classList.add("hidden");
+    // Só aqui a tela de login tem largura, que o GIS precisa para o botão
+    prepararLogin();
   }
 }
 
@@ -118,14 +288,8 @@ document.getElementById("btn-login").addEventListener("click", () => {
   window.loginGoogle();
 });
 
-// No PWA, captura o resultado do redirect uma única vez no carregamento
-if (isPWA) {
-  getRedirectResult(auth)
-    .then((result) => {
-      if (result?.user) salvarUsuarioFirestore(result.user);
-    })
-    .catch((e) => console.error("Erro no redirect result:", e));
-}
+// Sem getRedirectResult: o fluxo de redirect foi removido de propósito
+// (ver o comentário do login acima).
 
 // Mostra o motivo da falha em vez de deixar o app preso no splash
 function mostrarErroInicial(erro) {
@@ -184,14 +348,45 @@ onAuthStateChanged(auth, async (user) => {
 
 // --- PWA: SERVICE WORKER, INSTALAÇÃO E CONEXÃO ---
 
+/*
+ * Descoberta agressiva de versão nova.
+ *
+ * Assumir a versão nova já está resolvido: o sw.js chama skipWaiting() na
+ * instalação e clients.claim() na ativação, e o controllerchange abaixo
+ * recarrega a página. Isso é metade do problema.
+ *
+ * A outra metade é DESCOBRIR que existe versão nova. Num PWA aberto pela
+ * tela de início o navegador praticamente não vai atrás do sw.js sozinho —
+ * o iOS em especial —, então um deploy pode ficar parado indefinidamente.
+ *
+ * O que destrava é registro.update(), a chamada que força a checagem. Daí os
+ * três momentos: no registro, de hora em hora com o app aberto, e toda vez
+ * que ele volta do segundo plano, que é o caso real de quem fecha e reabre.
+ */
+const INTERVALO_ATUALIZACAO_MS = 60 * 60 * 1000;
+let registroSW = null;
+
+const procurarAtualizacao = () => {
+  registroSW?.update().catch(() => {});
+};
+
 if ("serviceWorker" in navigator) {
-  window.addEventListener("load", () => {
-    navigator.serviceWorker
-      .register("sw.js")
-      .catch((e) => console.warn("Service worker não registrado:", e));
+  window.addEventListener("load", async () => {
+    try {
+      registroSW = await navigator.serviceWorker.register("sw.js");
+      procurarAtualizacao();
+      setInterval(procurarAtualizacao, INTERVALO_ATUALIZACAO_MS);
+    } catch (e) {
+      console.warn("Service worker não registrado:", e);
+    }
   });
 
-  // Recarrega uma única vez quando uma nova versão assume o controle
+  document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState === "visible") procurarAtualizacao();
+  });
+
+  // Recarrega uma única vez quando uma nova versão assume o controle.
+  // O beforeunload já descarrega no Firestore o que estiver pendente.
   let recarregando = false;
   navigator.serviceWorker.addEventListener("controllerchange", () => {
     if (recarregando) return;
@@ -330,7 +525,8 @@ document
   .addEventListener("click", async () => {
     mostrarNotificacao("Buscando atualizações...", "neutro", "refresh");
     try {
-      const reg = await navigator.serviceWorker?.getRegistration();
+      const reg =
+        registroSW || (await navigator.serviceWorker?.getRegistration());
       await reg?.update();
       if (reg?.waiting) {
         reg.waiting.postMessage("SKIP_WAITING");
