@@ -1046,10 +1046,9 @@ const renderizarCompartilhamento = () => {
   if (!elCodigo || !grupoAtual) return;
 
   elCodigo.textContent = grupoAtual.codigo || "------";
-  document.getElementById("id-grupo-atual").textContent = grupoAtual.id;
-  // Já está no grupo herdeiro: não há para onde recuperar
+  // Já está no grupo com o histórico: não há para onde recuperar
   document
-    .getElementById("btn-recuperar-dados")
+    .getElementById("secao-recuperar")
     .classList.toggle("hidden", grupoAtual.id === GRUPO_LEGADO);
 
   const membros = grupoAtual.membros || [];
@@ -1085,10 +1084,6 @@ const renderizarCompartilhamento = () => {
   elMembros.querySelectorAll("[data-sair]").forEach((btn) => {
     btn.addEventListener("click", sairDoGrupo);
   });
-
-  document
-    .getElementById("aviso-sozinho")
-    .classList.toggle("hidden", membros.length > 1);
 };
 
 const entrarComCodigo = async () => {

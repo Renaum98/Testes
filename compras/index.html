@@ -16,7 +16,15 @@
     <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <!--
+      "default", e não "black-translucent". Com black-translucent o iOS joga a
+      página para debaixo da barra de status e ENCURTA a página inteira, que é
+      o que fazia sobrar faixa no rodapé por baixo da barra de abas. Com
+      "default" a webview começa abaixo da barra de status, o inset de cima
+      vira 0 e quem pinta aquela faixa é o iOS, usando o theme_color do
+      manifest — que aqui já é o #171717 da barra superior.
+    -->
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="apple-mobile-web-app-title" content="Mercado">
     <meta name="application-name" content="Mercado">
 
@@ -403,8 +411,7 @@
                     <h3>Conta compartilhada</h3>
                 </div>
                 <p class="secao-desc">
-                    Quem entrar com o seu código vê e edita as mesmas listas e compras que você, ao vivo.
-                    A ligação é permanente até um de vocês encerrar.
+                    Quem entrar com o seu código vê e edita as mesmas listas e compras, ao vivo.
                 </p>
 
                 <div class="codigo-convite">
@@ -422,31 +429,19 @@
 
                 <div id="membros-grupo" class="membros"></div>
 
-                <p id="aviso-sozinho" class="secao-desc hidden">
-                    Ninguém compartilha esta conta ainda. Passe seu código, ou entre no de outra pessoa abaixo.
-                </p>
-
                 <div class="entrar-grupo">
                     <input type="text" id="input-codigo" placeholder="Código de outra pessoa" maxlength="8"
                         autocomplete="off" autocapitalize="characters" spellcheck="false" enterkeyhint="go">
                     <button id="btn-entrar-grupo" class="btn-secundario">Entrar</button>
                 </div>
 
-                <p class="grupo-atual">Grupo: <span id="id-grupo-atual">—</span></p>
             </div>
 
-            <div class="secao-conta">
-                <div class="secao-titulo">
-                    <span class="material-icons">restore</span>
-                    <h3>Recuperar dados antigos</h3>
-                </div>
-                <p class="secao-desc">
-                    Se suas compras e listas de antes sumiram, é porque sua conta ficou apontando
-                    para um grupo diferente daquele onde elas estão. Nada foi apagado.
-                </p>
+            <!-- Some sozinha quando a conta já está no grupo com o histórico -->
+            <div class="secao-conta hidden" id="secao-recuperar">
                 <button id="btn-recuperar-dados" class="opcao">
                     <span class="material-icons">restore</span>
-                    <span class="opcao-texto">Voltar para os dados antigos</span>
+                    <span class="opcao-texto">Recuperar dados antigos</span>
                     <span class="material-icons opcao-seta">chevron_right</span>
                 </button>
                 <p id="resultado-recuperacao" class="detalhe-erro hidden"></p>
@@ -470,7 +465,7 @@
                 </button>
             </div>
 
-            <p class="rodape-conta">Mercado Inteligente · <span id="versao-app">v24</span></p>
+            <p class="rodape-conta">Mercado Inteligente · <span id="versao-app">v25</span></p>
         </div>
     </div>
 

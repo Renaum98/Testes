@@ -322,16 +322,10 @@ h4 {
     display: flex;
     background: #fff;
     border-top: 1px solid var(--gray-200);
-    /*
-     * Com o body branco, a faixa que o iOS pinta embaixo passou a se
-     * confundir com a barra — então não é mais preciso reservar a safe
-     * area inteira e os botões podem descer.
-     *
-     * 40% dela é o limite de baixo: o indicador de início é uma barrinha
-     * que vai até uns 13px do fundo, e menos que isso encostaria nele.
-     */
+    /* Teto de 12px na safe area, como na Cineteca: o suficiente para o
+       rótulo não encostar no indicador, sem o vão que ela inteira cria. */
     padding: 4px 8px;
-    padding-bottom: max(4px, calc(var(--base-segura) * 0.4));
+    padding-bottom: min(var(--base-segura), 12px);
     flex-shrink: 0;
     z-index: 200;
 }
@@ -1351,15 +1345,6 @@ img {
 .entrar-grupo button {
     width: auto;
     padding: 13px 20px;
-}
-
-.grupo-atual {
-    margin-top: 12px;
-    font-size: 0.6875rem;
-    color: var(--gray-400);
-    font-family: "SF Mono", "Monaco", "Courier New", monospace;
-    user-select: text;
-    word-break: break-all;
 }
 
 .lista-opcoes {
