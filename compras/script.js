@@ -1048,6 +1048,11 @@ const renderizarCompartilhamento = () => {
   if (!elCodigo || !grupoAtual) return;
 
   elCodigo.textContent = grupoAtual.codigo || "------";
+  document.getElementById("id-grupo-atual").textContent = grupoAtual.id;
+  // Já está no grupo herdeiro: não há para onde recuperar
+  document
+    .getElementById("btn-recuperar-dados")
+    .classList.toggle("hidden", grupoAtual.id === GRUPO_LEGADO);
 
   const membros = grupoAtual.membros || [];
   const info = grupoAtual.membrosInfo || {};
@@ -1165,6 +1170,70 @@ const sairDoGrupo = async () => {
     mostrarNotificacao("Não foi possível sair: " + e.message, "negativo", "error");
   }
 };
+
+/*
+ * Recuperação explícita do grupo herdeiro.
+ *
+ * Entra no grupo ANTES de tentar migrar, e isso importa: a migração lê a
+ * coleção de compras sem filtro, e o Firestore avalia a regra documento a
+ * documento — se um único for recusado, a consulta inteira falha. Sendo
+ * membro do grupo herdeiro, tanto as compras já carimbadas quanto as sem
+ * grupo passam.
+ */
+const recuperarDadosAntigos = async () => {
+  const saida = document.getElementById("resultado-recuperacao");
+  const mostrar = (texto) => {
+    saida.textContent = texto;
+    saida.classList.remove("hidden");
+  };
+
+  fecharConta();
+  const confirmado = await confirmar(
+    "Voltar para os dados antigos?",
+    "Sua conta passa a apontar para o grupo onde estão suas compras e listas anteriores. O que você tiver cadastrado agora fica no grupo atual.",
+    "Recuperar",
+  );
+  if (!confirmado) return;
+
+  abrirConta();
+  mostrar("Procurando...");
+
+  try {
+    const refLegado = doc(db, "grupos", GRUPO_LEGADO);
+    const snap = await getDoc(refLegado);
+    if (!snap.exists()) {
+      mostrar("O grupo antigo não existe neste banco de dados.");
+      return;
+    }
+
+    await updateDoc(refLegado, {
+      membros: arrayUnion(usuarioAtual.uid),
+      [`membrosInfo.${usuarioAtual.uid}`]: infoMembro(usuarioAtual),
+    });
+    await definirGrupoDoUsuario(usuarioAtual.uid, GRUPO_LEGADO);
+
+    let migradas = 0;
+    try {
+      migradas = await migrarComprasAntigas(GRUPO_LEGADO);
+      await setDoc(refLegado, { migrado: true }, { merge: true });
+    } catch (e) {
+      mostrar(
+        `Entrou no grupo antigo, mas o histórico não pôde ser carimbado: ${e?.code || e?.message}. Recarregando...`,
+      );
+      setTimeout(() => location.reload(), 3000);
+      return;
+    }
+
+    mostrar(`Pronto — ${migradas} compra(s) recuperada(s). Recarregando...`);
+    setTimeout(() => location.reload(), 1500);
+  } catch (e) {
+    mostrar(`Falhou: ${e?.code || e?.message}`);
+  }
+};
+
+document
+  .getElementById("btn-recuperar-dados")
+  .addEventListener("click", recuperarDadosAntigos);
 
 document.getElementById("btn-entrar-grupo").addEventListener("click", () => {
   entrarComCodigo();

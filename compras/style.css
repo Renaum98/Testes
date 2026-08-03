@@ -164,11 +164,19 @@ h4 {
 
 /* ============ SHELL DO APP ============ */
 
+/*
+ * Preso ao retângulo da tela, em vez de altura em porcentagem.
+ *
+ * Com height 100%/100dvh o shell ficava mais curto que a tela no PWA em
+ * tela cheia do iPhone e sobrava um vão branco embaixo da barra de abas.
+ * inset: 0 crava nas quatro bordas e não depende de como o iOS resolve
+ * altura relativa com viewport-fit=cover.
+ */
 .app-shell {
+    position: fixed;
+    inset: 0;
     display: flex;
     flex-direction: column;
-    height: 100%;
-    height: 100dvh;
 }
 
 /* Barra superior */
@@ -308,12 +316,12 @@ h4 {
     background: #fff;
     border-top: 1px solid var(--gray-200);
     /*
-     * Reservar a safe area inteira (34px no iPhone) empilha com o padding
-     * das abas e deixa a barra alta demais. Um pouco mais da metade já
-     * mantém os rótulos livres do indicador de início, sem o vão enorme.
+     * Agora que o shell encosta no fim da tela, a barra precisa de fato
+     * reservar a safe area — senão os rótulos caem sobre o indicador de
+     * início. Menos 8px porque o indicador não ocupa a faixa toda.
      */
     padding: 4px 8px;
-    padding-bottom: max(4px, calc(var(--base-segura) * 0.55));
+    padding-bottom: max(4px, calc(var(--base-segura) - 8px));
     flex-shrink: 0;
     z-index: 200;
 }
@@ -1333,6 +1341,15 @@ img {
 .entrar-grupo button {
     width: auto;
     padding: 13px 20px;
+}
+
+.grupo-atual {
+    margin-top: 12px;
+    font-size: 0.6875rem;
+    color: var(--gray-400);
+    font-family: "SF Mono", "Monaco", "Courier New", monospace;
+    user-select: text;
+    word-break: break-all;
 }
 
 .lista-opcoes {
