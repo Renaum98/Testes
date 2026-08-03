@@ -4,13 +4,17 @@ import {
   collection,
   addDoc,
   getDocs,
-  orderBy,
+  getDoc,
   query,
+  where,
   Timestamp,
   doc,
   setDoc,
+  updateDoc,
   onSnapshot,
   deleteDoc,
+  arrayUnion,
+  arrayRemove,
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 import {
   getAuth,
@@ -77,22 +81,18 @@ async function salvarUsuarioFirestore(user) {
 }
 
 function atualizarUIAuth(user) {
-  console.log("atualizarUIAuth chamado, user:", user);
   const areaLogin = document.getElementById("area-login");
   const appEl = document.getElementById("app");
   const userNome = document.getElementById("user-nome");
   const userFoto = document.getElementById("user-foto");
   const loadingEl = document.getElementById("area-loading");
 
-  // Esconde o loading sempre que o estado for resolvido
-  if (loadingEl) loadingEl.style.display = "none";
+  // Esconde o splash sempre que o estado for resolvido
+  loadingEl.classList.add("hidden");
 
   if (user) {
-    console.log("Usuário logado:", user.displayName);
-    areaLogin.style.display = "none";
+    areaLogin.classList.add("hidden");
     appEl.classList.remove("hidden");
-    appEl.style.setProperty("display", "block", "important");
-    console.log("app hidden?", appEl.classList.contains("hidden"));
 
     userNome.textContent = user.displayName || user.email;
     if (user.photoURL) {
@@ -100,13 +100,23 @@ function atualizarUIAuth(user) {
       userFoto.style.display = "block";
     }
 
+    // Dados da folha de Conta
+    document.getElementById("conta-nome").textContent =
+      user.displayName || "Sem nome";
+    document.getElementById("conta-email").textContent = user.email || "";
+    const contaFoto = document.getElementById("conta-foto");
+    if (user.photoURL) contaFoto.src = user.photoURL;
+
     iniciarApp();
   } else {
-    console.log("Sem usuário — mostrando login");
-    areaLogin.style.display = "block";
-    appEl.style.setProperty("display", "none", "important");
+    areaLogin.classList.remove("hidden");
+    appEl.classList.add("hidden");
   }
 }
+
+document.getElementById("btn-login").addEventListener("click", () => {
+  window.loginGoogle();
+});
 
 // No PWA, captura o resultado do redirect uma única vez no carregamento
 if (isPWA) {
@@ -117,17 +127,589 @@ if (isPWA) {
     .catch((e) => console.error("Erro no redirect result:", e));
 }
 
+// Mostra o motivo da falha em vez de deixar o app preso no splash
+function mostrarErroInicial(erro) {
+  document.getElementById("area-loading").classList.add("hidden");
+  document.getElementById("area-login").classList.add("hidden");
+  document.getElementById("app").classList.add("hidden");
+
+  const permissao = erro?.code === "permission-denied";
+  const offline =
+    erro?.code === "unavailable" || !navigator.onLine;
+
+  let mensagem;
+  if (permissao) {
+    mensagem =
+      "O banco de dados recusou o acesso. Publique as regras do arquivo firestore.rules no console do Firebase — a coleção “grupos” precisa estar liberada.";
+  } else if (offline) {
+    mensagem =
+      "Sem conexão com o servidor. Verifique a internet e tente de novo.";
+  } else {
+    mensagem = "Algo deu errado ao preparar sua conta.";
+  }
+
+  document.getElementById("erro-mensagem").textContent = mensagem;
+  document.getElementById("erro-detalhe").textContent =
+    erro?.code || erro?.message || String(erro);
+  document.getElementById("area-erro").classList.remove("hidden");
+}
+
+document
+  .getElementById("btn-tentar-novamente")
+  .addEventListener("click", () => location.reload());
+
+document.getElementById("btn-sair-erro").addEventListener("click", () => {
+  window.logout();
+  location.reload();
+});
+
 // Listener de autenticação — ponto de entrada do app
 onAuthStateChanged(auth, async (user) => {
+  usuarioAtual = user;
   if (user) {
-    await salvarUsuarioFirestore(user);
+    try {
+      await salvarUsuarioFirestore(user);
+      await garantirGrupo(user);
+    } catch (e) {
+      console.error("Erro ao preparar a conta:", e);
+      mostrarErroInicial(e);
+      return;
+    }
+  } else {
+    pararEscutas();
+    document.getElementById("area-erro").classList.add("hidden");
   }
   atualizarUIAuth(user);
 });
 
-// --- CONFIGURAÇÃO DA LISTA COMPARTILHADA ---
-const ID_LISTA_COMPARTILHADA = "sessao_familiar_unica";
-const docRef = doc(db, "lista_ativa", ID_LISTA_COMPARTILHADA);
+// --- PWA: SERVICE WORKER, INSTALAÇÃO E CONEXÃO ---
+
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker
+      .register("sw.js")
+      .catch((e) => console.warn("Service worker não registrado:", e));
+  });
+
+  // Recarrega uma única vez quando uma nova versão assume o controle
+  let recarregando = false;
+  navigator.serviceWorker.addEventListener("controllerchange", () => {
+    if (recarregando) return;
+    recarregando = true;
+    location.reload();
+  });
+}
+
+const CHAVE_BANNER = "mercado:instalacao-dispensada";
+let promptInstalacao = null;
+
+window.addEventListener("beforeinstallprompt", (e) => {
+  e.preventDefault();
+  promptInstalacao = e;
+  if (!isPWA && localStorage.getItem(CHAVE_BANNER) !== "1") {
+    document.getElementById("banner-instalar").classList.remove("hidden");
+  }
+});
+
+window.addEventListener("appinstalled", () => {
+  promptInstalacao = null;
+  document.getElementById("banner-instalar").classList.add("hidden");
+  mostrarNotificacao("App instalado!", "positivo", "check_circle");
+});
+
+document.getElementById("btn-instalar").addEventListener("click", async () => {
+  if (!promptInstalacao) return;
+  promptInstalacao.prompt();
+  await promptInstalacao.userChoice;
+  promptInstalacao = null;
+  document.getElementById("banner-instalar").classList.add("hidden");
+});
+
+document
+  .getElementById("btn-fechar-instalar")
+  .addEventListener("click", () => {
+    localStorage.setItem(CHAVE_BANNER, "1");
+    document.getElementById("banner-instalar").classList.add("hidden");
+  });
+
+const atualizarConexao = () => {
+  document
+    .getElementById("indicador-offline")
+    .classList.toggle("hidden", navigator.onLine);
+};
+window.addEventListener("online", () => {
+  atualizarConexao();
+  mostrarNotificacao("Conexão restabelecida", "positivo", "cloud_done");
+});
+window.addEventListener("offline", () => {
+  atualizarConexao();
+  mostrarNotificacao("Você está offline", "negativo", "cloud_off");
+});
+atualizarConexao();
+
+// --- NAVEGAÇÃO ENTRE TELAS ---
+
+const TELAS = {
+  "tela-inicial": "Início",
+  "tela-editor-lista": "Lista de Compras",
+  "tela-compras": "Comprando",
+};
+
+let telaAtual = "tela-inicial";
+
+const mostrarTela = (id, registrarHistorico = true) => {
+  if (!TELAS[id] || id === telaAtual) return;
+
+  // O botão "voltar" do Android volta para a tela anterior em vez de fechar o app
+  if (registrarHistorico) history.pushState({ tela: id }, "");
+  telaAtual = id;
+
+  Object.keys(TELAS).forEach((tela) => {
+    const el = document.getElementById(tela);
+    el.classList.toggle("hidden", tela !== id);
+  });
+  // reinicia a animação de entrada da tela exibida
+  const ativa = document.getElementById(id);
+  ativa.style.animation = "none";
+  void ativa.offsetWidth;
+  ativa.style.animation = "";
+
+  document.querySelectorAll("#tab-bar .tab").forEach((tab) => {
+    tab.classList.toggle("ativo", tab.dataset.tela === id);
+  });
+
+  document.getElementById("titulo-tela").textContent = TELAS[id];
+  document.getElementById("app-content").scrollTo({ top: 0 });
+};
+
+history.replaceState({ tela: "tela-inicial" }, "");
+window.addEventListener("popstate", (e) => {
+  mostrarTela(e.state?.tela || "tela-inicial", false);
+});
+
+document.querySelectorAll("#tab-bar .tab").forEach((tab) => {
+  tab.addEventListener("click", () => {
+    mostrarTela(tab.dataset.tela);
+    if (tab.dataset.tela === "tela-editor-lista") renderizarListaPreviaEditor();
+    if (tab.dataset.tela === "tela-compras") atualizarUI();
+  });
+});
+
+// --- FOLHA DE CONTA ---
+
+const abrirConta = () => {
+  // O atalho de instalação só aparece quando o navegador realmente permite instalar
+  document
+    .getElementById("btn-instalar-conta")
+    .classList.toggle("hidden", !promptInstalacao);
+  document.getElementById("modal-conta").classList.remove("hidden");
+};
+
+const fecharConta = () => {
+  document.getElementById("modal-conta").classList.add("hidden");
+};
+
+document.getElementById("btn-conta-topo").addEventListener("click", abrirConta);
+document.getElementById("fechar-conta").addEventListener("click", fecharConta);
+document.getElementById("modal-conta").addEventListener("click", (e) => {
+  if (e.target.id === "modal-conta") fecharConta();
+});
+
+document
+  .getElementById("btn-instalar-conta")
+  .addEventListener("click", async () => {
+    if (!promptInstalacao) return;
+    promptInstalacao.prompt();
+    await promptInstalacao.userChoice;
+    promptInstalacao = null;
+    fecharConta();
+  });
+
+document
+  .getElementById("btn-limpar-cache")
+  .addEventListener("click", async () => {
+    mostrarNotificacao("Buscando atualizações...", "neutro", "refresh");
+    try {
+      const reg = await navigator.serviceWorker?.getRegistration();
+      await reg?.update();
+      if (reg?.waiting) {
+        reg.waiting.postMessage("SKIP_WAITING");
+        return; // o controllerchange recarrega a página
+      }
+      mostrarNotificacao("Você já está na versão mais recente", "positivo", "check_circle");
+    } catch {
+      mostrarNotificacao("Não foi possível verificar agora", "negativo", "error");
+    }
+  });
+
+// --- DIÁLOGO DE CONFIRMAÇÃO (substitui o confirm() do navegador) ---
+
+const confirmar = (titulo, texto, textoOk = "Confirmar") =>
+  new Promise((resolve) => {
+    const modal = document.getElementById("modal-confirmar");
+    const btnOk = document.getElementById("btn-confirmar-ok");
+    const btnCancelar = document.getElementById("btn-confirmar-cancelar");
+
+    document.getElementById("confirmar-titulo").textContent = titulo;
+    document.getElementById("confirmar-texto").textContent = texto;
+    btnOk.textContent = textoOk;
+    modal.classList.remove("hidden");
+
+    const encerrar = (resposta) => {
+      modal.classList.add("hidden");
+      btnOk.removeEventListener("click", aoConfirmar);
+      btnCancelar.removeEventListener("click", aoCancelar);
+      modal.removeEventListener("click", aoClicarFora);
+      resolve(resposta);
+    };
+    const aoConfirmar = () => encerrar(true);
+    const aoCancelar = () => encerrar(false);
+    const aoClicarFora = (e) => {
+      if (e.target === modal) encerrar(false);
+    };
+
+    btnOk.addEventListener("click", aoConfirmar);
+    btnCancelar.addEventListener("click", aoCancelar);
+    modal.addEventListener("click", aoClicarFora);
+  });
+
+// --- GRUPO COMPARTILHADO ---
+// Cada grupo é uma "conta conjunta": todos os membros veem e editam a mesma
+// lista ativa e o mesmo histórico, ao vivo. O vínculo é permanente — só sai
+// quem pede para sair ou quem for removido por outro membro.
+
+// Documento que o app usava antes de existirem grupos. O primeiro usuário a
+// entrar depois desta versão herda esses dados (lista ativa + histórico).
+const GRUPO_LEGADO = "sessao_familiar_unica";
+
+// Sem 0/O/1/I para não confundir na hora de ditar o código
+const ALFABETO_CODIGO = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+
+let usuarioAtual = null;
+let grupoAtual = null; // { id, codigo, dono, membros, membrosInfo }
+let docRef = null; // lista_ativa/{grupoId}
+let pararEscutaLista = null;
+let pararEscutaGrupo = null;
+
+const gerarCodigo = () =>
+  Array.from(
+    { length: 6 },
+    () => ALFABETO_CODIGO[Math.floor(Math.random() * ALFABETO_CODIGO.length)],
+  ).join("");
+
+const buscarGrupoPorCodigo = async (codigo) => {
+  const snap = await getDocs(
+    query(collection(db, "grupos"), where("codigo", "==", codigo)),
+  );
+  return snap.empty ? null : snap.docs[0];
+};
+
+const gerarCodigoUnico = async () => {
+  for (let i = 0; i < 5; i++) {
+    const codigo = gerarCodigo();
+    if (!(await buscarGrupoPorCodigo(codigo))) return codigo;
+  }
+  // Praticamente inalcançável; evita laço infinito
+  return gerarCodigo() + Math.floor(Math.random() * 10);
+};
+
+const infoMembro = (user) => ({
+  nome: user.displayName || user.email || "Sem nome",
+  email: user.email || "",
+  foto: user.photoURL || "",
+});
+
+const pararEscutas = () => {
+  if (pararEscutaLista) pararEscutaLista();
+  if (pararEscutaGrupo) pararEscutaGrupo();
+  pararEscutaLista = null;
+  pararEscutaGrupo = null;
+};
+
+// Copia o histórico anterior aos grupos para dentro do grupo que herdou os dados
+const migrarComprasAntigas = async (grupoId) => {
+  const snap = await getDocs(collection(db, "compras_finalizadas"));
+  const pendentes = snap.docs.filter((d) => !d.data().grupoId);
+  await Promise.all(
+    pendentes.map((d) =>
+      setDoc(d.ref, { grupoId }, { merge: true }).catch((e) =>
+        console.warn("Falha ao migrar compra", d.id, e),
+      ),
+    ),
+  );
+  return pendentes.length;
+};
+
+const criarGrupo = async (user, { id = null } = {}) => {
+  const codigo = await gerarCodigoUnico();
+  const dados = {
+    codigo,
+    dono: user.uid,
+    membros: [user.uid],
+    membrosInfo: { [user.uid]: infoMembro(user) },
+    criadoEm: Timestamp.now(),
+  };
+  const ref = id
+    ? doc(db, "grupos", id)
+    : doc(collection(db, "grupos"));
+  await setDoc(ref, dados);
+  return { id: ref.id, ...dados };
+};
+
+const definirGrupoDoUsuario = async (uid, grupoId) => {
+  await setDoc(doc(db, "usuarios", uid), { grupoId }, { merge: true });
+};
+
+// Descobre (ou cria) o grupo do usuário e liga as escutas ao vivo
+const garantirGrupo = async (user) => {
+  const refUsuario = doc(db, "usuarios", user.uid);
+  const snapUsuario = await getDoc(refUsuario);
+  const grupoId = snapUsuario.data()?.grupoId;
+
+  if (grupoId) {
+    const snapGrupo = await getDoc(doc(db, "grupos", grupoId));
+    if (snapGrupo.exists() && snapGrupo.data().membros?.includes(user.uid)) {
+      aplicarGrupo({ id: snapGrupo.id, ...snapGrupo.data() });
+      return;
+    }
+    // Grupo sumiu ou o usuário foi removido: cai para a criação de um novo
+  }
+
+  // Primeiro login desta versão: herda os dados que o app já tinha
+  const snapLegado = await getDoc(doc(db, "grupos", GRUPO_LEGADO));
+  if (!snapLegado.exists()) {
+    const novo = await criarGrupo(user, { id: GRUPO_LEGADO });
+    await definirGrupoDoUsuario(user.uid, novo.id);
+
+    // A migração é um extra: se as regras do Firestore barrarem, o app entra
+    // do mesmo jeito — só o histórico antigo é que não aparece.
+    let migradas = 0;
+    try {
+      migradas = await migrarComprasAntigas(novo.id);
+    } catch (e) {
+      console.warn("Não foi possível migrar o histórico antigo:", e);
+    }
+
+    aplicarGrupo(novo);
+    if (migradas > 0) {
+      mostrarNotificacao(
+        `${migradas} ${migradas === 1 ? "compra recuperada" : "compras recuperadas"}`,
+        "positivo",
+        "history",
+      );
+    }
+    return;
+  }
+
+  const novo = await criarGrupo(user);
+  await definirGrupoDoUsuario(user.uid, novo.id);
+  aplicarGrupo(novo);
+};
+
+// Troca o grupo ativo: religa a lista compartilhada e a escuta de membros
+const aplicarGrupo = (grupo) => {
+  pararEscutas();
+  grupoAtual = grupo;
+  docRef = doc(db, "lista_ativa", grupo.id);
+  renderizarCompartilhamento();
+
+  pararEscutaGrupo = onSnapshot(doc(db, "grupos", grupo.id), (snap) => {
+    if (!snap.exists()) return;
+    const dados = { id: snap.id, ...snap.data() };
+
+    // Removido por outro membro: sai para um grupo novo e vazio
+    if (usuarioAtual && !dados.membros?.includes(usuarioAtual.uid)) {
+      mostrarNotificacao(
+        "Você saiu do grupo compartilhado",
+        "neutro",
+        "group_off",
+      );
+      sairParaGrupoNovo();
+      return;
+    }
+
+    grupoAtual = dados;
+    renderizarCompartilhamento();
+  });
+};
+
+let trocandoDeGrupo = false;
+
+const sairParaGrupoNovo = async () => {
+  if (!usuarioAtual || trocandoDeGrupo) return;
+  trocandoDeGrupo = true;
+  pararEscutas();
+  try {
+    const novo = await criarGrupo(usuarioAtual);
+    await definirGrupoDoUsuario(usuarioAtual.uid, novo.id);
+  } catch (e) {
+    console.error("Erro ao criar grupo novo:", e);
+  }
+  location.reload();
+};
+
+// --- INTERFACE DE COMPARTILHAMENTO (dentro da folha de Conta) ---
+
+const renderizarCompartilhamento = () => {
+  const elCodigo = document.getElementById("codigo-grupo");
+  const elMembros = document.getElementById("membros-grupo");
+  if (!elCodigo || !grupoAtual) return;
+
+  elCodigo.textContent = grupoAtual.codigo || "------";
+
+  const membros = grupoAtual.membros || [];
+  const info = grupoAtual.membrosInfo || {};
+
+  elMembros.innerHTML = membros
+    .map((uid) => {
+      const m = info[uid] || { nome: "Membro", email: "" };
+      const souEu = uid === usuarioAtual?.uid;
+      const foto = m.foto
+        ? `<img src="${escapeHtml(m.foto)}" alt="" width="34" height="34">`
+        : `<span class="material-icons avatar-vazio">person</span>`;
+      const acao = souEu
+        ? membros.length > 1
+          ? `<button class="btn-membro" data-sair="1">Sair</button>`
+          : ""
+        : `<button class="btn-membro perigo" data-remover="${escapeHtml(uid)}">Remover</button>`;
+      return `
+        <div class="membro">
+          ${foto}
+          <div class="membro-textos">
+            <strong>${escapeHtml(m.nome)}${souEu ? " (você)" : ""}</strong>
+            <span>${escapeHtml(m.email)}</span>
+          </div>
+          ${acao}
+        </div>`;
+    })
+    .join("");
+
+  elMembros.querySelectorAll("[data-remover]").forEach((btn) => {
+    btn.addEventListener("click", () => removerMembro(btn.dataset.remover));
+  });
+  elMembros.querySelectorAll("[data-sair]").forEach((btn) => {
+    btn.addEventListener("click", sairDoGrupo);
+  });
+
+  document
+    .getElementById("aviso-sozinho")
+    .classList.toggle("hidden", membros.length > 1);
+};
+
+const entrarComCodigo = async () => {
+  const input = document.getElementById("input-codigo");
+  const codigo = input.value.trim().toUpperCase();
+  if (!codigo) return;
+
+  if (codigo === grupoAtual?.codigo) {
+    mostrarNotificacao("Esse já é o seu próprio código", "negativo", "warning");
+    return;
+  }
+
+  const encontrado = await buscarGrupoPorCodigo(codigo);
+  if (!encontrado) {
+    mostrarNotificacao("Código não encontrado", "negativo", "search_off");
+    return;
+  }
+
+  const dono = encontrado.data().membrosInfo?.[encontrado.data().dono];
+  fecharConta();
+  const confirmado = await confirmar(
+    "Entrar nesta conta compartilhada?",
+    `Você passa a ver e editar as listas e compras de ${dono?.nome || "outra pessoa"}. Suas listas atuais deixam de aparecer, mas não são apagadas.`,
+    "Entrar",
+  );
+  if (!confirmado) return;
+
+  try {
+    await updateDoc(encontrado.ref, {
+      membros: arrayUnion(usuarioAtual.uid),
+      [`membrosInfo.${usuarioAtual.uid}`]: infoMembro(usuarioAtual),
+    });
+    await definirGrupoDoUsuario(usuarioAtual.uid, encontrado.id);
+    input.value = "";
+    location.reload();
+  } catch (e) {
+    console.error("Erro ao entrar no grupo:", e);
+    mostrarNotificacao("Não foi possível entrar: " + e.message, "negativo", "error");
+  }
+};
+
+const removerMembro = async (uid) => {
+  const nome = grupoAtual?.membrosInfo?.[uid]?.nome || "esta pessoa";
+  fecharConta();
+  const confirmado = await confirmar(
+    "Encerrar o compartilhamento?",
+    `${nome} deixa de ver suas listas e compras. Vocês podem se juntar de novo depois com o mesmo código.`,
+    "Remover",
+  );
+  if (!confirmado) return;
+
+  try {
+    await updateDoc(doc(db, "grupos", grupoAtual.id), {
+      membros: arrayRemove(uid),
+    });
+    mostrarNotificacao("Compartilhamento encerrado", "positivo", "group_off");
+  } catch (e) {
+    mostrarNotificacao("Não foi possível remover: " + e.message, "negativo", "error");
+  }
+};
+
+const sairDoGrupo = async () => {
+  fecharConta();
+  const confirmado = await confirmar(
+    "Sair da conta compartilhada?",
+    "Você volta a ter listas e compras só suas. Pode entrar de novo depois com o código.",
+    "Sair do grupo",
+  );
+  if (!confirmado) return;
+
+  try {
+    // Ao sair da lista de membros, a própria escuta do grupo cuida da troca
+    await updateDoc(doc(db, "grupos", grupoAtual.id), {
+      membros: arrayRemove(usuarioAtual.uid),
+    });
+  } catch (e) {
+    mostrarNotificacao("Não foi possível sair: " + e.message, "negativo", "error");
+  }
+};
+
+document.getElementById("btn-entrar-grupo").addEventListener("click", () => {
+  entrarComCodigo();
+});
+
+document.getElementById("input-codigo").addEventListener("keypress", (e) => {
+  if (e.key === "Enter") entrarComCodigo();
+});
+
+document.getElementById("btn-copiar-codigo").addEventListener("click", async () => {
+  if (!grupoAtual?.codigo) return;
+  try {
+    await navigator.clipboard.writeText(grupoAtual.codigo);
+    mostrarNotificacao("Código copiado", "positivo", "content_copy");
+  } catch {
+    mostrarNotificacao("Não foi possível copiar", "negativo", "error");
+  }
+});
+
+document.getElementById("btn-compartilhar-codigo").addEventListener("click", async () => {
+  if (!grupoAtual?.codigo) return;
+  const texto = `Entre na nossa lista de compras do Mercado Inteligente com o código ${grupoAtual.codigo}`;
+  if (navigator.share) {
+    try {
+      await navigator.share({ title: "Mercado Inteligente", text: texto });
+    } catch {
+      /* cancelado pelo usuário */
+    }
+  } else {
+    try {
+      await navigator.clipboard.writeText(texto);
+      mostrarNotificacao("Convite copiado", "positivo", "content_copy");
+    } catch {
+      mostrarNotificacao("Compartilhamento indisponível", "negativo", "error");
+    }
+  }
+});
 
 // --- ESTADO ---
 let carrinho = [];
@@ -143,7 +725,7 @@ let saveTimer = null;
 const SAVE_DEBOUNCE_MS = 400;
 
 const salvarEstadoRemoto = () => {
-  if (isUpdatingFromSnapshot) return;
+  if (isUpdatingFromSnapshot || !docRef) return;
   if (saveTimer) clearTimeout(saveTimer);
   saveTimer = setTimeout(async () => {
     saveTimer = null;
@@ -164,7 +746,9 @@ const salvarEstadoRemoto = () => {
 };
 
 const iniciarSincronizacao = () => {
-  onSnapshot(docRef, (docSnap) => {
+  if (!docRef) return;
+  if (pararEscutaLista) pararEscutaLista();
+  pararEscutaLista = onSnapshot(docRef, (docSnap) => {
     isUpdatingFromSnapshot = true;
 
     if (docSnap.exists()) {
@@ -205,6 +789,7 @@ const limparEstadoRemoto = async () => {
     clearTimeout(saveTimer);
     saveTimer = null;
   }
+  if (!docRef) return;
   try {
     await deleteDoc(docRef);
     carrinho = [];
@@ -217,7 +802,7 @@ const limparEstadoRemoto = async () => {
 
 // Flush de mutação pendente antes de fechar/recarregar
 window.addEventListener("beforeunload", () => {
-  if (saveTimer) {
+  if (saveTimer && docRef) {
     clearTimeout(saveTimer);
     saveTimer = null;
     setDoc(docRef, {
@@ -418,6 +1003,35 @@ const atualizarUI = () => {
   }
 
   atualizarListaPendenteVisual();
+  atualizarBadgesTabs();
+  atualizarBotaoIniciar();
+};
+
+// Com o carrinho já em andamento, o botão da tela inicial retoma a compra
+const atualizarBotaoIniciar = () => {
+  const emAndamento = carrinho.length > 0;
+  document.getElementById("txt-btn-iniciar").textContent = emAndamento
+    ? "Continuar Compras"
+    : "Iniciar Compras";
+  document.getElementById("icone-btn-iniciar").textContent = emAndamento
+    ? "arrow_forward"
+    : "play_arrow";
+};
+
+// Contadores nas abas: itens que faltam comprar e itens já no carrinho
+const atualizarBadgesTabs = () => {
+  const pendentes = listaPrevia.filter(
+    (p) => !carrinho.some((c) => c.nome.toLowerCase() === p.nome.toLowerCase()),
+  ).length;
+
+  const definir = (id, valor) => {
+    const el = document.getElementById(id);
+    el.textContent = valor > 99 ? "99+" : valor;
+    el.classList.toggle("hidden", valor === 0);
+  };
+
+  definir("tab-badge-lista", pendentes);
+  definir("tab-badge-carrinho", carrinho.length);
 };
 
 const atualizarListaPendenteVisual = () => {
@@ -518,6 +1132,7 @@ const verificarHistoricoPreco = (nome, precoAtual) => {
 
 const renderizarListaPreviaEditor = () => {
   const div = document.getElementById("lista-previa-itens");
+  atualizarBadgesTabs();
   if (listaPrevia.length === 0) {
     div.innerHTML = `
       <div class="empty-state">
@@ -543,6 +1158,142 @@ const renderizarListaPreviaEditor = () => {
     btn.addEventListener("click", () =>
       window.removerItemPrevia(btn.dataset.id),
     );
+  });
+};
+
+// --- HISTÓRICO DE COMPRAS ---
+
+const modalCupom = document.getElementById("modal-cupom");
+let compraAberta = null;
+
+const fecharCupom = () => {
+  modalCupom.classList.add("hidden");
+  compraAberta = null;
+};
+
+const abrirCupom = (id, dados, dataFormatada) => {
+  compraAberta = { id, dataFormatada };
+  const itens = dados.itens || [];
+
+  document.getElementById("cupom-data").textContent = dataFormatada;
+  document.getElementById("conteudo-cupom").innerHTML = itens
+    .map(
+      (i) => `
+      <div class="linha-cupom">
+        <span>${escapeHtml(i.nome)} ${i.qtd}x</span>
+        <span>R$ ${i.total.toFixed(2).replace(".", ",")}</span>
+      </div>`,
+    )
+    .join("");
+  document.getElementById("total-cupom").innerText =
+    `TOTAL: R$ ${dados.total.toFixed(2).replace(".", ",")}`;
+
+  modalCupom.classList.remove("hidden");
+};
+
+modalCupom.querySelector(".close-modal").addEventListener("click", fecharCupom);
+modalCupom.addEventListener("click", (e) => {
+  if (e.target === modalCupom) fecharCupom();
+});
+
+document
+  .getElementById("btn-excluir-compra")
+  .addEventListener("click", async () => {
+    if (!compraAberta) return;
+    const { id, dataFormatada } = compraAberta;
+
+    // fecha o cupom antes de perguntar para não empilhar duas folhas
+    fecharCupom();
+    const confirmado = await confirmar(
+      "Excluir esta compra?",
+      `O registro de ${dataFormatada} será apagado para sempre. Essa ação não pode ser desfeita.`,
+      "Excluir",
+    );
+    if (!confirmado) return;
+
+    try {
+      await deleteDoc(doc(db, "compras_finalizadas", id));
+      mostrarNotificacao("Compra excluída", "positivo", "delete");
+      await carregarHistorico();
+    } catch (e) {
+      mostrarNotificacao("Erro ao excluir: " + e.message, "negativo", "error");
+    }
+  });
+
+const carregarHistorico = async () => {
+  const histDiv = document.getElementById("lista-historico");
+
+  if (!grupoAtual) return;
+
+  let snap;
+  try {
+    // Só o filtro por grupo na consulta; a ordenação é feita aqui embaixo para
+    // não precisar de índice composto no Firestore.
+    snap = await getDocs(
+      query(
+        collection(db, "compras_finalizadas"),
+        where("grupoId", "==", grupoAtual.id),
+      ),
+    );
+  } catch (e) {
+    console.error("Erro ao carregar histórico:", e);
+    histDiv.innerHTML = `
+      <div class="empty-state">
+        <span class="material-icons empty-state-icon">cloud_off</span>
+        <p>Não foi possível carregar o histórico</p>
+      </div>`;
+    return;
+  }
+
+  const compras = snap.docs
+    .filter((d) => d.data().data)
+    .sort((a, b) => b.data().data.toMillis() - a.data().data.toMillis());
+
+  if (compras.length === 0) {
+    histDiv.innerHTML = `
+      <div class="empty-state">
+        <span class="material-icons empty-state-icon">receipt_long</span>
+        <p>Nenhuma compra registrada ainda</p>
+      </div>`;
+    return;
+  }
+
+  histDiv.innerHTML = "";
+  compras.forEach((docSnap) => {
+    const d = docSnap.data();
+
+    if (d.itens) {
+      d.itens.forEach((i) => {
+        produtosConhecidos.add(i.nome);
+        if (!ultimosPrecos[i.nome]) ultimosPrecos[i.nome] = i.preco;
+      });
+    }
+
+    const dataFormatada = d.data.toDate().toLocaleDateString("pt-BR", {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+    });
+    const qtdItens = (d.itens || []).length;
+
+    const card = document.createElement("div");
+    card.className = "historico-card";
+    card.innerHTML = `
+        <div class="historico-data">
+          <span class="material-icons">event</span>
+          <div class="historico-textos">
+            <span>${escapeHtml(dataFormatada)}</span>
+            <small>${qtdItens} ${qtdItens === 1 ? "item" : "itens"}</small>
+          </div>
+        </div>
+        <div class="historico-fim">
+          <div class="historico-total">R$ ${d.total.toFixed(2).replace(".", ",")}</div>
+          <span class="material-icons historico-seta">chevron_right</span>
+        </div>`;
+    card.addEventListener("click", () =>
+      abrirCupom(docSnap.id, d, dataFormatada),
+    );
+    histDiv.appendChild(card);
   });
 };
 
@@ -639,16 +1390,23 @@ function iniciarApp() {
   });
 
   // Navegação
+  document.getElementById("btn-logout").addEventListener("click", async () => {
+    fecharConta();
+    if (
+      await confirmar("Sair da conta?", "Você precisará entrar de novo.", "Sair")
+    ) {
+      window.logout();
+    }
+  });
+
   document.getElementById("btn-criar-lista").addEventListener("click", () => {
-    document.getElementById("tela-inicial").classList.add("hidden");
-    document.getElementById("tela-editor-lista").classList.remove("hidden");
+    mostrarTela("tela-editor-lista");
     renderizarListaPreviaEditor();
   });
 
   document.getElementById("btn-salvar-lista").addEventListener("click", () => {
     salvarEstadoRemoto();
-    document.getElementById("tela-editor-lista").classList.add("hidden");
-    document.getElementById("tela-inicial").classList.remove("hidden");
+    mostrarTela("tela-inicial");
     if (listaPrevia.length > 0) {
       mostrarNotificacao(
         `Lista salva com ${listaPrevia.length} itens`,
@@ -702,8 +1460,7 @@ function iniciarApp() {
     );
     if (!isNaN(valorInput) && valorInput >= 0) orcamento = valorInput;
     salvarEstadoRemoto();
-    document.getElementById("tela-inicial").classList.add("hidden");
-    document.getElementById("tela-compras").classList.remove("hidden");
+    mostrarTela("tela-compras");
     atualizarUI();
   });
 
@@ -748,14 +1505,23 @@ function iniciarApp() {
         mostrarNotificacao("Carrinho vazio", "negativo", "warning");
         return;
       }
-      if (!confirm("Deseja finalizar a compra?")) return;
-
       const total = carrinho.reduce((sum, item) => sum + item.total, 0);
+      const confirmado = await confirmar(
+        "Finalizar compra?",
+        `${carrinho.length} ${carrinho.length === 1 ? "item" : "itens"} · Total de R$ ${total
+          .toFixed(2)
+          .replace(".", ",")}`,
+        "Finalizar",
+      );
+      if (!confirmado) return;
+
       try {
         await addDoc(collection(db, "compras_finalizadas"), {
           data: Timestamp.now(),
           total,
           itens: carrinho,
+          grupoId: grupoAtual?.id || null,
+          finalizadaPor: usuarioAtual?.displayName || usuarioAtual?.email || "",
         });
         mostrarNotificacao(
           "Compra finalizada com sucesso!",
@@ -776,80 +1542,23 @@ function iniciarApp() {
   document
     .getElementById("btn-cancelar")
     .addEventListener("click", async () => {
-      if (confirm("Tem certeza que deseja cancelar tudo?")) {
+      const confirmado = await confirmar(
+        "Cancelar tudo?",
+        "O carrinho e a lista atual serão apagados.",
+        "Cancelar tudo",
+      );
+      if (confirmado) {
         await limparEstadoRemoto();
         location.reload();
       }
     });
 
-  // Modal
-  const modal = document.getElementById("modal-cupom");
-  window.abrirModal = (itens, total) => {
-    document.getElementById("conteudo-cupom").innerHTML = itens
-      .map(
-        (i) => `
-      <div class="linha-cupom">
-        <span>${escapeHtml(i.nome)} ${i.qtd}x</span>
-        <span>R$ ${i.total.toFixed(2).replace(".", ",")}</span>
-      </div>`,
-      )
-      .join("");
-    document.getElementById("total-cupom").innerText =
-      `TOTAL: R$ ${total.toFixed(2).replace(".", ",")}`;
-    modal.classList.remove("hidden");
-  };
-  document.querySelector(".close-modal").onclick = () =>
-    modal.classList.add("hidden");
-  modal.onclick = (e) => {
-    if (e.target === modal) modal.classList.add("hidden");
-  };
+  // Atalhos do manifest (ex.: ./?tela=lista)
+  const atalho = new URLSearchParams(location.search).get("tela");
+  if (atalho === "lista") mostrarTela("tela-editor-lista");
+  else if (atalho === "compras") mostrarTela("tela-compras");
 
   // Histórico + sincronização
   iniciarSincronizacao();
-
-  (async () => {
-    const q = query(
-      collection(db, "compras_finalizadas"),
-      orderBy("data", "desc"),
-    );
-    const snap = await getDocs(q);
-    const histDiv = document.getElementById("lista-historico");
-
-    if (snap.empty) {
-      histDiv.innerHTML = `
-        <div class="empty-state">
-          <span class="material-icons empty-state-icon">receipt_long</span>
-          <p>Nenhuma compra registrada ainda</p>
-        </div>`;
-    } else {
-      histDiv.innerHTML = "";
-      snap.forEach((docSnap) => {
-        const d = docSnap.data();
-        if (!d.data) return;
-        if (d.itens) {
-          d.itens.forEach((i) => {
-            produtosConhecidos.add(i.nome);
-            if (!ultimosPrecos[i.nome]) ultimosPrecos[i.nome] = i.preco;
-          });
-        }
-        const dataFormatada = d.data.toDate().toLocaleDateString("pt-BR", {
-          day: "2-digit",
-          month: "short",
-          year: "numeric",
-        });
-        const card = document.createElement("div");
-        card.className = "historico-card";
-        card.innerHTML = `
-            <div class="historico-data">
-              <span class="material-icons">event</span>
-              <span>${escapeHtml(dataFormatada)}</span>
-            </div>
-            <div class="historico-total">R$ ${d.total.toFixed(2).replace(".", ",")}</div>`;
-        card.addEventListener("click", () => {
-          window.abrirModal(d.itens, d.total);
-        });
-        histDiv.appendChild(card);
-      });
-    }
-  })();
+  carregarHistorico();
 }

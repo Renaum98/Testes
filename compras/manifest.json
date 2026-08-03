@@ -1,0 +1,55 @@
+{
+  "name": "Mercado Inteligente",
+  "short_name": "Mercado",
+  "description": "Organize suas listas de compras e controle quanto pode gastar.",
+  "id": "./",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "display_override": ["standalone", "minimal-ui"],
+  "orientation": "portrait",
+  "background_color": "#fafafa",
+  "theme_color": "#171717",
+  "lang": "pt-BR",
+  "dir": "ltr",
+  "categories": ["shopping", "productivity", "finance"],
+  "icons": [
+    {
+      "src": "icons/favicon-32.png",
+      "sizes": "32x32",
+      "type": "image/png"
+    },
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Editar lista",
+      "short_name": "Lista",
+      "url": "./?tela=lista",
+      "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Continuar compra",
+      "short_name": "Compras",
+      "url": "./?tela=compras",
+      "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192" }]
+    }
+  ]
+}

@@ -1,0 +1,71 @@
+rules_version = '2';
+
+// Regras de segurança do Mercado Inteligente.
+// Cole no console do Firebase: Firestore Database > Regras > Publicar.
+//
+// Sem estas regras o compartilhamento é só visual: qualquer pessoa que fizer
+// login continua conseguindo ler e escrever os dados de todo mundo.
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function logado() {
+      return request.auth != null;
+    }
+
+    function membroDoGrupo(grupoId) {
+      return logado()
+        && grupoId != null
+        && exists(/databases/$(database)/documents/grupos/$(grupoId))
+        && request.auth.uid in get(/databases/$(database)/documents/grupos/$(grupoId)).data.membros;
+    }
+
+    // Documento herdado da versão anterior aos grupos, ainda sem dono definido
+    function semGrupo() {
+      return !('grupoId' in resource.data) || resource.data.grupoId == null;
+    }
+
+    // Perfil: cada um enxerga e edita só o próprio
+    match /usuarios/{uid} {
+      allow read, write: if logado() && request.auth.uid == uid;
+    }
+
+    match /grupos/{grupoId} {
+      // Leitura aberta a quem está logado porque entrar por código exige
+      // procurar o grupo antes de ser membro dele
+      allow read: if logado();
+
+      allow create: if logado()
+        && request.auth.uid in request.resource.data.membros
+        && request.resource.data.dono == request.auth.uid;
+
+      // Membros mexem no grupo à vontade (inclusive removendo alguém).
+      // Quem está de fora só pode fazer uma coisa: se adicionar via código.
+      allow update: if membroDoGrupo(grupoId)
+        || (logado()
+            && request.resource.data.membros.hasAll(resource.data.membros)
+            && request.resource.data.membros.removeAll(resource.data.membros) == [request.auth.uid]
+            && request.resource.data.dono == resource.data.dono);
+
+      allow delete: if false;
+    }
+
+    // Lista ativa: o id do documento é o id do grupo
+    match /lista_ativa/{grupoId} {
+      allow read, write: if membroDoGrupo(grupoId);
+    }
+
+    match /compras_finalizadas/{compraId} {
+      // semGrupo() cobre as compras antigas até a migração carimbar o grupoId
+      allow read: if membroDoGrupo(resource.data.grupoId)
+        || (logado() && semGrupo());
+
+      allow create: if membroDoGrupo(request.resource.data.grupoId);
+
+      allow update: if membroDoGrupo(resource.data.grupoId)
+        || (logado() && semGrupo());
+
+      allow delete: if membroDoGrupo(resource.data.grupoId);
+    }
+  }
+}

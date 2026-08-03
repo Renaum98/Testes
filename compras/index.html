@@ -3,8 +3,23 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta name="theme-color" content="#6366f1">
+    <!-- user-scalable=no + maximum-scale travam o pinça-zoom e o zoom automático ao focar input -->
+    <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="color-scheme" content="light">
+    <meta name="theme-color" content="#171717">
+    <meta name="description" content="Organize suas listas de compras e controle quanto pode gastar.">
+
+    <!-- PWA -->
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" href="icons/favicon-32.png" sizes="32x32" type="image/png">
+    <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Mercado">
+    <meta name="application-name" content="Mercado">
+
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link
@@ -17,177 +32,217 @@
 
 <body>
 
-    <!-- TELA DE LOADING (visível enquanto Firebase verifica sessão) -->
-    <div id="area-loading" style="text-align:center; margin-top:80px;">
-        <span class="material-icons"
-            style="font-size:48px; color:#6366f1; animation: spin 1s linear infinite;">sync</span>
-        <p style="margin-top:12px; color:#6b7280;">Carregando...</p>
+    <!-- SPLASH (visível enquanto o Firebase verifica a sessão) -->
+    <div id="area-loading" class="tela-cheia">
+        <div class="marca">
+            <span class="material-icons marca-icone">shopping_bag</span>
+            <h1 class="marca-nome">Mercado Inteligente</h1>
+        </div>
+        <span class="material-icons girando">progress_activity</span>
     </div>
-    <style>
-        @keyframes spin {
-            from {
-                transform: rotate(0deg);
-            }
 
-            to {
-                transform: rotate(360deg);
-            }
-        }
-    </style>
-
-    <!-- TELA DE LOGIN -->
-    <div id="area-login" style="text-align:center; margin-top:40px; display:none;">
-        <h2>Mercado Inteligente</h2>
-        <button onclick="loginGoogle()" class="btn-primary" style="width: fit-content; margin: 8px auto;">
+    <!-- LOGIN -->
+    <div id="area-login" class="tela-cheia hidden">
+        <div class="marca">
+            <span class="material-icons marca-icone">shopping_bag</span>
+            <h1 class="marca-nome">Mercado Inteligente</h1>
+            <p class="marca-sub">Sua lista e seu orçamento, sempre à mão</p>
+        </div>
+        <button id="btn-login" class="btn-primary btn-login">
             <span class="material-icons">login</span>
-            Entrar com Google
+            <span>Entrar com Google</span>
         </button>
+    </div>
+
+    <!-- FALHA AO PREPARAR A CONTA -->
+    <div id="area-erro" class="tela-cheia hidden">
+        <div class="marca">
+            <span class="material-icons marca-icone erro">error_outline</span>
+            <h1 class="marca-nome">Não foi possível abrir</h1>
+            <p class="marca-sub" id="erro-mensagem"></p>
+        </div>
+        <div class="acoes-erro">
+            <button id="btn-tentar-novamente" class="btn-primary">
+                <span class="material-icons">refresh</span>
+                <span>Tentar de novo</span>
+            </button>
+            <button id="btn-sair-erro" class="btn-secundario">Sair da conta</button>
+        </div>
+        <p class="detalhe-erro" id="erro-detalhe"></p>
     </div>
 
     <div id="container-notificacoes"></div>
 
-    <!-- APP (oculto até login) -->
-    <div class="container hidden" id="app">
+    <!-- APP (oculto até o login) -->
+    <div class="app-shell hidden" id="app">
 
-        <!-- Barra do usuário -->
-        <div id="user-bar" style="
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 10px 16px;
-            background: var(--bg-card, #fff);
-            border-bottom: 1px solid #e5e7eb;
-            margin-bottom: 8px;
-        ">
-            <div style="display:flex; align-items:center; gap:10px;">
-                <img id="user-foto" src="" alt="foto" width="32" height="32" style="border-radius:50%; display:none;">
-                <span id="user-nome" style="font-size:0.875rem; font-weight:500;"></span>
+        <!-- Barra superior -->
+        <header class="app-bar">
+            <div class="app-bar-usuario">
+                <img id="user-foto" src="" alt="" width="34" height="34">
+                <div class="app-bar-textos">
+                    <span class="app-bar-titulo" id="titulo-tela">Início</span>
+                    <span class="app-bar-sub" id="user-nome"></span>
+                </div>
             </div>
-            <button onclick="logout()" class="btn-danger" style="padding:6px 12px; font-size:0.8rem; width: 60px; margin-top: 0;">
-                <span class="material-icons" style="font-size:16px;">logout</span>
-                Sair
-            </button>
-        </div>
+            <div class="app-bar-acoes">
+                <span id="indicador-offline" class="pill-offline hidden">
+                    <span class="material-icons">cloud_off</span>
+                    Offline
+                </span>
+                <button id="btn-conta-topo" class="icon-btn" aria-label="Conta">
+                    <span class="material-icons">account_circle</span>
+                </button>
+            </div>
+        </header>
 
-        <!-- TELA INICIAL -->
-        <div id="tela-inicial">
-            <div class="app-header">
-                <h1>Mercado Inteligente</h1>
-                <p>Controle suas compras com facilidade</p>
+        <!-- Conteúdo rolável -->
+        <main class="app-content" id="app-content">
+
+            <!-- Banner de instalação -->
+            <div id="banner-instalar" class="banner-instalar hidden">
+                <span class="material-icons">install_mobile</span>
+                <div class="banner-texto">
+                    <strong>Instalar o app</strong>
+                    <span>Use em tela cheia, direto da sua tela inicial</span>
+                </div>
+                <button id="btn-instalar" class="btn-mini">Instalar</button>
+                <button id="btn-fechar-instalar" class="icon-btn pequeno" aria-label="Dispensar">
+                    <span class="material-icons">close</span>
+                </button>
             </div>
 
-            <div class="card">
-                <div id="aviso-recuperacao" class="alert alert-info hidden">
-                    <span class="material-icons">info</span>
-                    <span>Recuperamos sua compra em andamento!</span>
+            <!-- TELA INICIAL -->
+            <section id="tela-inicial" class="tela">
+                <div class="card">
+                    <div id="aviso-recuperacao" class="alert alert-info hidden">
+                        <span class="material-icons">info</span>
+                        <span>Recuperamos sua compra em andamento!</span>
+                    </div>
+
+                    <label class="rotulo-campo" for="orcamento-inicial">
+                        <span class="material-icons">account_balance_wallet</span>
+                        Limite de orçamento
+                    </label>
+                    <input type="number" id="orcamento-inicial" placeholder="R$ 0,00" step="0.01" inputmode="decimal">
+
+                    <button id="btn-iniciar" class="btn-success">
+                        <span class="material-icons" id="icone-btn-iniciar">play_arrow</span>
+                        <span id="txt-btn-iniciar">Iniciar Compras</span>
+                    </button>
+
+                    <div class="divider"></div>
+
+                    <button id="btn-criar-lista" class="btn-secundario">
+                        <span class="material-icons">edit_note</span>
+                        <span>Editar Lista de Compras</span>
+                    </button>
                 </div>
 
-                <button id="btn-criar-lista" class="btn-primary">
-                    <span class="material-icons">edit_note</span>
-                    <span>Editar Lista de Compras</span>
-                </button>
+                <div class="card-header">
+                    <span class="material-icons">history</span>
+                    <h3>Compras Recentes</h3>
+                </div>
+                <div id="lista-historico" class="card"></div>
+            </section>
 
-                <div class="divider"></div>
+            <!-- TELA EDITOR DE LISTA -->
+            <section id="tela-editor-lista" class="tela hidden">
+                <div class="card">
+                    <div class="input-group">
+                        <input type="text" id="input-item-lista" placeholder="Ex: Arroz, Leite..." autocomplete="off"
+                            enterkeyhint="done">
+                        <div id="lista-sugestoes-editor" class="lista-suspensa hidden"></div>
+                    </div>
 
-                <label
-                    style="display:flex; align-items:center; gap:6px; margin-bottom:8px; font-weight:500; font-size:0.875rem;">
-                    <span class="material-icons" style="font-size:18px;">account_balance_wallet</span>
-                    Limite de orçamento
-                </label>
-                <input type="number" id="orcamento-inicial" placeholder="R$ 0,00" step="0.01" inputmode="decimal">
-                <button id="btn-iniciar" class="btn-success">
-                    <span class="material-icons">play_arrow</span>
-                    <span>Iniciar Compras</span>
-                </button>
-            </div>
-
-            <div class="card-header">
-                <span class="material-icons">history</span>
-                <h3>Compras Recentes</h3>
-            </div>
-            <div id="lista-historico"></div>
-        </div>
-
-        <!-- TELA EDITOR DE LISTA -->
-        <div id="tela-editor-lista" class="hidden">
-            <div class="app-header">
-                <h1>Lista de Compras</h1>
-                <p>Organize o que você precisa</p>
-            </div>
-
-            <div class="card">
-                <div class="input-group" style="position:relative;">
-                    <input type="text" id="input-item-lista" placeholder="Ex: Arroz, Leite..." autocomplete="off">
-                    <div id="lista-sugestoes-editor" class="lista-suspensa hidden"></div>
+                    <button id="btn-add-item-lista" class="btn-primary">
+                        <span class="material-icons">add</span>
+                        <span>Adicionar Item</span>
+                    </button>
                 </div>
 
-                <button id="btn-add-item-lista" class="btn-primary">
-                    <span class="material-icons">add</span>
-                    <span>Adicionar Item</span>
-                </button>
-
-                <div class="divider"></div>
-
-                <div id="lista-previa-itens"></div>
+                <div id="lista-previa-itens" class="card"></div>
 
                 <button id="btn-salvar-lista" class="btn-success">
                     <span class="material-icons">save</span>
                     <span>Salvar e Voltar</span>
                 </button>
-            </div>
-        </div>
+            </section>
 
-        <!-- TELA DE COMPRAS -->
-        <div id="tela-compras" class="hidden">
-            <div class="painel-financeiro">
-                <div class="stats-card total">
-                    <div class="stats-label">Total Gasto</div>
-                    <div class="stats-value">R$ <span id="txt-total">0,00</span></div>
-                </div>
-                <div id="box-saldo" class="stats-card saldo">
-                    <div class="stats-label" id="label-saldo">Saldo Restante</div>
-                    <div class="stats-value">R$ <span id="txt-saldo">0,00</span></div>
-                </div>
-            </div>
-
-            <div id="painel-lista-pendente" class="card hidden">
-                <div class="card-header">
-                    <h3>Falta Comprar</h3>
-                    <span class="badge" id="badge-pendentes">0</span>
-                </div>
-                <input type="text" id="busca-pendente" placeholder="Procurar na lista..." style="margin-bottom:0;">
-                <div id="area-pendentes" class="area-pendentes"></div>
-            </div>
-
-            <div class="card">
-                <div class="input-group" style="position:relative;">
-                    <input type="text" id="input-nome" placeholder="Nome do produto" autocomplete="off">
-                    <div id="lista-sugestoes" class="lista-suspensa hidden"></div>
+            <!-- TELA DE COMPRAS -->
+            <section id="tela-compras" class="tela hidden">
+                <div class="painel-financeiro">
+                    <div class="stats-card total">
+                        <div class="stats-label">Total Gasto</div>
+                        <div class="stats-value">R$ <span id="txt-total">0,00</span></div>
+                    </div>
+                    <div id="box-saldo" class="stats-card saldo">
+                        <div class="stats-label" id="label-saldo">Saldo Restante</div>
+                        <div class="stats-value">R$ <span id="txt-saldo">0,00</span></div>
+                    </div>
                 </div>
 
-                <div class="input-row">
-                    <input type="number" id="input-qtd" placeholder="Qtd" value="1" min="1" max="50" step="1"
-                        inputmode="numeric">
-                    <input type="number" id="input-preco" placeholder="Preço unitário" step="0.01" inputmode="decimal">
+                <div id="painel-lista-pendente" class="card hidden">
+                    <div class="card-header">
+                        <h3>Falta Comprar</h3>
+                        <span class="badge" id="badge-pendentes">0</span>
+                    </div>
+                    <input type="text" id="busca-pendente" placeholder="Procurar na lista..." style="margin-bottom:0;"
+                        autocomplete="off">
+                    <div id="area-pendentes" class="area-pendentes"></div>
                 </div>
 
-                <button id="btn-adicionar" class="btn-primary">
-                    <span class="material-icons">add_shopping_cart</span>
-                    <span>Adicionar ao Carrinho</span>
+                <div class="card">
+                    <div class="input-group">
+                        <input type="text" id="input-nome" placeholder="Nome do produto" autocomplete="off"
+                            enterkeyhint="next">
+                        <div id="lista-sugestoes" class="lista-suspensa hidden"></div>
+                    </div>
+
+                    <div class="input-row">
+                        <input type="number" id="input-qtd" placeholder="Qtd" value="1" min="1" max="50" step="1"
+                            inputmode="numeric">
+                        <input type="number" id="input-preco" placeholder="Preço unitário" step="0.01"
+                            inputmode="decimal" enterkeyhint="done">
+                    </div>
+
+                    <button id="btn-adicionar" class="btn-primary">
+                        <span class="material-icons">add_shopping_cart</span>
+                        <span>Adicionar ao Carrinho</span>
+                    </button>
+                </div>
+
+                <div id="lista-atual" class="card"></div>
+
+                <button id="btn-finalizar" class="btn-success">
+                    <span class="material-icons">check_circle</span>
+                    <span>Finalizar Compra</span>
                 </button>
-            </div>
+                <button id="btn-cancelar" class="btn-danger">
+                    <span class="material-icons">cancel</span>
+                    <span>Cancelar Tudo</span>
+                </button>
+            </section>
 
-            <div id="lista-atual" class="card"></div>
+        </main>
 
-            <button id="btn-finalizar" class="btn-success">
-                <span class="material-icons">check_circle</span>
-                <span>Finalizar Compra</span>
+        <!-- Navegação inferior -->
+        <nav class="tab-bar" id="tab-bar">
+            <button class="tab ativo" data-tela="tela-inicial">
+                <span class="material-icons">home</span>
+                <span class="tab-rotulo">Início</span>
             </button>
-            <button id="btn-cancelar" class="btn-danger">
-                <span class="material-icons">cancel</span>
-                <span>Cancelar Tudo</span>
+            <button class="tab" data-tela="tela-editor-lista">
+                <span class="material-icons">list_alt</span>
+                <span class="tab-rotulo">Lista</span>
+                <span class="tab-badge hidden" id="tab-badge-lista">0</span>
             </button>
-        </div>
+            <button class="tab" data-tela="tela-compras">
+                <span class="material-icons">shopping_cart</span>
+                <span class="tab-rotulo">Compras</span>
+                <span class="tab-badge hidden" id="tab-badge-carrinho">0</span>
+            </button>
+        </nav>
 
     </div>
 
@@ -197,7 +252,10 @@
             <div class="modal-header">
                 <h2>
                     <span class="material-icons">receipt</span>
-                    Cupom Fiscal
+                    <span class="titulo-com-data">
+                        Cupom Fiscal
+                        <small id="cupom-data"></small>
+                    </span>
                 </h2>
                 <button class="close-modal">
                     <span class="material-icons">close</span>
@@ -205,10 +263,136 @@
             </div>
             <div id="conteudo-cupom"></div>
             <div id="total-cupom" class="total-cupom"></div>
+            <button id="btn-excluir-compra" class="btn-danger">
+                <span class="material-icons">delete</span>
+                <span>Excluir esta compra</span>
+            </button>
         </div>
     </div>
 
-    <!-- Tudo em um único script -->
+    <!-- MODAL DE CONTA -->
+    <div id="modal-conta" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>
+                    <span class="material-icons">person</span>
+                    Conta
+                </h2>
+                <button class="close-modal" id="fechar-conta">
+                    <span class="material-icons">close</span>
+                </button>
+            </div>
+
+            <div class="perfil">
+                <img id="conta-foto" src="" alt="" width="56" height="56">
+                <div class="perfil-textos">
+                    <strong id="conta-nome"></strong>
+                    <span id="conta-email"></span>
+                </div>
+            </div>
+
+            <div class="secao-conta">
+                <div class="secao-titulo">
+                    <span class="material-icons">group</span>
+                    <h3>Conta compartilhada</h3>
+                </div>
+                <p class="secao-desc">
+                    Quem entrar com o seu código vê e edita as mesmas listas e compras que você, ao vivo.
+                    A ligação é permanente até um de vocês encerrar.
+                </p>
+
+                <div class="codigo-convite">
+                    <div class="codigo-valor">
+                        <small>Seu código</small>
+                        <strong id="codigo-grupo">------</strong>
+                    </div>
+                    <button id="btn-copiar-codigo" class="icon-btn claro" aria-label="Copiar código">
+                        <span class="material-icons">content_copy</span>
+                    </button>
+                    <button id="btn-compartilhar-codigo" class="icon-btn claro" aria-label="Compartilhar convite">
+                        <span class="material-icons">share</span>
+                    </button>
+                </div>
+
+                <div id="membros-grupo" class="membros"></div>
+
+                <p id="aviso-sozinho" class="secao-desc hidden">
+                    Ninguém compartilha esta conta ainda. Passe seu código, ou entre no de outra pessoa abaixo.
+                </p>
+
+                <div class="entrar-grupo">
+                    <input type="text" id="input-codigo" placeholder="Código de outra pessoa" maxlength="8"
+                        autocomplete="off" autocapitalize="characters" spellcheck="false" enterkeyhint="go">
+                    <button id="btn-entrar-grupo" class="btn-secundario">Entrar</button>
+                </div>
+            </div>
+
+            <div class="lista-opcoes">
+                <button id="btn-instalar-conta" class="opcao hidden">
+                    <span class="material-icons">install_mobile</span>
+                    <span class="opcao-texto">Instalar o app</span>
+                    <span class="material-icons opcao-seta">chevron_right</span>
+                </button>
+                <button id="btn-limpar-cache" class="opcao">
+                    <span class="material-icons">refresh</span>
+                    <span class="opcao-texto">Buscar atualizações</span>
+                    <span class="material-icons opcao-seta">chevron_right</span>
+                </button>
+                <button id="btn-logout" class="opcao perigo">
+                    <span class="material-icons">logout</span>
+                    <span class="opcao-texto">Sair da conta</span>
+                    <span class="material-icons opcao-seta">chevron_right</span>
+                </button>
+            </div>
+
+            <p class="rodape-conta">Mercado Inteligente · <span id="versao-app">v10</span></p>
+        </div>
+    </div>
+
+    <!-- MODAL DE CONFIRMAÇÃO -->
+    <div id="modal-confirmar" class="modal hidden">
+        <div class="modal-content modal-confirmar">
+            <h2 id="confirmar-titulo">Confirmar</h2>
+            <p id="confirmar-texto"></p>
+            <div class="modal-acoes">
+                <button id="btn-confirmar-cancelar" class="btn-secundario">Cancelar</button>
+                <button id="btn-confirmar-ok" class="btn-primary">Confirmar</button>
+            </div>
+        </div>
+    </div>
+
+    <!--
+        Comportamentos de navegador que não existem em app nativo.
+        Fica inline e antes do módulo para valer já no primeiro toque,
+        mesmo que o script.js demore ou falhe ao carregar.
+    -->
+    <script>
+        (function () {
+            // Segurar o dedo abre o menu "abrir em nova guia / copiar link".
+            // Liberado dentro de campos de texto, senão perde-se o colar.
+            document.addEventListener("contextmenu", function (e) {
+                if (e.target.closest("input, textarea")) return;
+                e.preventDefault();
+            });
+
+            // Pinça-zoom no iOS (o Safari ignora user-scalable em alguns casos)
+            ["gesturestart", "gesturechange", "gestureend"].forEach(function (evento) {
+                document.addEventListener(evento, function (e) {
+                    e.preventDefault();
+                }, { passive: false });
+            });
+
+            // O zoom por toque duplo é tratado no CSS com touch-action: manipulation.
+            // Não bloquear aqui via touchend: isso cancelaria o clique de dois
+            // toques rápidos legítimos (ex.: adicionar dois itens em sequência).
+
+            // Arrastar imagens para fora do app
+            document.addEventListener("dragstart", function (e) {
+                e.preventDefault();
+            });
+        })();
+    </script>
+
     <script type="module" src="script.js"></script>
 
 </body>
