@@ -516,14 +516,47 @@ onAuthStateChanged(auth, async (user) => {
 const INTERVALO_ATUALIZACAO_MS = 60 * 60 * 1000;
 let registroSW = null;
 
-const procurarAtualizacao = () => {
-  registroSW?.update().catch(() => {});
+/*
+ * Uma versão nova pode ficar parada em "waiting" em vez de assumir — é o
+ * que acontece quando o skipWaiting do próprio service worker não vale
+ * (iOS é especialmente teimoso nisso). Sem este empurrão, o app checava,
+ * baixava a versão nova e continuava rodando a antiga.
+ */
+const promoverSeEsperando = (registro) => {
+  if (registro?.waiting) registro.waiting.postMessage("SKIP_WAITING");
+};
+
+const procurarAtualizacao = async () => {
+  if (!registroSW) return;
+  try {
+    await registroSW.update();
+    promoverSeEsperando(registroSW);
+  } catch {
+    /* sem rede: tenta de novo no próximo gatilho */
+  }
 };
 
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", async () => {
     try {
-      registroSW = await navigator.serviceWorker.register("sw.js");
+      // updateViaCache "none": sem isso o navegador pode responder o
+      // sw.js pelo cache HTTP (o GitHub Pages manda cabeçalho de cache)
+      // e concluir que nada mudou.
+      registroSW = await navigator.serviceWorker.register("sw.js", {
+        updateViaCache: "none",
+      });
+
+      // Recém-instalado também precisa do empurrão, não só o que já esperava
+      registroSW.addEventListener("updatefound", () => {
+        const novo = registroSW.installing;
+        novo?.addEventListener("statechange", () => {
+          if (novo.state === "installed" && navigator.serviceWorker.controller) {
+            novo.postMessage("SKIP_WAITING");
+          }
+        });
+      });
+
+      promoverSeEsperando(registroSW);
       procurarAtualizacao();
       setInterval(procurarAtualizacao, INTERVALO_ATUALIZACAO_MS);
     } catch (e) {

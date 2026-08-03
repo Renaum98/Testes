@@ -1,6 +1,6 @@
 // Service worker do Mercado Inteligente.
 // Suba a versão sempre que index.html / style.css / script.js mudarem.
-const VERSAO = "v18";
+const VERSAO = "v20";
 const CACHE_SHELL = `mercado-shell-${VERSAO}`;
 const CACHE_RUNTIME = `mercado-runtime-${VERSAO}`;
 
@@ -38,6 +38,17 @@ const HOSTS_ASSETS = [
 self.addEventListener("install", (event) => {
   event.waitUntil(
     (async () => {
+      /*
+       * skipWaiting ANTES do precache, de propósito.
+       *
+       * Depois do precache, uma única requisição pendurada (rede móvel
+       * ruim) segurava a versão nova em "waiting" para sempre: o catch
+       * cobre falha, mas requisição que trava nunca rejeita. Assumir
+       * primeiro e preencher o cache depois desacopla as duas coisas —
+       * no pior caso o cache fica incompleto e o fetch busca na rede.
+       */
+      await self.skipWaiting();
+
       const cache = await caches.open(CACHE_SHELL);
       // addAll é tudo-ou-nada; adiciona um a um para não quebrar a instalação
       // caso um recurso isolado falhe.
@@ -48,7 +59,6 @@ self.addEventListener("install", (event) => {
             .catch((e) => console.warn("[sw] falhou precache:", url, e)),
         ),
       );
-      await self.skipWaiting();
     })(),
   );
 });
