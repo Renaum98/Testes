@@ -128,24 +128,6 @@ h4 {
     user-select: text;
 }
 
-/* Registro das etapas do login, para diagnosticar no aparelho */
-.diag-login {
-    font-family: "SF Mono", "Monaco", "Courier New", monospace;
-    font-size: 0.6875rem;
-    line-height: 1.5;
-    color: var(--gray-600);
-    background: var(--gray-100);
-    border: 1px solid var(--gray-200);
-    border-radius: 10px;
-    padding: 10px 12px;
-    max-width: 320px;
-    width: 100%;
-    white-space: pre-wrap;
-    word-break: break-word;
-    user-select: text;
-    -webkit-user-select: text;
-}
-
 .marca-icone.erro {
     background: var(--danger);
     color: #fff;
@@ -325,7 +307,13 @@ h4 {
     display: flex;
     background: #fff;
     border-top: 1px solid var(--gray-200);
-    padding: 6px 8px calc(6px + var(--base-segura));
+    /*
+     * Reservar a safe area inteira (34px no iPhone) empilha com o padding
+     * das abas e deixa a barra alta demais. Um pouco mais da metade já
+     * mantém os rótulos livres do indicador de início, sem o vão enorme.
+     */
+    padding: 4px 8px;
+    padding-bottom: max(4px, calc(var(--base-segura) * 0.55));
     flex-shrink: 0;
     z-index: 200;
 }

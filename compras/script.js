@@ -89,25 +89,6 @@ const mensagemDeLogin = (erro) => {
   }
 };
 
-/*
- * Registro visível das etapas do login.
- *
- * Depurar isso no aparelho é as cegas: não há console à mão num PWA
- * instalado no iPhone. Cada passo do fluxo escreve aqui, então dá para ver
- * ONDE parou — se o botão do Google chegou a chamar de volta, se a
- * credencial veio, se o Firebase aceitou.
- */
-const etapasLogin = [];
-
-const registrarEtapa = (texto) => {
-  const t = new Date().toLocaleTimeString("pt-BR", { hour12: false });
-  etapasLogin.push(`${t} ${texto}`);
-  const el = document.getElementById("diag-login");
-  el.textContent = etapasLogin.slice(-8).join("\n");
-  el.classList.remove("hidden");
-  console.log("[login]", texto);
-};
-
 const mostrarErroLogin = (erro) => {
   console.error("Erro de login:", erro);
   const el = document.getElementById("erro-login");
@@ -196,7 +177,6 @@ const entrarPorRedirecionamento = () => {
     prompt: "select_account",
   });
 
-  registrarEtapa("A. indo ao Google (redirecionamento)");
   location.href = `${AUTORIZACAO_GOOGLE}?${params}`;
 };
 
@@ -214,28 +194,21 @@ const concluirRedirecionamento = async () => {
 
   const erroGoogle = resposta.get("error");
   if (erroGoogle) {
-    registrarEtapa(`!! Google recusou: ${erroGoogle}`);
     mostrarErroLogin({ code: erroGoogle, message: erroGoogle });
     return;
   }
 
-  registrarEtapa("B. voltou do Google com token");
-
   if (!esperado || resposta.get("state") !== esperado) {
-    registrarEtapa("!! state não confere");
     mostrarErroLogin({ code: "state-invalido" });
     return;
   }
 
   try {
-    registrarEtapa("C. criando sessão no Firebase");
     await signInWithCredential(
       auth,
       GoogleAuthProvider.credential(resposta.get("id_token")),
     );
-    registrarEtapa("D. sessão criada");
   } catch (e) {
-    registrarEtapa(`!! Firebase recusou: ${e?.code || e?.message}`);
     mostrarErroLogin(e);
   }
 };
@@ -275,19 +248,14 @@ const iniciarGisUmaVez = (gis) => {
     ux_mode: "popup",
     auto_select: false,
     callback: async (resposta) => {
-      registrarEtapa("2. Google chamou de volta");
       if (!resposta?.credential) {
-        registrarEtapa("!! sem credencial na resposta");
         mostrarErroLogin(new Error("O Google não devolveu credencial."));
         return;
       }
       try {
-        registrarEtapa("3. credencial recebida, criando sessão");
         const credencial = GoogleAuthProvider.credential(resposta.credential);
         await signInWithCredential(auth, credencial);
-        registrarEtapa("4. sessão criada no Firebase");
       } catch (e) {
-        registrarEtapa(`!! falhou: ${e?.code || e?.message}`);
         mostrarErroLogin(e);
       }
     },
@@ -305,10 +273,6 @@ const prepararLogin = async () => {
   if (PRECISA_REDIRECIONAR) {
     alvo.classList.add("hidden");
     proprio.classList.remove("hidden");
-    document
-      .getElementById("btn-login-alternativo")
-      .classList.remove("hidden");
-    registrarEtapa("1. modo redirecionamento (iPhone instalado)");
     return;
   }
 
@@ -334,9 +298,6 @@ const prepararLogin = async () => {
     });
     alvo.classList.remove("hidden");
     proprio.classList.add("hidden");
-    registrarEtapa(
-      `1. botão do Google pronto (${EH_IOS ? "ios" : "outro"}${isPWA ? ", instalado" : ", navegador"})`,
-    );
 
     // Origem não autorizada no cliente OAuth não vira exceção: o GIS só
     // reclama no console e deixa o contêiner vazio. Sem esta checagem o
@@ -366,32 +327,14 @@ window.loginGoogle = async function () {
   }
 
   definirCarregandoLogin(true);
-  registrarEtapa("A. abrindo popup do SDK");
   try {
     await signInWithPopup(auth, provider);
-    registrarEtapa("B. popup do SDK criou a sessão");
   } catch (erro) {
-    registrarEtapa(`!! popup do SDK: ${erro?.code || erro?.message}`);
     if (!CANCELAMENTOS.has(erro?.code)) mostrarErroLogin(erro);
   } finally {
     definirCarregandoLogin(false);
   }
 };
-
-// Alternativo: tenta a janela do Google, para comparar quando algo falhar
-document
-  .getElementById("btn-login-alternativo")
-  .addEventListener("click", async () => {
-    document.getElementById("erro-login").classList.add("hidden");
-    registrarEtapa("A. abrindo popup do SDK (alternativo)");
-    try {
-      await signInWithPopup(auth, provider);
-      registrarEtapa("B. popup do SDK criou a sessão");
-    } catch (erro) {
-      registrarEtapa(`!! popup do SDK: ${erro?.code || erro?.message}`);
-      if (!CANCELAMENTOS.has(erro?.code)) mostrarErroLogin(erro);
-    }
-  });
 
 // Se a página está voltando do Google, conclui antes de qualquer outra coisa
 concluirRedirecionamento();
@@ -527,7 +470,6 @@ document.getElementById("btn-sair-erro").addEventListener("click", () => {
 // Listener de autenticação — ponto de entrada do app
 onAuthStateChanged(auth, async (user) => {
   usuarioAtual = user;
-  registrarEtapa(user ? "5. sessão reconhecida pelo app" : "0. nenhuma sessão");
 
   if (user) {
     // Sai da tela de login na hora: o login já deu certo, e o que vem
@@ -950,20 +892,66 @@ const garantirGrupo = async (user) => {
 
   // Primeiro login desta versão: herda os dados que o app já tinha
   const snapLegado = await getDoc(doc(db, "grupos", GRUPO_LEGADO));
+
   if (!snapLegado.exists()) {
     const novo = await criarGrupo(user, { id: GRUPO_LEGADO });
     await definirGrupoDoUsuario(user.uid, novo.id);
-
-    // A migração é um extra: se as regras do Firestore barrarem, o app entra
-    // do mesmo jeito — só o histórico antigo é que não aparece.
-    let migradas = 0;
-    try {
-      migradas = await migrarComprasAntigas(novo.id);
-    } catch (e) {
-      console.warn("Não foi possível migrar o histórico antigo:", e);
-    }
-
+    await migrarSeFaltou(novo);
     aplicarGrupo(novo);
+    return;
+  }
+
+  /*
+   * O grupo herdeiro existe. Antes de mandar o usuário para um grupo novo e
+   * vazio, confere se ele NÃO é dono ou membro desse grupo.
+   *
+   * Esse caminho existe porque o preparo da conta pode morrer no meio: se
+   * criou o grupo mas não chegou a gravar o ponteiro em usuarios/{uid}, no
+   * login seguinte a pessoa seria jogada num grupo novo e pareceria que os
+   * dados sumiram — quando na verdade continuam aqui.
+   */
+  const legado = { id: snapLegado.id, ...snapLegado.data() };
+  const ehDono = legado.dono === user.uid;
+  const ehMembro = legado.membros?.includes(user.uid);
+
+  if (ehDono || ehMembro) {
+    if (!ehMembro) {
+      await updateDoc(doc(db, "grupos", GRUPO_LEGADO), {
+        membros: arrayUnion(user.uid),
+        [`membrosInfo.${user.uid}`]: infoMembro(user),
+      });
+      legado.membros = [...(legado.membros || []), user.uid];
+    }
+    await definirGrupoDoUsuario(user.uid, GRUPO_LEGADO);
+    await migrarSeFaltou(legado);
+    aplicarGrupo(legado);
+    return;
+  }
+
+  const novo = await criarGrupo(user);
+  await definirGrupoDoUsuario(user.uid, novo.id);
+  aplicarGrupo(novo);
+};
+
+/*
+ * Carimba o grupo nas compras anteriores aos grupos.
+ *
+ * Fica marcado como feito no próprio grupo, porque a migração pode ter
+ * falhado antes (regra do Firestore, conexão) — sem essa marca ela nunca
+ * seria tentada de novo e o histórico ficaria invisível para sempre.
+ */
+const migrarSeFaltou = async (grupo) => {
+  if (grupo.id !== GRUPO_LEGADO || grupo.migrado) return;
+
+  try {
+    const migradas = await migrarComprasAntigas(grupo.id);
+    await setDoc(
+      doc(db, "grupos", grupo.id),
+      { migrado: true },
+      { merge: true },
+    );
+    grupo.migrado = true;
+
     if (migradas > 0) {
       mostrarNotificacao(
         `${migradas} ${migradas === 1 ? "compra recuperada" : "compras recuperadas"}`,
@@ -971,12 +959,10 @@ const garantirGrupo = async (user) => {
         "history",
       );
     }
-    return;
+  } catch (e) {
+    // Entrar no app importa mais; na próxima tentativa ela roda de novo
+    console.warn("Não foi possível migrar o histórico antigo:", e);
   }
-
-  const novo = await criarGrupo(user);
-  await definirGrupoDoUsuario(user.uid, novo.id);
-  aplicarGrupo(novo);
 };
 
 // Troca o grupo ativo: religa a lista compartilhada e a escuta de membros
