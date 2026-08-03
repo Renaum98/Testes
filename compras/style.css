@@ -31,7 +31,13 @@ html {
 
 body {
     font-family: "Poppins", sans-serif;
-    background: var(--gray-50);
+    /*
+     * Branco, e não o cinza do app, de propósito: no PWA em tela cheia o
+     * iOS pinta a faixa do indicador de início com a cor de fundo do body.
+     * Com o cinza aparecia uma tira cinza logo abaixo da barra de abas, que
+     * é branca. O cinza do app fica em .app-content, onde ele é o fundo.
+     */
+    background: #fff;
     color: var(--gray-900);
     height: 100%;
     overflow: hidden;
@@ -282,6 +288,7 @@ h4 {
 /* Área rolável */
 .app-content {
     flex: 1;
+    background: var(--gray-50);
     overflow-y: auto;
     overflow-x: hidden;
     -webkit-overflow-scrolling: touch;

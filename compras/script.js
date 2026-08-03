@@ -908,24 +908,48 @@ const definirGrupoDoUsuario = async (uid, grupoId) => {
   await setDoc(doc(db, "usuarios", uid), { grupoId }, { merge: true });
 };
 
-// Descobre (ou cria) o grupo do usuário e liga as escutas ao vivo
-const garantirGrupo = async (user) => {
-  const refUsuario = doc(db, "usuarios", user.uid);
-  const snapUsuario = await getDoc(refUsuario);
-  const grupoId = snapUsuario.data()?.grupoId;
+/*
+ * Procura os grupos em que o usuário já consta como membro.
+ *
+ * A lista de membros do grupo é a fonte da verdade; o grupoId gravado em
+ * usuarios/{uid} é só um atalho. Confiar só no atalho foi o que gerou a
+ * bagunça: cada preparo de conta que morria antes de grava-lo fazia o
+ * login seguinte criar um grupo novo e vazio, e a pessoa perdia os dados
+ * de vista.
+ *
+ * O herdeiro tem preferência: é onde mora o histórico de antes dos grupos.
+ */
+const buscarGrupoDoUsuario = async (uid) => {
+  const snap = await getDocs(
+    query(collection(db, "grupos"), where("membros", "array-contains", uid)),
+  );
+  if (snap.empty) return null;
 
-  if (grupoId) {
-    const snapGrupo = await getDoc(doc(db, "grupos", grupoId));
-    if (snapGrupo.exists() && snapGrupo.data().membros?.includes(user.uid)) {
-      aplicarGrupo({ id: snapGrupo.id, ...snapGrupo.data() });
-      return;
-    }
-    // Grupo sumiu ou o usuário foi removido: cai para a criação de um novo
+  const legado = snap.docs.find((d) => d.id === GRUPO_LEGADO);
+  const escolhido = legado || snap.docs[0];
+  return { id: escolhido.id, ...escolhido.data() };
+};
+
+/*
+ * Descobre (ou cria) o grupo do usuário e liga as escutas ao vivo.
+ *
+ * Não há mais atalho por usuarios/{uid}.grupoId: a busca pela lista de
+ * membros é a única fonte consultada. O atalho podia apontar para um
+ * grupo vazio criado por um preparo que falhou, e nesse caso venceria a
+ * busca — deixando os dados de verdade invisíveis. O campo continua sendo
+ * gravado, como registro, mas não decide mais nada.
+ */
+const garantirGrupo = async (user) => {
+  const existente = await buscarGrupoDoUsuario(user.uid);
+  if (existente) {
+    await definirGrupoDoUsuario(user.uid, existente.id);
+    await migrarSeFaltou(existente);
+    aplicarGrupo(existente);
+    return;
   }
 
   // Primeiro login desta versão: herda os dados que o app já tinha
   const snapLegado = await getDoc(doc(db, "grupos", GRUPO_LEGADO));
-
   if (!snapLegado.exists()) {
     const novo = await criarGrupo(user, { id: GRUPO_LEGADO });
     await definirGrupoDoUsuario(user.uid, novo.id);
@@ -934,33 +958,7 @@ const garantirGrupo = async (user) => {
     return;
   }
 
-  /*
-   * O grupo herdeiro existe. Antes de mandar o usuário para um grupo novo e
-   * vazio, confere se ele NÃO é dono ou membro desse grupo.
-   *
-   * Esse caminho existe porque o preparo da conta pode morrer no meio: se
-   * criou o grupo mas não chegou a gravar o ponteiro em usuarios/{uid}, no
-   * login seguinte a pessoa seria jogada num grupo novo e pareceria que os
-   * dados sumiram — quando na verdade continuam aqui.
-   */
-  const legado = { id: snapLegado.id, ...snapLegado.data() };
-  const ehDono = legado.dono === user.uid;
-  const ehMembro = legado.membros?.includes(user.uid);
-
-  if (ehDono || ehMembro) {
-    if (!ehMembro) {
-      await updateDoc(doc(db, "grupos", GRUPO_LEGADO), {
-        membros: arrayUnion(user.uid),
-        [`membrosInfo.${user.uid}`]: infoMembro(user),
-      });
-      legado.membros = [...(legado.membros || []), user.uid];
-    }
-    await definirGrupoDoUsuario(user.uid, GRUPO_LEGADO);
-    await migrarSeFaltou(legado);
-    aplicarGrupo(legado);
-    return;
-  }
-
+  // O herdeiro existe e é de outra pessoa: começa um grupo próprio
   const novo = await criarGrupo(user);
   await definirGrupoDoUsuario(user.uid, novo.id);
   aplicarGrupo(novo);
