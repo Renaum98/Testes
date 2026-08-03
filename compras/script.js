@@ -291,21 +291,47 @@ document.getElementById("btn-login").addEventListener("click", () => {
 // Sem getRedirectResult: o fluxo de redirect foi removido de propósito
 // (ver o comentário do login acima).
 
+/*
+ * Promessa de escrita do Firestore só resolve quando o servidor confirma —
+ * se a conexão travar, ela não resolve NEM rejeita, fica pendurada para
+ * sempre. Sem um limite de tempo, o app ficaria parado sem dizer nada.
+ */
+const LIMITE_PREPARO_MS = 20000;
+
+const comLimite = (promessa, ms) =>
+  Promise.race([
+    promessa,
+    new Promise((_, rejeitar) =>
+      setTimeout(() => {
+        const e = new Error("Tempo esgotado ao falar com o banco de dados.");
+        e.code = "tempo-esgotado";
+        rejeitar(e);
+      }, ms),
+    ),
+  ]);
+
+// Sai da tela de login assim que o usuário é reconhecido, para dar sinal de vida
+const mostrarSplash = (texto) => {
+  document.getElementById("loading-msg").textContent = texto;
+  document.getElementById("area-login").classList.add("hidden");
+  document.getElementById("area-erro").classList.add("hidden");
+  document.getElementById("area-loading").classList.remove("hidden");
+};
+
 // Mostra o motivo da falha em vez de deixar o app preso no splash
 function mostrarErroInicial(erro) {
   document.getElementById("area-loading").classList.add("hidden");
   document.getElementById("area-login").classList.add("hidden");
   document.getElementById("app").classList.add("hidden");
 
-  const permissao = erro?.code === "permission-denied";
-  const offline =
-    erro?.code === "unavailable" || !navigator.onLine;
-
   let mensagem;
-  if (permissao) {
+  if (erro?.code === "permission-denied") {
     mensagem =
       "O banco de dados recusou o acesso. Publique as regras do arquivo firestore.rules no console do Firebase — a coleção “grupos” precisa estar liberada.";
-  } else if (offline) {
+  } else if (erro?.code === "tempo-esgotado") {
+    mensagem =
+      "O banco de dados não respondeu. Pode ser a internet, ou as regras do Firestore bloqueando a coleção “grupos”.";
+  } else if (erro?.code === "unavailable" || !navigator.onLine) {
     mensagem =
       "Sem conexão com o servidor. Verifique a internet e tente de novo.";
   } else {
@@ -330,10 +356,19 @@ document.getElementById("btn-sair-erro").addEventListener("click", () => {
 // Listener de autenticação — ponto de entrada do app
 onAuthStateChanged(auth, async (user) => {
   usuarioAtual = user;
+
   if (user) {
+    // Sai da tela de login na hora: o login já deu certo, e o que vem
+    // depois é preparo. Sem isso, qualquer demora aqui parece "não entrou".
+    mostrarSplash("Preparando sua conta...");
+
+    // Registro de último acesso: não vale segurar a entrada do app por isso
+    salvarUsuarioFirestore(user).catch((e) =>
+      console.warn("Não foi possível registrar o acesso:", e),
+    );
+
     try {
-      await salvarUsuarioFirestore(user);
-      await garantirGrupo(user);
+      await comLimite(garantirGrupo(user), LIMITE_PREPARO_MS);
     } catch (e) {
       console.error("Erro ao preparar a conta:", e);
       mostrarErroInicial(e);
@@ -343,6 +378,7 @@ onAuthStateChanged(auth, async (user) => {
     pararEscutas();
     document.getElementById("area-erro").classList.add("hidden");
   }
+
   atualizarUIAuth(user);
 });
 
@@ -398,26 +434,107 @@ if ("serviceWorker" in navigator) {
 const CHAVE_BANNER = "mercado:instalacao-dispensada";
 let promptInstalacao = null;
 
-window.addEventListener("beforeinstallprompt", (e) => {
-  e.preventDefault();
-  promptInstalacao = e;
-  if (!isPWA && localStorage.getItem(CHAVE_BANNER) !== "1") {
-    document.getElementById("banner-instalar").classList.remove("hidden");
+/*
+ * Instalar não é igual nos dois lados:
+ *
+ * No Android o navegador dispara beforeinstallprompt e dá para instalar com
+ * um toque. No iOS esse evento não existe — a Apple não expõe instalação por
+ * código —, então lá o único caminho é o usuário fazer à mão pelo menu de
+ * compartilhar do Safari. Por isso cada plataforma tem seu conteúdo.
+ */
+const detectarPlataforma = () => {
+  const ua = navigator.userAgent;
+  // O iPad moderno se apresenta como Mac; o que o entrega é ter toque
+  const ehIOS =
+    /iPad|iPhone|iPod/.test(ua) ||
+    (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+  if (ehIOS) return "ios";
+  if (/Android/.test(ua)) return "android";
+  return "desktop";
+};
+
+const PLATAFORMA = detectarPlataforma();
+
+// No iPhone, "Adicionar à Tela de Início" é do Safari
+const ehSafariIOS = () => !/CriOS|FxiOS|EdgiOS|OPiOS/.test(navigator.userAgent);
+
+const mostrarBannerInstalar = () => {
+  if (isPWA || localStorage.getItem(CHAVE_BANNER) === "1") return;
+  document.getElementById("banner-instalar").classList.remove("hidden");
+};
+
+const abrirModalInstalar = () => {
+  ["instrucoes-android", "instrucoes-ios", "instrucoes-desktop"].forEach((id) =>
+    document.getElementById(id).classList.add("hidden"),
+  );
+
+  if (PLATAFORMA === "ios") {
+    document.getElementById("instrucoes-ios").classList.remove("hidden");
+    document
+      .getElementById("aviso-safari")
+      .classList.toggle("hidden", ehSafariIOS());
+  } else {
+    const android = PLATAFORMA === "android";
+    document
+      .getElementById(android ? "instrucoes-android" : "instrucoes-desktop")
+      .classList.remove("hidden");
+
+    // Com o prompt em mãos, um botão resolve; sem ele, sobra o passo a passo
+    const botao = document.getElementById(
+      android ? "btn-instalar-agora" : "btn-instalar-agora-desktop",
+    );
+    const passos = document.getElementById(
+      android ? "passos-android" : "passos-desktop",
+    );
+    botao.classList.toggle("hidden", !promptInstalacao);
+    passos.classList.toggle("hidden", !!promptInstalacao);
   }
-});
 
-window.addEventListener("appinstalled", () => {
-  promptInstalacao = null;
-  document.getElementById("banner-instalar").classList.add("hidden");
-  mostrarNotificacao("App instalado!", "positivo", "check_circle");
-});
+  document.getElementById("modal-instalar").classList.remove("hidden");
+};
 
-document.getElementById("btn-instalar").addEventListener("click", async () => {
+const fecharModalInstalar = () =>
+  document.getElementById("modal-instalar").classList.add("hidden");
+
+const instalarAgora = async () => {
   if (!promptInstalacao) return;
   promptInstalacao.prompt();
   await promptInstalacao.userChoice;
   promptInstalacao = null;
+  fecharModalInstalar();
   document.getElementById("banner-instalar").classList.add("hidden");
+};
+
+window.addEventListener("beforeinstallprompt", (e) => {
+  e.preventDefault();
+  promptInstalacao = e;
+  mostrarBannerInstalar();
+});
+
+window.addEventListener("appinstalled", () => {
+  promptInstalacao = null;
+  fecharModalInstalar();
+  document.getElementById("banner-instalar").classList.add("hidden");
+  mostrarNotificacao("App instalado!", "positivo", "check_circle");
+});
+
+// O iOS nunca dispara beforeinstallprompt: o banner precisa aparecer sozinho
+if (PLATAFORMA === "ios") mostrarBannerInstalar();
+
+document
+  .getElementById("btn-instalar")
+  .addEventListener("click", abrirModalInstalar);
+document
+  .getElementById("btn-instalar-agora")
+  .addEventListener("click", instalarAgora);
+document
+  .getElementById("btn-instalar-agora-desktop")
+  .addEventListener("click", instalarAgora);
+document
+  .getElementById("fechar-instalar")
+  .addEventListener("click", fecharModalInstalar);
+document.getElementById("modal-instalar").addEventListener("click", (e) => {
+  if (e.target.id === "modal-instalar") fecharModalInstalar();
 });
 
 document
@@ -493,10 +610,8 @@ document.querySelectorAll("#tab-bar .tab").forEach((tab) => {
 // --- FOLHA DE CONTA ---
 
 const abrirConta = () => {
-  // O atalho de instalação só aparece quando o navegador realmente permite instalar
-  document
-    .getElementById("btn-instalar-conta")
-    .classList.toggle("hidden", !promptInstalacao);
+  // Some só quando já está instalado; no resto, abre as instruções da plataforma
+  document.getElementById("btn-instalar-conta").classList.toggle("hidden", isPWA);
   document.getElementById("modal-conta").classList.remove("hidden");
 };
 
@@ -510,15 +625,10 @@ document.getElementById("modal-conta").addEventListener("click", (e) => {
   if (e.target.id === "modal-conta") fecharConta();
 });
 
-document
-  .getElementById("btn-instalar-conta")
-  .addEventListener("click", async () => {
-    if (!promptInstalacao) return;
-    promptInstalacao.prompt();
-    await promptInstalacao.userChoice;
-    promptInstalacao = null;
-    fecharConta();
-  });
+document.getElementById("btn-instalar-conta").addEventListener("click", () => {
+  fecharConta();
+  abrirModalInstalar();
+});
 
 document
   .getElementById("btn-limpar-cache")

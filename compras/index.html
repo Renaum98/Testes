@@ -39,6 +39,7 @@
             <h1 class="marca-nome">Mercado Inteligente</h1>
         </div>
         <span class="material-icons girando">progress_activity</span>
+        <p id="loading-msg" class="marca-sub">Carregando...</p>
     </div>
 
     <!-- LOGIN -->
@@ -274,6 +275,107 @@
         </div>
     </div>
 
+    <!-- MODAL DE INSTALAÇÃO -->
+    <div id="modal-instalar" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>
+                    <span class="material-icons">install_mobile</span>
+                    Instalar o app
+                </h2>
+                <button class="close-modal" id="fechar-instalar" aria-label="Fechar">
+                    <span class="material-icons">close</span>
+                </button>
+            </div>
+
+            <p class="secao-desc">
+                Instalado, o Mercado Inteligente abre em tela cheia direto da sua tela de início,
+                sem a barra do navegador, e continua funcionando sem internet.
+            </p>
+
+            <!-- ANDROID -->
+            <div id="instrucoes-android" class="instrucoes hidden">
+                <button id="btn-instalar-agora" class="btn-primary hidden">
+                    <span class="material-icons">install_mobile</span>
+                    <span>Instalar agora</span>
+                </button>
+
+                <ol id="passos-android" class="passos hidden">
+                    <li class="passo">
+                        <span class="passo-num">1</span>
+                        <span class="passo-txt">
+                            Toque no menu <span class="material-icons passo-icone">more_vert</span>
+                            no canto da barra do navegador
+                        </span>
+                    </li>
+                    <li class="passo">
+                        <span class="passo-num">2</span>
+                        <span class="passo-txt">
+                            Escolha <strong>Instalar app</strong> ou <strong>Adicionar à tela inicial</strong>
+                        </span>
+                    </li>
+                    <li class="passo">
+                        <span class="passo-num">3</span>
+                        <span class="passo-txt">Confirme em <strong>Instalar</strong></span>
+                    </li>
+                </ol>
+            </div>
+
+            <!-- iOS -->
+            <div id="instrucoes-ios" class="instrucoes hidden">
+                <ol class="passos">
+                    <li class="passo">
+                        <span class="passo-num">1</span>
+                        <span class="passo-txt">
+                            Toque em compartilhar <span class="material-icons passo-icone">ios_share</span>
+                            na barra do Safari
+                        </span>
+                    </li>
+                    <li class="passo">
+                        <span class="passo-num">2</span>
+                        <span class="passo-txt">
+                            Deslize a lista e toque em <strong>Adicionar à Tela de Início</strong>
+                        </span>
+                    </li>
+                    <li class="passo">
+                        <span class="passo-num">3</span>
+                        <span class="passo-txt">
+                            Toque em <strong>Adicionar</strong>, no canto superior direito
+                        </span>
+                    </li>
+                </ol>
+
+                <p id="aviso-safari" class="aviso-navegador hidden">
+                    <span class="material-icons">info</span>
+                    <span>No iPhone essa opção é do <strong>Safari</strong>. Abra este mesmo endereço no
+                        Safari para instalar.</span>
+                </p>
+            </div>
+
+            <!-- COMPUTADOR -->
+            <div id="instrucoes-desktop" class="instrucoes hidden">
+                <button id="btn-instalar-agora-desktop" class="btn-primary hidden">
+                    <span class="material-icons">install_desktop</span>
+                    <span>Instalar agora</span>
+                </button>
+
+                <ol id="passos-desktop" class="passos hidden">
+                    <li class="passo">
+                        <span class="passo-num">1</span>
+                        <span class="passo-txt">
+                            Clique no ícone <span class="material-icons passo-icone">install_desktop</span>
+                            no fim da barra de endereço
+                        </span>
+                    </li>
+                    <li class="passo">
+                        <span class="passo-num">2</span>
+                        <span class="passo-txt">Confirme em <strong>Instalar</strong></span>
+                    </li>
+                </ol>
+            </div>
+        </div>
+    </div>
+
     <!-- MODAL DE CONTA -->
     <div id="modal-conta" class="modal hidden">
         <div class="modal-content">
@@ -349,7 +451,7 @@
                 </button>
             </div>
 
-            <p class="rodape-conta">Mercado Inteligente · <span id="versao-app">v13</span></p>
+            <p class="rodape-conta">Mercado Inteligente · <span id="versao-app">v15</span></p>
         </div>
     </div>
 
