@@ -323,12 +323,15 @@ h4 {
     background: #fff;
     border-top: 1px solid var(--gray-200);
     /*
-     * Agora que o shell encosta no fim da tela, a barra precisa de fato
-     * reservar a safe area — senão os rótulos caem sobre o indicador de
-     * início. Menos 8px porque o indicador não ocupa a faixa toda.
+     * Com o body branco, a faixa que o iOS pinta embaixo passou a se
+     * confundir com a barra — então não é mais preciso reservar a safe
+     * area inteira e os botões podem descer.
+     *
+     * 40% dela é o limite de baixo: o indicador de início é uma barrinha
+     * que vai até uns 13px do fundo, e menos que isso encostaria nele.
      */
     padding: 4px 8px;
-    padding-bottom: max(4px, calc(var(--base-segura) - 8px));
+    padding-bottom: max(4px, calc(var(--base-segura) * 0.4));
     flex-shrink: 0;
     z-index: 200;
 }
