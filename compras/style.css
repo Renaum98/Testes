@@ -322,10 +322,11 @@ h4 {
     display: flex;
     background: #fff;
     border-top: 1px solid var(--gray-200);
-    /* Teto de 12px na safe area, como na Cineteca: o suficiente para o
-       rótulo não encostar no indicador, sem o vão que ela inteira cria. */
-    padding: 4px 8px;
-    padding-bottom: min(var(--base-segura), 12px);
+    /* Teto na safe area, como na Cineteca. 11px é o piso prático: o
+       indicador de início sobe até uns 13px do fundo, e o rótulo ainda
+       tem os 4px de folga do próprio botão. */
+    padding: 3px 8px;
+    padding-bottom: min(var(--base-segura), 11px);
     flex-shrink: 0;
     z-index: 200;
 }
@@ -337,8 +338,8 @@ h4 {
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 2px;
-    padding: 7px 4px;
+    gap: 1px;
+    padding: 4px;
     background: none;
     border: none;
     border-radius: 12px;
@@ -349,7 +350,7 @@ h4 {
 }
 
 .tab .material-icons {
-    font-size: 22px;
+    font-size: 21px;
     transition: transform 0.2s cubic-bezier(0.32, 0.72, 0, 1);
 }
 

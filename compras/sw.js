@@ -1,6 +1,6 @@
 // Service worker do Mercado Inteligente.
 // Suba a versão sempre que index.html / style.css / script.js mudarem.
-const VERSAO = "v25";
+const VERSAO = "v26";
 const CACHE_SHELL = `mercado-shell-${VERSAO}`;
 const CACHE_RUNTIME = `mercado-runtime-${VERSAO}`;
 
