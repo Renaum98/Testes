@@ -537,7 +537,7 @@ const procurarAtualizacao = async () => {
 };
 
 if ("serviceWorker" in navigator) {
-  window.addEventListener("load", async () => {
+  const registrar = async () => {
     try {
       // updateViaCache "none": sem isso o navegador pode responder o
       // sw.js pelo cache HTTP (o GitHub Pages manda cabeçalho de cache)
@@ -562,11 +562,29 @@ if ("serviceWorker" in navigator) {
     } catch (e) {
       console.warn("Service worker não registrado:", e);
     }
-  });
+  };
 
+  /*
+   * Registrar já, e não só no evento load.
+   *
+   * Se o módulo executasse depois do load — o que acontece em algumas
+   * retomadas de página —, o ouvinte nunca dispararia, o registroSW ficaria
+   * nulo e o app NUNCA checaria atualização. Agora o load é só o caminho
+   * alternativo para quando a página ainda está carregando.
+   */
+  if (document.readyState === "complete") registrar();
+  else window.addEventListener("load", registrar, { once: true });
+
+  /*
+   * O iOS não recarrega a página ao reabrir um app que estava suspenso: ele
+   * só volta. Dependendo de como a retomada acontece, o que dispara é
+   * visibilitychange, pageshow ou focus — então os três chamam a checagem.
+   */
   document.addEventListener("visibilitychange", () => {
     if (document.visibilityState === "visible") procurarAtualizacao();
   });
+  window.addEventListener("pageshow", () => procurarAtualizacao());
+  window.addEventListener("focus", () => procurarAtualizacao());
 
   // Recarrega uma única vez quando uma nova versão assume o controle.
   // O beforeunload já descarrega no Firestore o que estiver pendente.

@@ -1,6 +1,6 @@
 // Service worker do Mercado Inteligente.
 // Suba a versão sempre que index.html / style.css / script.js mudarem.
-const VERSAO = "v26";
+const VERSAO = "v27";
 const CACHE_SHELL = `mercado-shell-${VERSAO}`;
 const CACHE_RUNTIME = `mercado-runtime-${VERSAO}`;
 
@@ -95,13 +95,25 @@ self.addEventListener("fetch", (event) => {
   if (HOSTS_SEM_CACHE.includes(url.hostname)) return;
   if (url.hostname.endsWith(".firebaseapp.com")) return;
 
+  /*
+   * "no-cache" força revalidação com o servidor antes de usar a resposta.
+   *
+   * Sem isso o fetch daqui passa pelo cache HTTP do navegador, e o GitHub
+   * Pages manda max-age nos arquivos: mesmo com service worker novo, o
+   * index/css/js podiam vir da cópia velha do navegador — e ainda eram
+   * gravados assim no cache do app. Não é o mesmo que baixar tudo de novo:
+   * é um pedido condicional, e o servidor responde 304 quando nada mudou.
+   */
+  const semCacheHttp = (requisicao) =>
+    new Request(requisicao, { cache: "no-cache" });
+
   // Navegações: rede primeiro (para pegar atualizações), cache como rede de segurança.
   if (req.mode === "navigate") {
     event.respondWith(
       (async () => {
         try {
           const preload = await event.preloadResponse;
-          const resp = preload || (await fetch(req));
+          const resp = preload || (await fetch(semCacheHttp(req)));
           const cache = await caches.open(CACHE_SHELL);
           cache.put("./index.html", resp.clone()).catch(() => {});
           return resp;
@@ -130,7 +142,7 @@ self.addEventListener("fetch", (event) => {
       (async () => {
         const cache = await caches.open(CACHE_SHELL);
         try {
-          const resp = await fetch(req);
+          const resp = await fetch(semCacheHttp(req));
           if (resp && resp.ok) cache.put(req, resp.clone()).catch(() => {});
           return resp;
         } catch {

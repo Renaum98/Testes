@@ -322,11 +322,12 @@ h4 {
     display: flex;
     background: #fff;
     border-top: 1px solid var(--gray-200);
-    /* Teto na safe area, como na Cineteca. 11px é o piso prático: o
-       indicador de início sobe até uns 13px do fundo, e o rótulo ainda
-       tem os 4px de folga do próprio botão. */
+    /* Teto na safe area. Com 17px aqui, mais os 4px do próprio botão, o
+       rótulo fica a 21px do fundo — acima do indicador de início e sem o
+       vão que a safe area inteira criava. No navegador a safe area é 0 e
+       a barra encosta na barra do Safari, que é o certo. */
     padding: 3px 8px;
-    padding-bottom: min(var(--base-segura), 11px);
+    padding-bottom: min(var(--base-segura), 17px);
     flex-shrink: 0;
     z-index: 200;
 }
