@@ -101,9 +101,3 @@ const observer = new IntersectionObserver((entries) => {
 });
 
 observer.observe(elemento);
-
-
-
-
-
-
