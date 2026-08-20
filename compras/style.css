@@ -327,7 +327,9 @@ h4 {
        vão que a safe area inteira criava. No navegador a safe area é 0 e
        a barra encosta na barra do Safari, que é o certo. */
     padding: 3px 8px;
-    padding-bottom: min(var(--base-segura), 17px);
+    /* Piso de 10px para a barra não encostar no fundo onde a safe area é 0
+       (navegador, desktop); o teto de 17px continua valendo no PWA. */
+    padding-bottom: max(10px, min(var(--base-segura), 17px));
     flex-shrink: 0;
     z-index: 200;
 }
@@ -1589,4 +1591,97 @@ img {
 
 .hidden {
     display: none !important;
+}
+
+/* ============ MODO VISITANTE (ENTRADA SEM CONTA) ============ */
+
+.entrada-visitante {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    max-width: 300px;
+}
+
+/* "ou" com um filete de cada lado, separando dos botões de login */
+.linha-ou {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    font-size: 0.75rem;
+    color: var(--gray-400);
+}
+
+.linha-ou::before,
+.linha-ou::after {
+    content: "";
+    flex: 1;
+    height: 1px;
+    background: var(--gray-200);
+}
+
+.aviso-visitante {
+    font-size: 0.75rem;
+    line-height: 1.45;
+    color: var(--gray-600);
+    text-align: center;
+}
+
+/* Substitui a foto do Google quando não há conta */
+.avatar-anonimo {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    font-size: 20px !important;
+    background: var(--gray-700);
+    color: #fff;
+}
+
+.avatar-anonimo.grande {
+    width: 56px;
+    height: 56px;
+    font-size: 30px !important;
+    background: var(--gray-200);
+    color: var(--gray-600);
+}
+
+.card-anonimo {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.anonimo-cabecalho {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+}
+
+.anonimo-cabecalho>.material-icons {
+    font-size: 20px;
+    color: var(--gray-600);
+}
+
+.anonimo-textos {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 0;
+}
+
+.anonimo-textos strong {
+    font-size: 0.9375rem;
+    font-weight: 600;
+}
+
+.anonimo-textos span {
+    font-size: 0.8125rem;
+    line-height: 1.45;
+    color: var(--gray-600);
 }

@@ -52,6 +52,93 @@ const db = getFirestore(app);
 const auth = getAuth(app);
 const provider = new GoogleAuthProvider();
 
+// --- MODO VISITANTE (ENTRADA SEM CONTA) ---
+/*
+ * O visitante abre o app inteiro, mas desligado do banco.
+ *
+ * Não é o login anônimo do Firebase, de propósito: o firestore.rules libera
+ * tudo por `request.auth != null`, e uma sessão anônima passaria por essa
+ * porta. Sem sessão nenhuma, o "não salva nada" não depende de acertar
+ * guarda por guarda aqui no código — é o próprio banco que recusa.
+ *
+ * O que sobra é uma lista prévia por compra, guardada só no localStorage
+ * deste aparelho e apagada quando a compra é finalizada ou cancelada.
+ */
+const CHAVE_ANONIMO = "mercado:modo-visitante";
+const CHAVE_ESTADO_ANONIMO = "mercado:compra-visitante";
+
+let modoAnonimo = localStorage.getItem(CHAVE_ANONIMO) === "1";
+
+const definirModoAnonimo = (ligado) => {
+  modoAnonimo = ligado;
+  try {
+    if (ligado) localStorage.setItem(CHAVE_ANONIMO, "1");
+    else localStorage.removeItem(CHAVE_ANONIMO);
+  } catch (e) {
+    console.warn("Não foi possível lembrar o modo visitante:", e);
+  }
+};
+
+const limparEstadoLocal = () => {
+  try {
+    localStorage.removeItem(CHAVE_ESTADO_ANONIMO);
+  } catch (e) {
+    console.warn("Não foi possível limpar a compra deste aparelho:", e);
+  }
+};
+
+// Liga/desliga tudo o que só faz sentido com conta
+const aplicarModoNaInterface = (anonimo) => {
+  const alternar = (id, escondido) =>
+    document.getElementById(id).classList.toggle("hidden", escondido);
+
+  alternar("aviso-anonimo", !anonimo);
+  alternar("secao-anonimo", !anonimo);
+  alternar("secao-historico", anonimo);
+  alternar("secao-compartilhar", anonimo);
+  alternar("btn-entrar-conta", !anonimo);
+  alternar("btn-logout", anonimo);
+  alternar("user-avatar-anonimo", !anonimo);
+  alternar("conta-avatar-anonimo", !anonimo);
+  document.getElementById("conta-foto").classList.toggle("hidden", anonimo);
+
+  // "Recuperar dados antigos" só se esconde à força no modo visitante: com
+  // conta, quem decide é o renderizarCompartilhamento (some no grupo herdeiro)
+  if (anonimo) {
+    document.getElementById("secao-recuperar").classList.add("hidden");
+  }
+};
+
+const entrarComoAnonimo = () => {
+  definirModoAnonimo(true);
+  atualizarUIAuth(null);
+};
+
+// Sair do modo visitante é descartar a compra: ela nunca existiu no banco
+const sairDoModoAnonimo = async () => {
+  fecharConta();
+  const confirmado = await confirmar(
+    "Entrar com uma conta?",
+    "A lista e o carrinho guardados neste aparelho serão descartados — no modo visitante nada é salvo.",
+    "Entrar",
+  );
+  if (!confirmado) return;
+
+  definirModoAnonimo(false);
+  limparEstadoLocal();
+  location.reload();
+};
+
+document
+  .getElementById("btn-anonimo")
+  .addEventListener("click", entrarComoAnonimo);
+document
+  .getElementById("btn-entrar-conta")
+  .addEventListener("click", sairDoModoAnonimo);
+document
+  .getElementById("btn-entrar-conta-inicial")
+  .addEventListener("click", sairDoModoAnonimo);
+
 // --- AUTENTICAÇÃO ---
 
 const isPWA =
@@ -389,6 +476,20 @@ function atualizarUIAuth(user) {
     const contaFoto = document.getElementById("conta-foto");
     if (user.photoURL) contaFoto.src = user.photoURL;
 
+    aplicarModoNaInterface(false);
+    iniciarApp();
+  } else if (modoAnonimo) {
+    // Sem conta: o app abre igual, sem histórico e sem compartilhamento
+    areaLogin.classList.add("hidden");
+    appEl.classList.remove("hidden");
+
+    userNome.textContent = "Visitante";
+    userFoto.style.display = "none";
+
+    document.getElementById("conta-nome").textContent = "Visitante";
+    document.getElementById("conta-email").textContent = "Entrou sem conta";
+
+    aplicarModoNaInterface(true);
     iniciarApp();
   } else {
     areaLogin.classList.remove("hidden");
@@ -470,6 +571,12 @@ document.getElementById("btn-sair-erro").addEventListener("click", () => {
 // Listener de autenticação — ponto de entrada do app
 onAuthStateChanged(auth, async (user) => {
   usuarioAtual = user;
+
+  // Entrou com conta de verdade: o modo visitante acabou
+  if (user && modoAnonimo) {
+    definirModoAnonimo(false);
+    limparEstadoLocal();
+  }
 
   if (user) {
     // Sai da tela de login na hora: o login já deu certo, e o que vem
@@ -1296,7 +1403,68 @@ let appIniciado = false; // Garante que o app não é iniciado duas vezes
 let saveTimer = null;
 const SAVE_DEBOUNCE_MS = 400;
 
+/*
+ * A compra do visitante mora só neste aparelho.
+ *
+ * Sem debounce: gravar no localStorage é síncrono e barato, e assim o
+ * estado já está no disco se o app for fechado no meio.
+ */
+const salvarEstadoLocal = () => {
+  if (isUpdatingFromSnapshot) return;
+  try {
+    localStorage.setItem(
+      CHAVE_ESTADO_ANONIMO,
+      JSON.stringify({
+        carrinho,
+        listaPrevia,
+        orcamento,
+        ultimosPrecos,
+        timestamp: Date.now(),
+      }),
+    );
+  } catch (e) {
+    console.warn("Não foi possível guardar a compra neste aparelho:", e);
+  }
+};
+
+const carregarEstadoLocal = () => {
+  let estado = null;
+  try {
+    estado = JSON.parse(localStorage.getItem(CHAVE_ESTADO_ANONIMO) || "null");
+  } catch (e) {
+    console.warn("Compra guardada ilegível; começando do zero:", e);
+  }
+
+  if (estado) {
+    carrinho = (estado.carrinho || []).map((item) => ({
+      ...item,
+      id: item.id || gerarId(),
+    }));
+    listaPrevia = (estado.listaPrevia || []).map((p) =>
+      typeof p === "string" ? { id: gerarId(), nome: p } : p,
+    );
+    orcamento = estado.orcamento || 0;
+    if (estado.ultimosPrecos) {
+      ultimosPrecos = { ...ultimosPrecos, ...estado.ultimosPrecos };
+    }
+
+    if (orcamento > 0) {
+      document.getElementById("orcamento-inicial").value = orcamento;
+    }
+    if (carrinho.length > 0) {
+      document.getElementById("aviso-recuperacao").classList.remove("hidden");
+    }
+  }
+
+  atualizarUI();
+  renderizarListaPreviaEditor();
+};
+
 const salvarEstadoRemoto = () => {
+  if (modoAnonimo) {
+    salvarEstadoLocal();
+    return;
+  }
   if (isUpdatingFromSnapshot || !docRef) return;
   if (saveTimer) clearTimeout(saveTimer);
   saveTimer = setTimeout(async () => {
@@ -1318,6 +1486,10 @@ const salvarEstadoRemoto = () => {
 };
 
 const iniciarSincronizacao = () => {
+  if (modoAnonimo) {
+    carregarEstadoLocal();
+    return;
+  }
   if (!docRef) return;
   if (pararEscutaLista) pararEscutaLista();
   pararEscutaLista = onSnapshot(docRef, (docSnap) => {
@@ -1361,6 +1533,13 @@ const limparEstadoRemoto = async () => {
     clearTimeout(saveTimer);
     saveTimer = null;
   }
+  if (modoAnonimo) {
+    limparEstadoLocal();
+    carrinho = [];
+    orcamento = 0;
+    listaPrevia = [];
+    return;
+  }
   if (!docRef) return;
   try {
     await deleteDoc(docRef);
@@ -1374,6 +1553,7 @@ const limparEstadoRemoto = async () => {
 
 // Flush de mutação pendente antes de fechar/recarregar
 window.addEventListener("beforeunload", () => {
+  if (modoAnonimo) return; // o localStorage já foi gravado a cada mudança
   if (saveTimer && docRef) {
     clearTimeout(saveTimer);
     saveTimer = null;
@@ -1795,7 +1975,8 @@ document
 const carregarHistorico = async () => {
   const histDiv = document.getElementById("lista-historico");
 
-  if (!grupoAtual) return;
+  // Visitante não tem histórico: a seção inteira fica escondida
+  if (modoAnonimo || !grupoAtual) return;
 
   let snap;
   try {
@@ -2078,11 +2259,32 @@ function iniciarApp() {
         return;
       }
       const total = carrinho.reduce((sum, item) => sum + item.total, 0);
+      const resumo = `${carrinho.length} ${carrinho.length === 1 ? "item" : "itens"} · Total de R$ ${total
+        .toFixed(2)
+        .replace(".", ",")}`;
+
+      // Visitante: nada é gravado, só se encerra a compra deste aparelho
+      if (modoAnonimo) {
+        const encerrar = await confirmar(
+          "Encerrar a compra?",
+          `${resumo}. No modo visitante ela não é salva e não entra em nenhum histórico.`,
+          "Encerrar",
+        );
+        if (!encerrar) return;
+
+        await limparEstadoRemoto();
+        mostrarNotificacao(
+          "Compra encerrada — nada foi salvo",
+          "positivo",
+          "check_circle",
+        );
+        setTimeout(() => location.reload(), 1500);
+        return;
+      }
+
       const confirmado = await confirmar(
         "Finalizar compra?",
-        `${carrinho.length} ${carrinho.length === 1 ? "item" : "itens"} · Total de R$ ${total
-          .toFixed(2)
-          .replace(".", ",")}`,
+        resumo,
         "Finalizar",
       );
       if (!confirmado) return;

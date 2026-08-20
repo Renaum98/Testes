@@ -65,6 +65,19 @@
             <span>Entrar com Google</span>
         </button>
         <p id="erro-login" class="erro-login hidden"></p>
+
+        <!-- Entrada sem conta: tudo fica no aparelho, nada vai para o banco -->
+        <div class="entrada-visitante">
+            <span class="linha-ou">ou</span>
+            <button id="btn-anonimo" class="btn-secundario btn-login">
+                <span class="material-icons">person_outline</span>
+                <span>Entrar sem conta</span>
+            </button>
+            <p class="aviso-visitante">
+                Monte a lista da compra de agora, sem salvar nada.
+                Sem histórico, sem compartilhamento e sem nuvem.
+            </p>
+        </div>
     </div>
 
     <!-- FALHA AO PREPARAR A CONTA -->
@@ -93,6 +106,7 @@
         <header class="app-bar">
             <div class="app-bar-usuario">
                 <img id="user-foto" src="" alt="" width="34" height="34">
+                <span class="material-icons avatar-anonimo hidden" id="user-avatar-anonimo">person</span>
                 <div class="app-bar-textos">
                     <span class="app-bar-titulo" id="titulo-tela">Início</span>
                     <span class="app-bar-sub" id="user-nome"></span>
@@ -127,6 +141,22 @@
 
             <!-- TELA INICIAL -->
             <section id="tela-inicial" class="tela">
+
+                <div id="aviso-anonimo" class="card card-anonimo hidden">
+                    <div class="anonimo-cabecalho">
+                        <span class="material-icons">visibility_off</span>
+                        <div class="anonimo-textos">
+                            <strong>Modo visitante</strong>
+                            <span>A lista e o carrinho ficam só neste aparelho, até você finalizar ou
+                                cancelar a compra. Nada é salvo na nuvem nem entra no histórico.</span>
+                        </div>
+                    </div>
+                    <button id="btn-entrar-conta-inicial" class="btn-secundario">
+                        <span class="material-icons">login</span>
+                        <span>Entrar com uma conta</span>
+                    </button>
+                </div>
+
                 <div class="card">
                     <div id="aviso-recuperacao" class="alert alert-info hidden">
                         <span class="material-icons">info</span>
@@ -152,11 +182,13 @@
                     </button>
                 </div>
 
-                <div class="card-header">
-                    <span class="material-icons">history</span>
-                    <h3>Compras Recentes</h3>
+                <div id="secao-historico">
+                    <div class="card-header">
+                        <span class="material-icons">history</span>
+                        <h3>Compras Recentes</h3>
+                    </div>
+                    <div id="lista-historico" class="card"></div>
                 </div>
-                <div id="lista-historico" class="card"></div>
             </section>
 
             <!-- TELA EDITOR DE LISTA -->
@@ -399,13 +431,27 @@
 
             <div class="perfil">
                 <img id="conta-foto" src="" alt="" width="56" height="56">
+                <span class="material-icons avatar-anonimo grande hidden" id="conta-avatar-anonimo">person</span>
                 <div class="perfil-textos">
                     <strong id="conta-nome"></strong>
                     <span id="conta-email"></span>
                 </div>
             </div>
 
-            <div class="secao-conta">
+            <div class="secao-conta hidden" id="secao-anonimo">
+                <div class="secao-titulo">
+                    <span class="material-icons">visibility_off</span>
+                    <h3>Modo visitante</h3>
+                </div>
+                <p class="secao-desc">
+                    Você está usando o app sem conta. A lista e o carrinho ficam guardados só
+                    neste aparelho e somem quando a compra é finalizada ou cancelada.
+                    Nada é gravado na nuvem: sem histórico de compras, sem preços anteriores
+                    salvos e sem compartilhar com outra pessoa.
+                </p>
+            </div>
+
+            <div class="secao-conta" id="secao-compartilhar">
                 <div class="secao-titulo">
                     <span class="material-icons">group</span>
                     <h3>Conta compartilhada</h3>
@@ -458,6 +504,11 @@
                     <span class="opcao-texto">Buscar atualizações</span>
                     <span class="material-icons opcao-seta">chevron_right</span>
                 </button>
+                <button id="btn-entrar-conta" class="opcao hidden">
+                    <span class="material-icons">login</span>
+                    <span class="opcao-texto">Entrar com uma conta</span>
+                    <span class="material-icons opcao-seta">chevron_right</span>
+                </button>
                 <button id="btn-logout" class="opcao perigo">
                     <span class="material-icons">logout</span>
                     <span class="opcao-texto">Sair da conta</span>
@@ -465,7 +516,7 @@
                 </button>
             </div>
 
-            <p class="rodape-conta">Mercado Inteligente · <span id="versao-app">v27</span></p>
+            <p class="rodape-conta">Mercado Inteligente · <span id="versao-app">v28</span></p>
         </div>
     </div>
 
