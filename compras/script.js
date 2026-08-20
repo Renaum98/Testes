@@ -87,12 +87,27 @@ const limparEstadoLocal = () => {
   }
 };
 
+// O aviso da tela inicial abre no toque; fechado é só o título
+const definirAvisoAnonimoAberto = (aberto) => {
+  document.getElementById("aviso-anonimo").classList.toggle("aberto", aberto);
+  document
+    .getElementById("btn-aviso-anonimo")
+    .setAttribute("aria-expanded", String(aberto));
+};
+
+document.getElementById("btn-aviso-anonimo").addEventListener("click", () => {
+  const cartao = document.getElementById("aviso-anonimo");
+  definirAvisoAnonimoAberto(!cartao.classList.contains("aberto"));
+});
+
 // Liga/desliga tudo o que só faz sentido com conta
 const aplicarModoNaInterface = (anonimo) => {
   const alternar = (id, escondido) =>
     document.getElementById(id).classList.toggle("hidden", escondido);
 
   alternar("aviso-anonimo", !anonimo);
+  // sempre recolhido ao entrar: aberto, ele rouba a tela inicial
+  definirAvisoAnonimoAberto(false);
   alternar("secao-anonimo", !anonimo);
   alternar("secao-historico", anonimo);
   alternar("secao-compartilhar", anonimo);
@@ -757,11 +772,11 @@ const abrirModalInstalar = () => {
     passos.classList.toggle("hidden", !!promptInstalacao);
   }
 
-  document.getElementById("modal-instalar").classList.remove("hidden");
+  abrirModal(document.getElementById("modal-instalar"));
 };
 
 const fecharModalInstalar = () =>
-  document.getElementById("modal-instalar").classList.add("hidden");
+  fecharModal(document.getElementById("modal-instalar"));
 
 const instalarAgora = async () => {
   if (!promptInstalacao) return;
@@ -826,6 +841,32 @@ window.addEventListener("offline", () => {
 });
 atualizarConexao();
 
+// --- ABERTURA E FECHAMENTO DAS FOLHAS ---
+/*
+ * Fechar era um corte seco: o display sumia com a folha ainda no lugar.
+ *
+ * Aqui ela desce e desbota primeiro, e só depois recebe o `hidden`. O
+ * tempo tem de bater com a animação `.modal.fechando` do CSS — mais curto
+ * corta a saída pela metade, mais longo deixa a tela travada à toa.
+ */
+const DURACAO_FECHAR_MODAL = 220;
+
+const abrirModal = (modal) => {
+  modal.classList.remove("fechando");
+  modal.classList.remove("hidden");
+};
+
+const fecharModal = (modal) => {
+  if (modal.classList.contains("hidden") || modal.classList.contains("fechando")) {
+    return;
+  }
+  modal.classList.add("fechando");
+  setTimeout(() => {
+    modal.classList.add("hidden");
+    modal.classList.remove("fechando");
+  }, DURACAO_FECHAR_MODAL);
+};
+
 // --- NAVEGAÇÃO ENTRE TELAS ---
 
 const TELAS = {
@@ -836,22 +877,34 @@ const TELAS = {
 
 let telaAtual = "tela-inicial";
 
+// A ordem das abas é o que dá o sentido do movimento
+const ORDEM_TELAS = Object.keys(TELAS);
+
 const mostrarTela = (id, registrarHistorico = true) => {
   if (!TELAS[id] || id === telaAtual) return;
 
   // O botão "voltar" do Android volta para a tela anterior em vez de fechar o app
   if (registrarHistorico) history.pushState({ tela: id }, "");
+
+  /*
+   * Ir para uma aba à direita traz a tela deslizando da direita; voltar
+   * traz da esquerda. É o que diz para onde a navegação andou, e o
+   * "voltar" do sistema ganha o movimento inverso de graça.
+   */
+  const avancando = ORDEM_TELAS.indexOf(id) > ORDEM_TELAS.indexOf(telaAtual);
   telaAtual = id;
 
   Object.keys(TELAS).forEach((tela) => {
     const el = document.getElementById(tela);
     el.classList.toggle("hidden", tela !== id);
   });
-  // reinicia a animação de entrada da tela exibida
+
+  // A classe precisa sair e voltar para a animação recomeçar; o offsetWidth
+  // no meio é o que força o navegador a enxergar os dois estados.
   const ativa = document.getElementById(id);
-  ativa.style.animation = "none";
+  ativa.classList.remove("entrando-da-direita", "entrando-da-esquerda");
   void ativa.offsetWidth;
-  ativa.style.animation = "";
+  ativa.classList.add(avancando ? "entrando-da-direita" : "entrando-da-esquerda");
 
   document.querySelectorAll("#tab-bar .tab").forEach((tab) => {
     tab.classList.toggle("ativo", tab.dataset.tela === id);
@@ -879,11 +932,11 @@ document.querySelectorAll("#tab-bar .tab").forEach((tab) => {
 const abrirConta = () => {
   // Some só quando já está instalado; no resto, abre as instruções da plataforma
   document.getElementById("btn-instalar-conta").classList.toggle("hidden", isPWA);
-  document.getElementById("modal-conta").classList.remove("hidden");
+  abrirModal(document.getElementById("modal-conta"));
 };
 
 const fecharConta = () => {
-  document.getElementById("modal-conta").classList.add("hidden");
+  fecharModal(document.getElementById("modal-conta"));
 };
 
 document.getElementById("btn-conta-topo").addEventListener("click", abrirConta);
@@ -926,10 +979,10 @@ const confirmar = (titulo, texto, textoOk = "Confirmar") =>
     document.getElementById("confirmar-titulo").textContent = titulo;
     document.getElementById("confirmar-texto").textContent = texto;
     btnOk.textContent = textoOk;
-    modal.classList.remove("hidden");
+    abrirModal(modal);
 
     const encerrar = (resposta) => {
-      modal.classList.add("hidden");
+      fecharModal(modal);
       btnOk.removeEventListener("click", aoConfirmar);
       btnCancelar.removeEventListener("click", aoCancelar);
       modal.removeEventListener("click", aoClicarFora);
@@ -1697,6 +1750,68 @@ const escapeHtml = (str) => {
 const gerarId = () =>
   Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
 
+// --- UNIDADE DE MEDIDA ---
+/*
+ * Peça (2 caixas de leite) ou balança (0,750 kg de tomate).
+ *
+ * A conta é a mesma dos dois lados — total = quantidade × preço —, o que
+ * muda é o que cada número quer dizer, e por isso os rótulos dos campos
+ * trocam junto: em quilo, o preço pedido é o do quilo.
+ *
+ * Item antigo não tem `unidade`; a falta dela vale como "un".
+ */
+const UNIDADES = {
+  un: {
+    rotulo: "un",
+    aria: "Medindo em unidades; tocar para usar quilos",
+    qtd: { placeholder: "Qtd", min: "1", step: "1", inputmode: "numeric" },
+    preco: "Preço unitário",
+  },
+  kg: {
+    rotulo: "kg",
+    aria: "Medindo em quilos; tocar para voltar a unidades",
+    qtd: { placeholder: "Peso", min: "0.05", step: "0.05", inputmode: "decimal" },
+    preco: "Preço por kg",
+  },
+};
+
+let unidadeAtual = "un";
+
+// 0,750 kg — sem casas decimais à toa quando o peso é redondo
+const formatarQtd = (qtd, unidade) => {
+  const numero = Number(qtd) || 0;
+  if (unidade !== "kg") return String(numero);
+  return numero.toLocaleString("pt-BR", { maximumFractionDigits: 3 });
+};
+
+const rotuloQtd = (item) =>
+  item.unidade === "kg" ? `${formatarQtd(item.qtd, "kg")} kg` : `${item.qtd}x`;
+
+const descricaoItem = (item) => {
+  const preco = item.preco.toFixed(2).replace(".", ",");
+  return item.unidade === "kg"
+    ? `${rotuloQtd(item)} × R$ ${preco}/kg`
+    : `${rotuloQtd(item)} R$ ${preco}`;
+};
+
+const definirUnidade = (unidade) => {
+  unidadeAtual = UNIDADES[unidade] ? unidade : "un";
+  const cfg = UNIDADES[unidadeAtual];
+
+  const botao = document.getElementById("btn-unidade");
+  botao.textContent = cfg.rotulo;
+  botao.dataset.unidade = unidadeAtual;
+  botao.setAttribute("aria-label", cfg.aria);
+
+  const campoQtd = document.getElementById("input-qtd");
+  campoQtd.placeholder = cfg.qtd.placeholder;
+  campoQtd.min = cfg.qtd.min;
+  campoQtd.step = cfg.qtd.step;
+  campoQtd.inputMode = cfg.qtd.inputmode;
+
+  document.getElementById("input-preco").placeholder = cfg.preco;
+};
+
 window.removerItem = (id) => {
   carrinho = carrinho.filter((item) => item.id !== id);
   salvarEstadoRemoto();
@@ -1739,7 +1854,7 @@ const atualizarUI = () => {
       <div class="item-lista">
         <div class="item-info">
           <div class="item-nome">${escapeHtml(item.nome)}</div>
-          <div class="item-detalhes">${item.qtd}x R$ ${item.preco.toFixed(2).replace(".", ",")}</div>
+          <div class="item-detalhes">${descricaoItem(item)}</div>
         </div>
         <div class="item-total">R$ ${item.total.toFixed(2).replace(".", ",")}</div>
         <button class="btn-remove" data-id="${escapeHtml(item.id)}">
@@ -1919,7 +2034,7 @@ const modalCupom = document.getElementById("modal-cupom");
 let compraAberta = null;
 
 const fecharCupom = () => {
-  modalCupom.classList.add("hidden");
+  fecharModal(modalCupom);
   compraAberta = null;
 };
 
@@ -1932,7 +2047,7 @@ const abrirCupom = (id, dados, dataFormatada) => {
     .map(
       (i) => `
       <div class="linha-cupom">
-        <span>${escapeHtml(i.nome)} ${i.qtd}x</span>
+        <span>${escapeHtml(i.nome)} ${rotuloQtd(i)}</span>
         <span>R$ ${i.total.toFixed(2).replace(".", ",")}</span>
       </div>`,
     )
@@ -1940,7 +2055,7 @@ const abrirCupom = (id, dados, dataFormatada) => {
   document.getElementById("total-cupom").innerText =
     `TOTAL: R$ ${dados.total.toFixed(2).replace(".", ",")}`;
 
-  modalCupom.classList.remove("hidden");
+  abrirModal(modalCupom);
 };
 
 modalCupom.querySelector(".close-modal").addEventListener("click", fecharCupom);
@@ -2142,6 +2257,13 @@ function iniciarApp() {
     atualizarListaPendenteVisual();
   });
 
+  // Alterna peça/balança e leva o foco para o número, que é o que muda junto
+  document.getElementById("btn-unidade").addEventListener("click", () => {
+    definirUnidade(unidadeAtual === "kg" ? "un" : "kg");
+    document.getElementById("input-qtd").focus();
+    document.getElementById("input-qtd").select();
+  });
+
   // Navegação
   document.getElementById("btn-logout").addEventListener("click", async () => {
     fecharConta();
@@ -2224,13 +2346,24 @@ function iniciarApp() {
 
     if (nome && preco) {
       verificarHistoricoPreco(nome, preco);
-      carrinho.push({ id: gerarId(), nome, qtd, preco, total: qtd * preco });
+      carrinho.push({
+        id: gerarId(),
+        nome,
+        qtd,
+        preco,
+        // arredondado no centavo: 0,75 kg × 12,90 dá 9,674999... em ponto flutuante
+        total: Math.round(qtd * preco * 100) / 100,
+        unidade: unidadeAtual,
+      });
       produtosConhecidos.add(nome);
       ultimosPrecos[nome] = preco;
       salvarEstadoRemoto();
       document.getElementById("input-nome").value = "";
       document.getElementById("input-preco").value = "";
       document.getElementById("input-qtd").value = 1;
+      // volta para peças junto com os outros campos, para o próximo item
+      // não ser gravado em quilo sem querer
+      definirUnidade("un");
       document.getElementById("input-nome").focus();
       atualizarUI();
       mostrarNotificacao(

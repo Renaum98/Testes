@@ -142,19 +142,26 @@
             <!-- TELA INICIAL -->
             <section id="tela-inicial" class="tela">
 
+                <!-- Recolhido por padrão: fechado é só um lembrete discreto -->
                 <div id="aviso-anonimo" class="card card-anonimo hidden">
-                    <div class="anonimo-cabecalho">
+                    <button type="button" id="btn-aviso-anonimo" class="anonimo-cabecalho" aria-expanded="false"
+                        aria-controls="anonimo-corpo">
                         <span class="material-icons">visibility_off</span>
-                        <div class="anonimo-textos">
-                            <strong>Modo visitante</strong>
-                            <span>A lista e o carrinho ficam só neste aparelho, até você finalizar ou
-                                cancelar a compra. Nada é salvo na nuvem nem entra no histórico.</span>
+                        <span class="anonimo-titulo">Modo visitante</span>
+                        <span class="material-icons anonimo-seta">expand_more</span>
+                    </button>
+                    <div class="anonimo-corpo" id="anonimo-corpo">
+                        <div class="anonimo-corpo-interno">
+                            <div class="anonimo-corpo-conteudo">
+                                <p>A lista e o carrinho ficam só neste aparelho, até você finalizar ou
+                                    cancelar a compra. Nada é salvo na nuvem nem entra no histórico.</p>
+                                <button id="btn-entrar-conta-inicial" class="btn-secundario">
+                                    <span class="material-icons">login</span>
+                                    <span>Entrar com uma conta</span>
+                                </button>
+                            </div>
                         </div>
                     </div>
-                    <button id="btn-entrar-conta-inicial" class="btn-secundario">
-                        <span class="material-icons">login</span>
-                        <span>Entrar com uma conta</span>
-                    </button>
                 </div>
 
                 <div class="card">
@@ -245,8 +252,14 @@
                     </div>
 
                     <div class="input-row">
-                        <input type="number" id="input-qtd" placeholder="Qtd" value="1" min="1" max="50" step="1"
-                            inputmode="numeric">
+                        <!-- O seletor un/kg fica dentro do campo de quantidade
+                             para os dois campos continuarem na mesma linha -->
+                        <div class="campo-qtd">
+                            <input type="number" id="input-qtd" placeholder="Qtd" value="1" min="1" max="50" step="1"
+                                inputmode="numeric">
+                            <button type="button" id="btn-unidade" class="btn-unidade" data-unidade="un"
+                                aria-label="Medindo em unidades; tocar para usar quilos">un</button>
+                        </div>
                         <input type="number" id="input-preco" placeholder="Preço unitário" step="0.01"
                             inputmode="decimal" enterkeyhint="done">
                     </div>
@@ -516,7 +529,7 @@
                 </button>
             </div>
 
-            <p class="rodape-conta">Mercado Inteligente · <span id="versao-app">v28</span></p>
+            <p class="rodape-conta">Mercado Inteligente · <span id="versao-app">v29</span></p>
         </div>
     </div>
 

@@ -305,6 +305,41 @@ h4 {
     animation: entradaTela 0.28s cubic-bezier(0.32, 0.72, 0, 1);
 }
 
+/* Troca de aba: a tela entra do lado para onde a navegação andou. O
+   deslocamento é curto de propósito — o suficiente para o olho seguir o
+   movimento sem atrasar o toque seguinte. */
+.tela.entrando-da-direita {
+    animation: entrarDaDireita 0.3s cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+.tela.entrando-da-esquerda {
+    animation: entrarDaEsquerda 0.3s cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+@keyframes entrarDaDireita {
+    from {
+        opacity: 0;
+        transform: translateX(28px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes entrarDaEsquerda {
+    from {
+        opacity: 0;
+        transform: translateX(-28px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
 @keyframes entradaTela {
     from {
         opacity: 0;
@@ -633,8 +668,47 @@ input[type="number"]::-webkit-inner-spin-button {
 
 .input-row {
     display: grid;
-    grid-template-columns: 1fr 2fr;
+    /* 1.6fr, e não 2fr: o campo de quantidade cede um pouco de largura para
+       o seletor un/kg sem espremer o número que fica digitado nele. */
+    grid-template-columns: 1fr 1.6fr;
     gap: 10px;
+}
+
+/* ============ SELETOR DE UNIDADE (UN / KG) ============ */
+
+/* Pílula dentro do próprio campo de quantidade: um toque alterna entre
+   contar peças e pesar na balança, e a linha continua com dois campos. */
+.campo-qtd {
+    position: relative;
+}
+
+.campo-qtd input {
+    padding-right: 42px;
+}
+
+.btn-unidade {
+    position: absolute;
+    right: 5px;
+    /* insets a partir da caixa do input (o wrapper inclui o margin-bottom) */
+    top: 6px;
+    bottom: 16px;
+    width: 32px;
+    padding: 0;
+    border: 1px solid var(--gray-200);
+    border-radius: 8px;
+    background: var(--gray-100);
+    color: var(--gray-600);
+    font-family: inherit;
+    font-size: 0.6875rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+
+.btn-unidade[data-unidade="kg"] {
+    background: var(--primary);
+    border-color: var(--primary);
+    color: #fff;
 }
 
 .input-group {
@@ -978,6 +1052,36 @@ button .material-icons {
 
     to {
         opacity: 1;
+    }
+}
+
+/* Saída: o fundo desbota e a folha desce. `forwards` segura o último
+   quadro até o `hidden` entrar, senão ela pisca de volta no fim. */
+.modal.fechando {
+    animation: sumirModal 0.22s ease forwards;
+}
+
+.modal.fechando .modal-content {
+    animation: descerModal 0.22s cubic-bezier(0.32, 0.72, 0, 1) forwards;
+}
+
+@keyframes sumirModal {
+    from {
+        opacity: 1;
+    }
+
+    to {
+        opacity: 0;
+    }
+}
+
+@keyframes descerModal {
+    from {
+        transform: translateY(0);
+    }
+
+    to {
+        transform: translateY(12%);
     }
 }
 
@@ -1651,16 +1755,36 @@ img {
     color: var(--gray-600);
 }
 
+/* Fechado, e o proprio cabecalho e a area de toque: o padding sai do card */
 .card-anonimo {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
+    padding: 0;
+    overflow: hidden;
+    background: var(--gray-100);
+    transition: background 0.2s ease;
+}
+
+.card-anonimo.aberto {
+    background: #fff;
 }
 
 .anonimo-cabecalho {
+    width: 100%;
     display: flex;
-    align-items: flex-start;
+    align-items: center;
     gap: 10px;
+    padding: 14px 16px;
+    background: none;
+    border: none;
+    border-radius: 16px;
+    font-family: inherit;
+    text-align: left;
+}
+
+/* O aperto global encolhe o botao inteiro; numa faixa desta largura o que
+   se espera e o fundo mudando, como nas opcoes da folha de Conta. */
+.anonimo-cabecalho:active {
+    transform: none;
+    background: var(--gray-200);
 }
 
 .anonimo-cabecalho>.material-icons {
@@ -1668,19 +1792,68 @@ img {
     color: var(--gray-600);
 }
 
-.anonimo-textos {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
+.anonimo-titulo {
+    flex: 1;
     min-width: 0;
-}
-
-.anonimo-textos strong {
     font-size: 0.9375rem;
     font-weight: 600;
+    color: var(--gray-900);
 }
 
-.anonimo-textos span {
+.anonimo-seta {
+    font-size: 20px !important;
+    color: var(--gray-400);
+    transition: transform 0.2s ease;
+}
+
+.card-anonimo.aberto .anonimo-seta {
+    transform: rotate(180deg);
+}
+
+/*
+ * Altura animada sem número mágico.
+ *
+ * `display: none` não tem transição, e `max-height` chutado faz a abertura
+ * acelerar e frear errado. Uma linha de grid indo de 0fr a 1fr interpola a
+ * altura real do conteúdo — por isso o miolo é um filho separado, com o
+ * padding dentro dele e `overflow: hidden` para ser recortado enquanto
+ * fecha.
+ */
+.anonimo-corpo {
+    display: grid;
+    grid-template-rows: 0fr;
+    transition: grid-template-rows 0.28s cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+.card-anonimo.aberto .anonimo-corpo {
+    grid-template-rows: 1fr;
+}
+
+/* Sem padding aqui de propósito: padding conta no tamanho mínimo da linha
+   do grid, e a faixa nunca chegaria a zero ao fechar. Ele vive no nível de
+   baixo, que o overflow recorta. */
+.anonimo-corpo-interno {
+    overflow: hidden;
+    min-height: 0;
+    /* fechado, o conteúdo sai do alcance do teclado — mas só depois de
+       terminar de recolher, senão o fecho vira um sumiço */
+    visibility: hidden;
+    transition: visibility 0s linear 0.28s;
+}
+
+.anonimo-corpo-conteudo {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 0 16px 16px;
+}
+
+.card-anonimo.aberto .anonimo-corpo-interno {
+    visibility: visible;
+    transition-delay: 0s;
+}
+
+.anonimo-corpo p {
     font-size: 0.8125rem;
     line-height: 1.45;
     color: var(--gray-600);
