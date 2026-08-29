@@ -160,6 +160,16 @@ h4 {
 }
 
 /*
+ * Enquanto a folha do Material Icons não chega, o glifo ainda é o nome da
+ * ligadura escrito por extenso; escondê-lo até lá custa menos que segurar
+ * a primeira pintura da tela por causa dele. Depois que a folha chega, o
+ * próprio font-display da fonte cobre o resto da espera.
+ */
+html:not(.icones-prontos) .material-icons {
+    visibility: hidden;
+}
+
+/*
  * Abertura do app.
  *
  * `pathLength="1"` no SVG normaliza o comprimento do traço, então o
@@ -191,12 +201,48 @@ h4 {
     animation: logoPreencher 0.3s ease 0.7s forwards;
 }
 
-.marca-animada .marca-nome {
-    animation: subirTexto 0.45s ease 0.35s both;
+/* Uma palavra de cada vez, na esteira do traço do logo */
+.marca-nome span {
+    display: inline-block;
 }
 
-.marca-animada .marca-sub {
-    animation: subirTexto 0.45s ease 0.45s both;
+.marca-animada .marca-nome span {
+    animation: subirTexto 0.45s ease both;
+}
+
+.marca-animada .marca-nome span:nth-child(1) {
+    animation-delay: 0.35s;
+}
+
+.marca-animada .marca-nome span:nth-child(2) {
+    animation-delay: 0.5s;
+}
+
+/*
+ * No splash a linha de apoio e o carretel ficam fora do .marca (o layout da
+ * tela empilha os tres), entao eles entram pelo irmao — senao apareceriam
+ * prontos enquanto o logo ainda esta sendo desenhado.
+ *
+ * O carretel ganha opacidade em animacao separada de proposito: `girar` e
+ * `subirTexto` mexem os dois em transform, e a segunda apagaria o giro.
+ */
+.marca-animada .marca-sub,
+.marca-animada~.marca-sub {
+    animation: subirTexto 0.45s ease 0.65s both;
+}
+
+.marca-animada~.girando {
+    animation: girar 1s linear infinite, surgir 0.4s ease 0.65s both;
+}
+
+@keyframes surgir {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
 }
 
 @keyframes logoEntrar {

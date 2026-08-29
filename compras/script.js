@@ -566,7 +566,7 @@ const comLimite = (promessa, ms) =>
 const ABERTURA_MS = window.matchMedia("(prefers-reduced-motion: reduce)")
   .matches
   ? 0
-  : 1000;
+  : 1150;
 const inicioDaAbertura = performance.now();
 let timerSplash = null;
 

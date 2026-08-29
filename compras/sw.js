@@ -1,6 +1,6 @@
 // Service worker do Mercado Inteligente.
 // Suba a versão sempre que index.html / style.css / script.js mudarem.
-const VERSAO = "v32";
+const VERSAO = "v33";
 const CACHE_SHELL = `mercado-shell-${VERSAO}`;
 const CACHE_RUNTIME = `mercado-runtime-${VERSAO}`;
 
@@ -27,6 +27,9 @@ const HOSTS_SEM_CACHE = [
   "apis.google.com",
   "accounts.google.com",
 ];
+
+// Quanto a navegação espera a rede antes de abrir pela cópia guardada
+const PRAZO_REDE_MS = 1200;
 
 // Hosts de assets estáticos de terceiros (SDK, fontes, ícones).
 const HOSTS_ASSETS = [
@@ -107,23 +110,48 @@ self.addEventListener("fetch", (event) => {
   const semCacheHttp = (requisicao) =>
     new Request(requisicao, { cache: "no-cache" });
 
-  // Navegações: rede primeiro (para pegar atualizações), cache como rede de segurança.
+  /*
+   * Navegações: rede primeiro, para pegar atualização, mas com prazo.
+   *
+   * Aberto pela tela de início, o app fica na tela de abertura do sistema
+   * até esta resposta chegar — e "rede primeiro" sem prazo entrega essa
+   * espera ao 4G do supermercado. Passado o prazo, a cópia guardada abre o
+   * app na hora; a resposta da rede, quando chega, ainda atualiza o cache
+   * para a próxima abertura.
+   *
+   * Isso não deixa ninguém preso numa versão velha: a checagem do sw.js
+   * corre em paralelo e, achando versão nova, o controllerchange recarrega
+   * a página do outro lado.
+   */
   if (req.mode === "navigate") {
+    const daRede = (async () => {
+      const preload = await event.preloadResponse;
+      const resp = preload || (await fetch(semCacheHttp(req)));
+      const cache = await caches.open(CACHE_SHELL);
+      cache.put("./index.html", resp.clone()).catch(() => {});
+      return resp;
+    })();
+
+    // A rede continua depois de respondido, para gravar a versão nova
+    daRede.catch(() => {});
+    event.waitUntil(daRede.catch(() => {}));
+
     event.respondWith(
       (async () => {
+        const cache = await caches.open(CACHE_SHELL);
+        const guardado =
+          (await cache.match("./index.html")) || (await cache.match("./"));
+
+        // Primeira visita: não há cópia, então só resta esperar a rede
+        if (!guardado) return daRede;
+
+        const prazo = new Promise((resolver) =>
+          setTimeout(() => resolver(null), PRAZO_REDE_MS),
+        );
         try {
-          const preload = await event.preloadResponse;
-          const resp = preload || (await fetch(semCacheHttp(req)));
-          const cache = await caches.open(CACHE_SHELL);
-          cache.put("./index.html", resp.clone()).catch(() => {});
-          return resp;
+          return (await Promise.race([daRede, prazo])) || guardado;
         } catch {
-          const cache = await caches.open(CACHE_SHELL);
-          return (
-            (await cache.match("./index.html")) ||
-            (await cache.match("./")) ||
-            Response.error()
-          );
+          return guardado;
         }
       })(),
     );

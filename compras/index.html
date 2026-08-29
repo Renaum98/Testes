@@ -30,10 +30,29 @@
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link
-        href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&family=Poppins:wght@300;400;500;600;700&display=swap"
-        rel="stylesheet">
-    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <!--
+      As duas folhas do Google Fonts saem do caminho da primeira pintura.
+      Folha de estilo no <head> bloqueia a renderização, e enquanto essas
+      duas não voltavam do servidor de fora a tela ficava em branco — no
+      Android, isso é tempo a mais na tela de abertura do sistema, antes
+      da animação começar.
+
+      media="print" faz o navegador baixar sem bloquear; o onload devolve a
+      folha para a tela. O texto aparece antes na fonte do sistema e troca
+      quando a real chega (display=swap).
+
+      Ícone é outra história: sem a folha, o nome da ligadura ("home",
+      "shopping_cart") apareceria escrito na tela. Daí a classe abaixo, que
+      só libera os ícones quando a folha deles chega.
+    -->
+    <link rel="stylesheet" media="print" onload="this.media='all'" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&amp;family=Poppins:wght@300;400;500;600;700&amp;display=swap">
+    <link rel="stylesheet" media="print"
+        onload="this.media='all';document.documentElement.classList.add('icones-prontos')"
+        href="https://fonts.googleapis.com/icon?family=Material+Icons">
+    <noscript>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&amp;family=Poppins:wght@300;400;500;600;700&amp;display=swap">
+        <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+    </noscript>
     <link rel="stylesheet" href="style.css">
     <title>Mercado Inteligente</title>
 </head>
@@ -52,7 +71,7 @@
                     <path class="logo-alca" pathLength="1" d="M18.5 21v-6.6a5.5 5.5 0 0 1 11 0V21" />
                 </svg>
             </div>
-            <h1 class="marca-nome">Mercado Inteligente</h1>
+            <h1 class="marca-nome"><span>Mercado</span> <span>Inteligente</span></h1>
         </div>
         <span class="material-icons girando">progress_activity</span>
         <p id="loading-msg" class="marca-sub">Carregando...</p>
@@ -70,7 +89,7 @@
                     <path class="logo-alca" pathLength="1" d="M18.5 21v-6.6a5.5 5.5 0 0 1 11 0V21" />
                 </svg>
             </div>
-            <h1 class="marca-nome">Mercado Inteligente</h1>
+            <h1 class="marca-nome"><span>Mercado</span> <span>Inteligente</span></h1>
             <p class="marca-sub">Sua lista e seu orçamento, sempre à mão</p>
         </div>
         <!-- Botão oficial do Google Identity Services (desenhado por JS) -->
@@ -579,7 +598,7 @@
                 </button>
             </div>
 
-            <p class="rodape-conta">Mercado Inteligente · <span id="versao-app">v32</span></p>
+            <p class="rodape-conta">Mercado Inteligente · <span id="versao-app">v33</span></p>
         </div>
     </div>
 
@@ -602,6 +621,12 @@
     -->
     <script>
         (function () {
+            // Sem a folha de ícones (offline de primeira viagem, servidor fora
+            // do ar), palavra na tela ainda e melhor que botao vazio.
+            setTimeout(function () {
+                document.documentElement.classList.add("icones-prontos");
+            }, 3000);
+
             // Segurar o dedo abre o menu "abrir em nova guia / copiar link".
             // Liberado dentro de campos de texto, senão perde-se o colar.
             document.addEventListener("contextmenu", function (e) {
