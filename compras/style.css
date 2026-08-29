@@ -1029,6 +1029,230 @@ button .material-icons {
     color: var(--gray-300);
 }
 
+/* ============ ANÁLISE (tela inicial) ============ */
+
+.analise-destaques {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+}
+
+.analise-stat {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+    padding: 12px;
+    background: var(--gray-50);
+    border: 1px solid var(--gray-200);
+    border-radius: 12px;
+}
+
+.analise-rotulo {
+    font-size: 0.6875rem;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--gray-600);
+}
+
+.analise-valor {
+    font-size: 1.125rem;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+}
+
+.analise-stat small {
+    font-size: 0.6875rem;
+    color: var(--gray-400);
+}
+
+.analise-economia {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 12px;
+    padding: 12px;
+    background: var(--gray-50);
+    border: 1px solid var(--gray-200);
+    border-radius: 12px;
+}
+
+.analise-economia .material-icons {
+    font-size: 20px;
+    color: var(--gray-600);
+    flex-shrink: 0;
+}
+
+.analise-economia.positiva {
+    background: rgba(132, 204, 22, 0.12);
+    border-color: rgba(132, 204, 22, 0.35);
+}
+
+.analise-economia.positiva .material-icons {
+    color: var(--success-dark);
+}
+
+.analise-economia.negativa {
+    background: rgba(248, 113, 113, 0.12);
+    border-color: rgba(248, 113, 113, 0.35);
+}
+
+.analise-economia.negativa .material-icons {
+    color: var(--danger);
+}
+
+.analise-economia-texto {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    line-height: 1.35;
+}
+
+.analise-economia-texto strong {
+    font-size: 0.875rem;
+    font-weight: 600;
+}
+
+.analise-economia-texto small {
+    font-size: 0.75rem;
+    color: var(--gray-600);
+}
+
+.analise-titulo {
+    margin: 18px 0 12px;
+    font-size: 0.6875rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--gray-600);
+}
+
+.barra-produto {
+    margin-bottom: 14px;
+}
+
+.barra-produto:last-child {
+    margin-bottom: 0;
+}
+
+.barra-topo {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 5px;
+}
+
+.barra-nome {
+    font-size: 0.875rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.barra-valor {
+    font-size: 0.875rem;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    flex-shrink: 0;
+}
+
+.barra-trilho {
+    height: 6px;
+    background: var(--gray-100);
+    border-radius: 999px;
+    overflow: hidden;
+}
+
+.barra-cheia {
+    height: 100%;
+    background: var(--primary);
+    border-radius: 999px;
+    transform-origin: left;
+    animation: crescerBarra 0.5s ease;
+}
+
+@keyframes crescerBarra {
+    from {
+        transform: scaleX(0);
+    }
+
+    to {
+        transform: scaleX(1);
+    }
+}
+
+.barra-detalhe {
+    display: block;
+    margin-top: 5px;
+    font-size: 0.6875rem;
+    color: var(--gray-400);
+}
+
+/* ============ SUGESTÕES DE RECOMPRA ============ */
+
+.sugestao-intro {
+    margin-bottom: 12px;
+    font-size: 0.8125rem;
+    line-height: 1.45;
+    color: var(--gray-600);
+}
+
+.sugestoes-lista {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.chip-sugestao {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    padding: 10px 12px;
+    background: var(--gray-50);
+    color: var(--gray-900);
+    border: 1px solid var(--gray-200);
+    border-radius: 12px;
+    font-family: inherit;
+    text-align: left;
+    cursor: pointer;
+    animation: aparecer 0.25s ease;
+    transition: background 0.2s ease, transform 0.15s ease;
+}
+
+.chip-sugestao:active {
+    background: var(--gray-100);
+    transform: scale(0.98);
+}
+
+.chip-sugestao .material-icons {
+    font-size: 20px;
+    color: var(--success-dark);
+    flex-shrink: 0;
+}
+
+.chip-textos {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    min-width: 0;
+}
+
+.chip-nome {
+    font-size: 0.875rem;
+    font-weight: 500;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.chip-detalhe {
+    font-size: 0.75rem;
+    color: var(--gray-600);
+}
+
 /* ============ MODAIS ============ */
 
 .modal {
@@ -1756,9 +1980,14 @@ img {
 }
 
 /* Fechado, e o proprio cabecalho e a area de toque: o padding sai do card */
-.card-anonimo {
+.recolhivel {
     padding: 0;
     overflow: hidden;
+}
+
+/* Só o aviso de visitante fica cinza quando fechado: ali ele é um lembrete
+   discreto, e não mais um cartão disputando a tela inicial. */
+.card-anonimo {
     background: var(--gray-100);
     transition: background 0.2s ease;
 }
@@ -1767,7 +1996,7 @@ img {
     background: #fff;
 }
 
-.anonimo-cabecalho {
+.recolhivel-cabecalho {
     width: 100%;
     display: flex;
     align-items: center;
@@ -1782,17 +2011,17 @@ img {
 
 /* O aperto global encolhe o botao inteiro; numa faixa desta largura o que
    se espera e o fundo mudando, como nas opcoes da folha de Conta. */
-.anonimo-cabecalho:active {
+.recolhivel-cabecalho:active {
     transform: none;
     background: var(--gray-200);
 }
 
-.anonimo-cabecalho>.material-icons {
+.recolhivel-cabecalho>.material-icons {
     font-size: 20px;
     color: var(--gray-600);
 }
 
-.anonimo-titulo {
+.recolhivel-titulo {
     flex: 1;
     min-width: 0;
     font-size: 0.9375rem;
@@ -1800,13 +2029,13 @@ img {
     color: var(--gray-900);
 }
 
-.anonimo-seta {
+.recolhivel-seta {
     font-size: 20px !important;
     color: var(--gray-400);
     transition: transform 0.2s ease;
 }
 
-.card-anonimo.aberto .anonimo-seta {
+.recolhivel.aberto .recolhivel-seta {
     transform: rotate(180deg);
 }
 
@@ -1819,20 +2048,20 @@ img {
  * padding dentro dele e `overflow: hidden` para ser recortado enquanto
  * fecha.
  */
-.anonimo-corpo {
+.recolhivel-corpo {
     display: grid;
     grid-template-rows: 0fr;
     transition: grid-template-rows 0.28s cubic-bezier(0.32, 0.72, 0, 1);
 }
 
-.card-anonimo.aberto .anonimo-corpo {
+.recolhivel.aberto .recolhivel-corpo {
     grid-template-rows: 1fr;
 }
 
 /* Sem padding aqui de propósito: padding conta no tamanho mínimo da linha
    do grid, e a faixa nunca chegaria a zero ao fechar. Ele vive no nível de
    baixo, que o overflow recorta. */
-.anonimo-corpo-interno {
+.recolhivel-corpo-interno {
     overflow: hidden;
     min-height: 0;
     /* fechado, o conteúdo sai do alcance do teclado — mas só depois de
@@ -1841,19 +2070,24 @@ img {
     transition: visibility 0s linear 0.28s;
 }
 
-.anonimo-corpo-conteudo {
+.recolhivel-corpo-conteudo {
     display: flex;
     flex-direction: column;
     gap: 12px;
     padding: 0 16px 16px;
 }
 
-.card-anonimo.aberto .anonimo-corpo-interno {
+/* Aberto, a lista já se conta sozinha */
+.recolhivel.aberto .recolhivel-cabecalho .badge {
+    display: none;
+}
+
+.recolhivel.aberto .recolhivel-corpo-interno {
     visibility: visible;
     transition-delay: 0s;
 }
 
-.anonimo-corpo p {
+.recolhivel-corpo p {
     font-size: 0.8125rem;
     line-height: 1.45;
     color: var(--gray-600);

@@ -87,18 +87,30 @@ const limparEstadoLocal = () => {
   }
 };
 
-// O aviso da tela inicial abre no toque; fechado é só o título
-const definirAvisoAnonimoAberto = (aberto) => {
-  document.getElementById("aviso-anonimo").classList.toggle("aberto", aberto);
-  document
-    .getElementById("btn-aviso-anonimo")
+/*
+ * Cartão recolhível: o cabeçalho é o botão que abre e fecha o miolo.
+ * Fechado, sobra só o título — é o que mantém a tela inicial curta sem
+ * precisar tirar nada de lá.
+ */
+const definirRecolhivelAberto = (id, aberto) => {
+  const cartao = document.getElementById(id);
+  cartao.classList.toggle("aberto", aberto);
+  cartao
+    .querySelector(".recolhivel-cabecalho")
     .setAttribute("aria-expanded", String(aberto));
 };
 
-document.getElementById("btn-aviso-anonimo").addEventListener("click", () => {
-  const cartao = document.getElementById("aviso-anonimo");
-  definirAvisoAnonimoAberto(!cartao.classList.contains("aberto"));
-});
+const ligarRecolhivel = (id) => {
+  const cartao = document.getElementById(id);
+  cartao
+    .querySelector(".recolhivel-cabecalho")
+    .addEventListener("click", () => {
+      definirRecolhivelAberto(id, !cartao.classList.contains("aberto"));
+    });
+};
+
+ligarRecolhivel("aviso-anonimo");
+ligarRecolhivel("secao-historico");
 
 // Liga/desliga tudo o que só faz sentido com conta
 const aplicarModoNaInterface = (anonimo) => {
@@ -107,7 +119,7 @@ const aplicarModoNaInterface = (anonimo) => {
 
   alternar("aviso-anonimo", !anonimo);
   // sempre recolhido ao entrar: aberto, ele rouba a tela inicial
-  definirAvisoAnonimoAberto(false);
+  definirRecolhivelAberto("aviso-anonimo", false);
   alternar("secao-anonimo", !anonimo);
   alternar("secao-historico", anonimo);
   alternar("secao-compartilhar", anonimo);
@@ -121,6 +133,9 @@ const aplicarModoNaInterface = (anonimo) => {
   // conta, quem decide é o renderizarCompartilhamento (some no grupo herdeiro)
   if (anonimo) {
     document.getElementById("secao-recuperar").classList.add("hidden");
+    // análise e sugestões vivem do histórico, que o visitante não tem
+    document.getElementById("secao-analise").classList.add("hidden");
+    document.getElementById("secao-sugestoes").classList.add("hidden");
   }
 };
 
@@ -1950,15 +1965,26 @@ const atualizarListaPendenteVisual = () => {
 
 window.selecionarPendente = (nomeItem) => {
   document.getElementById("input-nome").value = nomeItem;
-  document.getElementById("input-qtd").value = 1;
-  document.getElementById("input-preco").focus();
-  if (ultimosPrecos[nomeItem]) {
-    mostrarNotificacao(
-      `Último preço: R$ ${ultimosPrecos[nomeItem].toFixed(2).replace(".", ",")}`,
-      "neutro",
-      "info",
-    );
+
+  /*
+   * O produto entra na unidade em que ele costuma ser comprado. Não é
+   * só conforto: gravar tomate em "un" tendo histórico em "kg" mistura
+   * duas grandezas e estraga a comparação de preço da próxima vez.
+   */
+  definirUnidade(unidadeHabitual(nomeItem) || "un");
+
+  const campoQtd = document.getElementById("input-qtd");
+  if (unidadeAtual === "kg") {
+    // em quilo o peso é sempre da balança; nenhum padrão serve
+    campoQtd.value = "";
+    campoQtd.focus();
+  } else {
+    campoQtd.value = 1;
+    document.getElementById("input-preco").focus();
   }
+
+  const dica = dicaDePreco(nomeItem);
+  if (dica) mostrarNotificacao(dica, "neutro", "info");
 };
 
 const mostrarNotificacao = (msg, tipo, icone = "info") => {
@@ -1974,32 +2000,521 @@ const mostrarNotificacao = (msg, tipo, icone = "info") => {
   }, 4000);
 };
 
-const verificarHistoricoPreco = (nome, precoAtual) => {
-  if (!precoAtual) return;
-  const nomeKey = Object.keys(ultimosPrecos).find(
-    (k) => k.toLowerCase() === nome.toLowerCase(),
-  );
-  if (nomeKey) {
-    const ultimoPreco = ultimosPrecos[nomeKey];
-    const diff = precoAtual - ultimoPreco;
-    if (diff > 0.05)
-      mostrarNotificacao(
-        `Mais caro! Você pagou R$ ${ultimoPreco.toFixed(2).replace(".", ",")} na última vez`,
-        "negativo",
-        "trending_up",
-      );
-    else if (diff < -0.05)
-      mostrarNotificacao(
-        `Mais barato! Você pagou R$ ${ultimoPreco.toFixed(2).replace(".", ",")} na última vez`,
-        "positivo",
-        "trending_down",
-      );
+// --- INTELIGÊNCIA DE COMPRAS ---
+/*
+ * Tudo daqui para baixo parte de uma regra só: comparar preço é comparar
+ * preço POR UNIDADE, nunca o total gasto. Duas compras do mesmo produto
+ * quase nunca levam a mesma quantidade — dois pacotes num mês, cinco no
+ * outro —, então o total de um mês contra o total do outro mede o tamanho
+ * da compra, e não se ela saiu cara ou barata.
+ *
+ * A referência de cada produto é a média das últimas compras PONDERADA
+ * pela quantidade (soma dos valores ÷ soma das quantidades): quem levou 5
+ * pacotes a R$ 10 e 1 pacote a R$ 20 pagou, na média, R$ 11,67 o pacote —
+ * e não R$ 15, que é o que a média simples diria.
+ *
+ * Preço de peça e preço de quilo nunca se misturam: são grandezas
+ * diferentes, e por isso a unidade entra na chave do índice.
+ */
+
+const MAX_COMPRAS_REFERENCIA = 3; // até 3 compras recentes formam a referência
+const DIA_MS = 86400000;
+
+let historicoCompras = []; // { id, data, total, itens } — a mais nova primeiro
+let historicoProdutos = new Map(); // chave -> { nome, unidade, compras: [...] }
+
+const normalizarNome = (nome) =>
+  String(nome || "")
+    .normalize("NFD")
+    .replace(/[̀-ͯ]/g, "")
+    .toLowerCase()
+    .trim()
+    .replace(/\s+/g, " ");
+
+const unidadeDe = (item) => (item?.unidade === "kg" ? "kg" : "un");
+const chaveProduto = (nome, unidade) => `${normalizarNome(nome)}|${unidade}`;
+const moeda = (valor) => (Number(valor) || 0).toFixed(2).replace(".", ",");
+const porUnidade = (unidade) => (unidade === "kg" ? "/kg" : "");
+
+// Compra antiga pode não ter `total` gravado; a conta refaz o que falta
+const valorDoItem = (item) => {
+  const total = Number(item?.total);
+  if (Number.isFinite(total) && total > 0) return total;
+  return (Number(item?.qtd) || 0) * (Number(item?.preco) || 0);
+};
+
+const precoDoItem = (item) => {
+  const preco = Number(item?.preco);
+  if (Number.isFinite(preco) && preco > 0) return preco;
+  const qtd = Number(item?.qtd) || 0;
+  return qtd > 0 ? valorDoItem(item) / qtd : 0;
+};
+
+const mediana = (numeros) => {
+  if (!numeros.length) return 0;
+  const ordenados = [...numeros].sort((a, b) => a - b);
+  const meio = Math.floor(ordenados.length / 2);
+  return ordenados.length % 2
+    ? ordenados[meio]
+    : (ordenados[meio - 1] + ordenados[meio]) / 2;
+};
+
+const dataCurta = (data) =>
+  data.toLocaleDateString("pt-BR", { day: "2-digit", month: "short" });
+
+const haQuantoTempo = (dias) => {
+  if (dias <= 0) return "hoje";
+  if (dias === 1) return "ontem";
+  if (dias < 14) return `há ${dias} dias`;
+  if (dias < 60) return `há ${Math.round(dias / 7)} semanas`;
+  const meses = Math.round(dias / 30);
+  return meses <= 1 ? "há 1 mês" : `há ${meses} meses`;
+};
+
+const aCada = (dias) => {
+  const d = Math.round(dias);
+  if (d < 14) return `a cada ${d} dias`;
+  if (d < 60) return `a cada ${Math.round(d / 7)} semanas`;
+  return `a cada ${Math.round(d / 30)} meses`;
+};
+
+/*
+ * Monta o índice por produto a partir das compras já fechadas.
+ *
+ * O mesmo produto pode aparecer duas vezes numa compra só (dois pacotes
+ * cobrados por preços diferentes). Dentro da compra as linhas viram uma:
+ * senão a mesma ida ao mercado pesaria em dobro na média.
+ */
+const indexarHistorico = (compras) => {
+  historicoCompras = compras;
+  historicoProdutos = new Map();
+
+  compras.forEach((compra) => {
+    const daCompra = new Map();
+
+    (compra.itens || []).forEach((item) => {
+      const qtd = Number(item?.qtd) || 0;
+      const valor = valorDoItem(item);
+      if (qtd <= 0 || valor <= 0) return;
+
+      const unidade = unidadeDe(item);
+      const chave = chaveProduto(item.nome, unidade);
+      const linha = daCompra.get(chave) || {
+        nome: item.nome,
+        unidade,
+        qtd: 0,
+        valor: 0,
+      };
+      linha.qtd += qtd;
+      linha.valor += valor;
+      daCompra.set(chave, linha);
+    });
+
+    daCompra.forEach((linha, chave) => {
+      let produto = historicoProdutos.get(chave);
+      if (!produto) {
+        // a primeira a chegar é a compra mais recente: é dela o nome que fica
+        produto = { nome: linha.nome, unidade: linha.unidade, compras: [] };
+        historicoProdutos.set(chave, produto);
+      }
+      produto.compras.push({
+        data: compra.data,
+        qtd: linha.qtd,
+        valor: linha.valor,
+        preco: linha.valor / linha.qtd,
+      });
+    });
+  });
+};
+
+/*
+ * Preço médio por unidade das últimas compras do produto, ponderado pela
+ * quantidade. `ate` corta o histórico numa data — é o que permite julgar
+ * uma compra usando só o que já se sabia antes dela.
+ */
+const precoDeReferencia = (
+  nome,
+  unidade,
+  { ate = null, limite = MAX_COMPRAS_REFERENCIA } = {},
+) => {
+  const produto = historicoProdutos.get(chaveProduto(nome, unidade));
+  if (!produto) return null;
+
+  const compras = (
+    ate ? produto.compras.filter((c) => c.data < ate) : produto.compras
+  ).slice(0, limite);
+  if (!compras.length) return null;
+
+  const qtd = compras.reduce((soma, c) => soma + c.qtd, 0);
+  const valor = compras.reduce((soma, c) => soma + c.valor, 0);
+  if (qtd <= 0) return null;
+
+  return {
+    preco: valor / qtd,
+    qtd,
+    compras: compras.length,
+    ultima: compras[0].data,
+  };
+};
+
+// Em que unidade esse produto costuma ser comprado (a mais recente vence)
+const unidadeHabitual = (nome) => {
+  const un = historicoProdutos.get(chaveProduto(nome, "un"));
+  const kg = historicoProdutos.get(chaveProduto(nome, "kg"));
+  if (un && kg) return kg.compras[0].data > un.compras[0].data ? "kg" : "un";
+  if (kg) return "kg";
+  if (un) return "un";
+  return null;
+};
+
+const dicaDePreco = (nome) => {
+  const unidade = unidadeHabitual(nome);
+  const ref = unidade ? precoDeReferencia(nome, unidade) : null;
+  if (ref) {
+    return ref.compras > 1
+      ? `Costuma sair a R$ ${moeda(ref.preco)}${porUnidade(unidade)}`
+      : `Última vez: R$ ${moeda(ref.preco)}${porUnidade(unidade)}`;
   }
+  // Sem compra fechada ainda: sobra o preço visto na compra em andamento
+  const chave = Object.keys(ultimosPrecos).find(
+    (k) => normalizarNome(k) === normalizarNome(nome),
+  );
+  return chave ? `Última vez: R$ ${moeda(ultimosPrecos[chave])}` : null;
+};
+
+// Abaixo dos dois limiares é oscilação de rotina, não vale um aviso
+const LIMIAR_REAIS = 0.05;
+const LIMIAR_PERCENTUAL = 0.03;
+
+const verificarHistoricoPreco = (nome, precoAtual, unidade = "un") => {
+  if (!precoAtual) return;
+
+  const ref = precoDeReferencia(nome, unidade);
+  if (!ref) return;
+
+  const diferenca = precoAtual - ref.preco;
+  const fracao = Math.abs(diferenca) / ref.preco;
+  if (Math.abs(diferenca) < LIMIAR_REAIS || fracao < LIMIAR_PERCENTUAL) return;
+
+  const base = `média de R$ ${moeda(ref.preco)}${porUnidade(unidade)} em ${ref.compras} ${
+    ref.compras === 1 ? "compra" : "compras"
+  }`;
+  const porCento = Math.round(fracao * 100);
+
+  if (diferenca > 0) {
+    mostrarNotificacao(
+      `${porCento}% mais caro que a ${base}`,
+      "negativo",
+      "trending_up",
+    );
+  } else {
+    mostrarNotificacao(
+      `${porCento}% mais barato que a ${base}`,
+      "positivo",
+      "trending_down",
+    );
+  }
+};
+
+/*
+ * Quanto a compra rendeu contra o preço de costume, item a item:
+ * (preço de referência − preço pago) × quantidade. Multiplicar pela
+ * quantidade é o que faz cinco pacotes um real mais baratos valerem mais
+ * do que um pacote um real mais caro.
+ */
+const economiaDaCompra = (compra) => {
+  let economia = 0;
+  let itensComparados = 0;
+  if (!compra) return { economia, itensComparados };
+
+  (compra.itens || []).forEach((item) => {
+    const qtd = Number(item?.qtd) || 0;
+    if (qtd <= 0) return;
+    const ref = precoDeReferencia(item.nome, unidadeDe(item), {
+      ate: compra.data,
+    });
+    if (!ref) return;
+    economia += (ref.preco - precoDoItem(item)) * qtd;
+    itensComparados++;
+  });
+
+  return { economia, itensComparados };
+};
+
+const rankingDeGastos = (compras, limite = 5) => {
+  const porProduto = new Map();
+
+  compras.forEach((compra) => {
+    (compra.itens || []).forEach((item) => {
+      const valor = valorDoItem(item);
+      if (valor <= 0) return;
+      const chave = normalizarNome(item.nome);
+      const reg = porProduto.get(chave) || {
+        nome: item.nome,
+        valor: 0,
+        qtd: 0,
+        unidades: new Set(),
+        idas: new Set(),
+      };
+      reg.valor += valor;
+      reg.qtd += Number(item?.qtd) || 0;
+      reg.unidades.add(unidadeDe(item));
+      reg.idas.add(compra.id);
+      porProduto.set(chave, reg);
+    });
+  });
+
+  return [...porProduto.values()]
+    .sort((a, b) => b.valor - a.valor)
+    .slice(0, limite);
+};
+
+const detalheDoRanking = (reg) => {
+  const idas = `${reg.idas.size} ${reg.idas.size === 1 ? "compra" : "compras"}`;
+  if (reg.unidades.size !== 1) return idas;
+  const unidade = [...reg.unidades][0];
+  return `${formatarQtd(reg.qtd, unidade)} ${unidade} em ${idas}`;
+};
+
+// --- PAINEL DE ANÁLISE (tela inicial) ---
+
+const JANELA_ANALISE = 5; // as últimas N compras entram na conta
+
+const renderizarAnalise = () => {
+  const secao = document.getElementById("secao-analise");
+  const painel = document.getElementById("painel-analise");
+
+  if (modoAnonimo || historicoCompras.length === 0) {
+    secao.classList.add("hidden");
+    painel.innerHTML = "";
+    return;
+  }
+
+  const compras = historicoCompras.slice(0, JANELA_ANALISE);
+  const total = compras.reduce((soma, c) => soma + c.total, 0);
+  const media = total / compras.length;
+  const itensPorCompra = Math.round(
+    compras.reduce((soma, c) => soma + (c.itens || []).length, 0) /
+      compras.length,
+  );
+  const periodo =
+    compras.length > 1
+      ? `de ${dataCurta(compras[compras.length - 1].data)} a ${dataCurta(compras[0].data)}`
+      : dataCurta(compras[0].data);
+
+  const { economia, itensComparados } = economiaDaCompra(historicoCompras[0]);
+  let economiaHtml;
+  if (itensComparados === 0) {
+    economiaHtml = `
+      <div class="analise-economia">
+        <span class="material-icons">insights</span>
+        <div class="analise-economia-texto">
+          <strong>Ainda sem produto repetido para comparar</strong>
+          <small>quando você repetir um produto, eu comparo o preço por unidade</small>
+        </div>
+      </div>`;
+  } else if (Math.abs(economia) < 0.5) {
+    economiaHtml = `
+      <div class="analise-economia">
+        <span class="material-icons">check_circle</span>
+        <div class="analise-economia-texto">
+          <strong>Preços em linha com os de sempre</strong>
+          <small>${itensComparados} ${itensComparados === 1 ? "item comparado" : "itens comparados"} pelo preço por unidade</small>
+        </div>
+      </div>`;
+  } else {
+    const economizou = economia > 0;
+    economiaHtml = `
+      <div class="analise-economia ${economizou ? "positiva" : "negativa"}">
+        <span class="material-icons">${economizou ? "savings" : "trending_up"}</span>
+        <div class="analise-economia-texto">
+          <strong>${economizou ? `Economizou R$ ${moeda(economia)}` : `Pagou R$ ${moeda(-economia)} a mais`} na última compra</strong>
+          <small>preço por unidade de ${itensComparados} ${itensComparados === 1 ? "item" : "itens"} contra o que você costuma pagar</small>
+        </div>
+      </div>`;
+  }
+
+  const ranking = rankingDeGastos(compras);
+  const maior = ranking.length ? ranking[0].valor : 0;
+  const rankingHtml = ranking
+    .map((reg) => {
+      const largura = maior > 0 ? Math.max(6, (reg.valor / maior) * 100) : 0;
+      const fatia = total > 0 ? Math.round((reg.valor / total) * 100) : 0;
+      return `
+        <div class="barra-produto">
+          <div class="barra-topo">
+            <span class="barra-nome">${escapeHtml(reg.nome)}</span>
+            <strong class="barra-valor">R$ ${moeda(reg.valor)}</strong>
+          </div>
+          <div class="barra-trilho">
+            <div class="barra-cheia" style="width:${largura.toFixed(1)}%"></div>
+          </div>
+          <small class="barra-detalhe">${escapeHtml(detalheDoRanking(reg))} · ${fatia}% do período</small>
+        </div>`;
+    })
+    .join("");
+
+  secao.classList.remove("hidden");
+  painel.innerHTML = `
+    <div class="analise-destaques">
+      <div class="analise-stat">
+        <span class="analise-rotulo">${compras.length === 1 ? "Última compra" : `Últimas ${compras.length} compras`}</span>
+        <strong class="analise-valor">R$ ${moeda(total)}</strong>
+        <small>${escapeHtml(periodo)}</small>
+      </div>
+      <div class="analise-stat">
+        <span class="analise-rotulo">Média por compra</span>
+        <strong class="analise-valor">R$ ${moeda(media)}</strong>
+        <small>${itensPorCompra} ${itensPorCompra === 1 ? "item" : "itens"} por vez</small>
+      </div>
+    </div>
+    ${economiaHtml}
+    ${ranking.length ? `<div class="analise-titulo">Onde foi o dinheiro</div>${rankingHtml}` : ""}`;
+};
+
+// --- SUGESTÕES DE RECOMPRA (tela de lista) ---
+
+/*
+ * Cada produto tem um ritmo: sabão em pó a cada dois meses, leite toda
+ * semana. O intervalo entre as compras anteriores dá esse ritmo (mediana,
+ * para uma ida atípica não desmontar a conta) e, quando o tempo desde a
+ * última compra alcança o intervalo, o produto vira sugestão.
+ *
+ * Produto comprado uma vez só não tem ritmo: entra por um prazo padrão e
+ * com prioridade menor, porque tanto pode ser rotina quanto ter sido
+ * coisa de uma vez.
+ */
+const MAX_SUGESTOES = 6;
+const INTERVALO_PADRAO_DIAS = 45;
+const MATURIDADE_MINIMA = 0.8; // 80% do ritmo já conta como "está na hora"
+const MATURIDADE_MAXIMA = 4; // muito além do ritmo: provavelmente largou
+
+const calcularSugestoes = () => {
+  if (historicoProdutos.size === 0) return [];
+
+  const agora = Date.now();
+  const jaTem = new Set([
+    ...listaPrevia.map((p) => normalizarNome(p.nome)),
+    ...carrinho.map((c) => normalizarNome(c.nome)),
+  ]);
+
+  // un e kg do mesmo produto são o mesmo item na hora de lembrar
+  const porNome = new Map();
+  historicoProdutos.forEach((produto) => {
+    const chave = normalizarNome(produto.nome);
+    const reg = porNome.get(chave) || { nome: produto.nome, datas: [] };
+    produto.compras.forEach((c) => reg.datas.push(c.data.getTime()));
+    porNome.set(chave, reg);
+  });
+
+  const sugestoes = [];
+  porNome.forEach((reg, chave) => {
+    if (jaTem.has(chave)) return;
+
+    const datas = [...new Set(reg.datas)].sort((a, b) => b - a);
+    const diasDesde = Math.max(0, Math.round((agora - datas[0]) / DIA_MS));
+
+    if (datas.length >= 2) {
+      const intervalos = [];
+      for (let i = 0; i < datas.length - 1 && i < 6; i++) {
+        intervalos.push((datas[i] - datas[i + 1]) / DIA_MS);
+      }
+      const ritmo = mediana(intervalos.filter((d) => d >= 1));
+      if (!(ritmo > 0)) return;
+
+      const maturidade = diasDesde / ritmo;
+      if (maturidade < MATURIDADE_MINIMA || maturidade > MATURIDADE_MAXIMA) {
+        return;
+      }
+
+      sugestoes.push({
+        nome: reg.nome,
+        prioridade: 2,
+        maturidade,
+        detalhe: `Comprado ${haQuantoTempo(diasDesde)} · costuma repetir ${aCada(ritmo)}`,
+      });
+    } else {
+      if (diasDesde < 30 || diasDesde > 120) return;
+      sugestoes.push({
+        nome: reg.nome,
+        prioridade: 1,
+        maturidade: diasDesde / INTERVALO_PADRAO_DIAS,
+        detalhe: `Comprado ${haQuantoTempo(diasDesde)}, uma vez só`,
+      });
+    }
+  });
+
+  return sugestoes
+    .sort((a, b) => b.prioridade - a.prioridade || b.maturidade - a.maturidade)
+    .slice(0, MAX_SUGESTOES);
+};
+
+const renderizarSugestoes = () => {
+  const secao = document.getElementById("secao-sugestoes");
+  const painel = document.getElementById("painel-sugestoes");
+  const sugestoes = modoAnonimo ? [] : calcularSugestoes();
+
+  if (sugestoes.length === 0) {
+    secao.classList.add("hidden");
+    painel.innerHTML = "";
+    return;
+  }
+
+  secao.classList.remove("hidden");
+  painel.innerHTML = `
+    <p class="sugestao-intro">Pelo seu ritmo de compra, esses podem estar acabando.</p>
+    <div class="sugestoes-lista">
+      ${sugestoes
+        .map(
+          (s) => `
+        <button type="button" class="chip-sugestao" data-nome="${escapeHtml(s.nome)}">
+          <span class="material-icons">add</span>
+          <span class="chip-textos">
+            <span class="chip-nome">${escapeHtml(s.nome)}</span>
+            <span class="chip-detalhe">${escapeHtml(s.detalhe)}</span>
+          </span>
+        </button>`,
+        )
+        .join("")}
+    </div>`;
+
+  painel.querySelectorAll(".chip-sugestao").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const nome = btn.dataset.nome;
+      if (adicionarItemNaLista(nome)) {
+        mostrarNotificacao(
+          `${nome} entrou na lista`,
+          "positivo",
+          "playlist_add",
+        );
+      }
+    });
+  });
+};
+
+const adicionarItemNaLista = (nome) => {
+  const item = String(nome || "").trim();
+  if (!item) return false;
+
+  const jaExiste = listaPrevia.some(
+    (p) => normalizarNome(p.nome) === normalizarNome(item),
+  );
+  if (jaExiste) {
+    mostrarNotificacao(`"${item}" já está na lista`, "negativo", "warning");
+    return false;
+  }
+
+  listaPrevia.push({ id: gerarId(), nome: item });
+  produtosConhecidos.add(item);
+  salvarEstadoRemoto();
+  renderizarListaPreviaEditor();
+  return true;
 };
 
 const renderizarListaPreviaEditor = () => {
   const div = document.getElementById("lista-previa-itens");
   atualizarBadgesTabs();
+  renderizarSugestoes();
   if (listaPrevia.length === 0) {
     div.innerHTML = `
       <div class="empty-state">
@@ -2117,6 +2632,26 @@ const carregarHistorico = async () => {
     .filter((d) => d.data().data)
     .sort((a, b) => b.data().data.toMillis() - a.data().data.toMillis());
 
+  // Fechado, o cabeçalho precisa dizer que tem algo ali dentro
+  const badgeHistorico = document.getElementById("badge-historico");
+  badgeHistorico.textContent = compras.length > 99 ? "99+" : compras.length;
+  badgeHistorico.classList.toggle("hidden", compras.length === 0);
+
+  // Índice de preços por produto: base da comparação e das sugestões
+  indexarHistorico(
+    compras.map((docSnap) => {
+      const d = docSnap.data();
+      return {
+        id: docSnap.id,
+        data: d.data.toDate(),
+        total: Number(d.total) || 0,
+        itens: d.itens || [],
+      };
+    }),
+  );
+  renderizarAnalise();
+  renderizarSugestoes();
+
   if (compras.length === 0) {
     histDiv.innerHTML = `
       <div class="empty-state">
@@ -2193,17 +2728,8 @@ function iniciarApp() {
         div.classList.add("item-sugestao");
         div.innerText = produto;
         div.onclick = () => {
-          inputNome.value = produto;
           listaSugestoes.classList.add("hidden");
-          inputPreco.focus();
-          const ultimo = ultimosPrecos[produto];
-          if (ultimo) {
-            mostrarNotificacao(
-              `Último preço: R$ ${ultimo.toFixed(2).replace(".", ",")}`,
-              "neutro",
-              "info",
-            );
-          }
+          window.selecionarPendente(produto);
         };
         listaSugestoes.appendChild(div);
       });
@@ -2294,28 +2820,10 @@ function iniciarApp() {
   document
     .getElementById("btn-add-item-lista")
     .addEventListener("click", () => {
-      const item = inputItemLista.value.trim();
-      if (!item) return;
-
-      const jaExiste = listaPrevia.some(
-        (p) => p.nome.toLowerCase() === item.toLowerCase(),
-      );
-      if (jaExiste) {
-        mostrarNotificacao(
-          `"${item}" já está na lista`,
-          "negativo",
-          "warning",
-        );
-        return;
-      }
-
-      listaPrevia.push({ id: gerarId(), nome: item });
-      produtosConhecidos.add(item);
-      salvarEstadoRemoto();
+      if (!adicionarItemNaLista(inputItemLista.value)) return;
       inputItemLista.value = "";
       listaSugestoesEditor.classList.add("hidden");
       inputItemLista.focus();
-      renderizarListaPreviaEditor();
     });
 
   inputItemLista.addEventListener("keypress", (e) => {
@@ -2345,7 +2853,7 @@ function iniciarApp() {
     const preco = parseFloat(document.getElementById("input-preco").value);
 
     if (nome && preco) {
-      verificarHistoricoPreco(nome, preco);
+      verificarHistoricoPreco(nome, preco, unidadeAtual);
       carrinho.push({
         id: gerarId(),
         nome,

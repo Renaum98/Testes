@@ -143,16 +143,16 @@
             <section id="tela-inicial" class="tela">
 
                 <!-- Recolhido por padrão: fechado é só um lembrete discreto -->
-                <div id="aviso-anonimo" class="card card-anonimo hidden">
-                    <button type="button" id="btn-aviso-anonimo" class="anonimo-cabecalho" aria-expanded="false"
+                <div id="aviso-anonimo" class="card recolhivel card-anonimo hidden">
+                    <button type="button" class="recolhivel-cabecalho" aria-expanded="false"
                         aria-controls="anonimo-corpo">
                         <span class="material-icons">visibility_off</span>
-                        <span class="anonimo-titulo">Modo visitante</span>
-                        <span class="material-icons anonimo-seta">expand_more</span>
+                        <span class="recolhivel-titulo">Modo visitante</span>
+                        <span class="material-icons recolhivel-seta">expand_more</span>
                     </button>
-                    <div class="anonimo-corpo" id="anonimo-corpo">
-                        <div class="anonimo-corpo-interno">
-                            <div class="anonimo-corpo-conteudo">
+                    <div class="recolhivel-corpo" id="anonimo-corpo">
+                        <div class="recolhivel-corpo-interno">
+                            <div class="recolhivel-corpo-conteudo">
                                 <p>A lista e o carrinho ficam só neste aparelho, até você finalizar ou
                                     cancelar a compra. Nada é salvo na nuvem nem entra no histórico.</p>
                                 <button id="btn-entrar-conta-inicial" class="btn-secundario">
@@ -189,12 +189,30 @@
                     </button>
                 </div>
 
-                <div id="secao-historico">
+                <!-- Some sozinha sem histórico (visitante ou primeira compra) -->
+                <div id="secao-analise" class="hidden">
                     <div class="card-header">
-                        <span class="material-icons">history</span>
-                        <h3>Compras Recentes</h3>
+                        <span class="material-icons">insights</span>
+                        <h3>Sua análise</h3>
                     </div>
-                    <div id="lista-historico" class="card"></div>
+                    <div id="painel-analise" class="card"></div>
+                </div>
+
+                <div id="secao-historico" class="card recolhivel">
+                    <button type="button" class="recolhivel-cabecalho" aria-expanded="false"
+                        aria-controls="historico-corpo">
+                        <span class="material-icons">history</span>
+                        <span class="recolhivel-titulo">Compras Recentes</span>
+                        <span class="badge hidden" id="badge-historico">0</span>
+                        <span class="material-icons recolhivel-seta">expand_more</span>
+                    </button>
+                    <div class="recolhivel-corpo" id="historico-corpo">
+                        <div class="recolhivel-corpo-interno">
+                            <div class="recolhivel-corpo-conteudo">
+                                <div id="lista-historico"></div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </section>
 
@@ -211,6 +229,15 @@
                         <span class="material-icons">add</span>
                         <span>Adicionar Item</span>
                     </button>
+                </div>
+
+                <!-- Lembretes de recompra; some quando não há nada a sugerir -->
+                <div id="secao-sugestoes" class="hidden">
+                    <div class="card-header">
+                        <span class="material-icons">auto_awesome</span>
+                        <h3>Talvez esteja na hora</h3>
+                    </div>
+                    <div id="painel-sugestoes" class="card"></div>
                 </div>
 
                 <div id="lista-previa-itens" class="card"></div>
@@ -529,7 +556,7 @@
                 </button>
             </div>
 
-            <p class="rodape-conta">Mercado Inteligente · <span id="versao-app">v29</span></p>
+            <p class="rodape-conta">Mercado Inteligente · <span id="versao-app">v30</span></p>
         </div>
     </div>
 
