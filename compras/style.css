@@ -134,6 +134,112 @@ h4 {
     user-select: text;
 }
 
+/*
+ * Logo em SVG, e não mais a ligadura do Material Icons: assim o desenho
+ * é editável ponto a ponto e, principalmente, animável — o traço é o que
+ * a abertura desenha.
+ */
+.marca-logo svg {
+    width: 44px;
+    height: 44px;
+}
+
+.marca-logo path {
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 3;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+/* Mesmo contorno da sacola, só que preenchido: entra depois do traço */
+.logo-miolo {
+    fill: currentColor;
+    stroke: none;
+    opacity: 0.18;
+}
+
+/*
+ * Abertura do app.
+ *
+ * `pathLength="1"` no SVG normaliza o comprimento do traço, então o
+ * desenho anda de 1 a 0 sem ninguém precisar medir a curva. O bloco
+ * global de prefers-reduced-motion, mais abaixo, encurta tudo isso para
+ * quase zero — e como as animações terminam em `forwards`, o logo
+ * aparece pronto em vez de sumir.
+ */
+.marca-animada .marca-logo {
+    animation: logoEntrar 0.45s cubic-bezier(0.32, 0.72, 0, 1) both;
+}
+
+.marca-animada .logo-sacola,
+.marca-animada .logo-alca {
+    stroke-dasharray: 1;
+    stroke-dashoffset: 1;
+}
+
+.marca-animada .logo-sacola {
+    animation: logoDesenhar 0.5s ease-out 0.15s forwards;
+}
+
+.marca-animada .logo-alca {
+    animation: logoDesenhar 0.35s ease-out 0.45s forwards;
+}
+
+.marca-animada .logo-miolo {
+    opacity: 0;
+    animation: logoPreencher 0.3s ease 0.7s forwards;
+}
+
+.marca-animada .marca-nome {
+    animation: subirTexto 0.45s ease 0.35s both;
+}
+
+.marca-animada .marca-sub {
+    animation: subirTexto 0.45s ease 0.45s both;
+}
+
+@keyframes logoEntrar {
+    0% {
+        opacity: 0;
+        transform: scale(0.72);
+    }
+
+    60% {
+        opacity: 1;
+        transform: scale(1.05);
+    }
+
+    100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+@keyframes logoDesenhar {
+    to {
+        stroke-dashoffset: 0;
+    }
+}
+
+@keyframes logoPreencher {
+    to {
+        opacity: 0.18;
+    }
+}
+
+@keyframes subirTexto {
+    from {
+        opacity: 0;
+        transform: translateY(8px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
 .marca-icone.erro {
     background: var(--danger);
     color: #fff;

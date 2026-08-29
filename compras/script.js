@@ -484,10 +484,9 @@ function atualizarUIAuth(user) {
   const appEl = document.getElementById("app");
   const userNome = document.getElementById("user-nome");
   const userFoto = document.getElementById("user-foto");
-  const loadingEl = document.getElementById("area-loading");
 
   // Esconde o splash sempre que o estado for resolvido
-  loadingEl.classList.add("hidden");
+  esconderSplash();
 
   if (user) {
     areaLogin.classList.add("hidden");
@@ -555,8 +554,40 @@ const comLimite = (promessa, ms) =>
     ),
   ]);
 
+/*
+ * A abertura desenha o logo, e cortar isso pela metade faz o app parecer
+ * que engasgou. Numa sessão já conhecida o Firebase responde em poucos
+ * milissegundos, então o splash espera a animação terminar.
+ *
+ * Ninguém fica olhando para uma tela parada nesse meio tempo: o splash
+ * cobre a tela inteira, então o resto do app é montado por baixo dele e
+ * já está pronto quando a animação sai.
+ */
+const ABERTURA_MS = window.matchMedia("(prefers-reduced-motion: reduce)")
+  .matches
+  ? 0
+  : 1000;
+const inicioDaAbertura = performance.now();
+let timerSplash = null;
+
+const esconderSplash = () => {
+  const restante = ABERTURA_MS - (performance.now() - inicioDaAbertura);
+  const sair = () =>
+    document.getElementById("area-loading").classList.add("hidden");
+
+  if (restante <= 0) {
+    sair();
+    return;
+  }
+  timerSplash = setTimeout(sair, restante);
+};
+
 // Sai da tela de login assim que o usuário é reconhecido, para dar sinal de vida
 const mostrarSplash = (texto) => {
+  if (timerSplash) {
+    clearTimeout(timerSplash);
+    timerSplash = null;
+  }
   document.getElementById("loading-msg").textContent = texto;
   document.getElementById("area-login").classList.add("hidden");
   document.getElementById("area-erro").classList.add("hidden");
