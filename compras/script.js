@@ -2062,22 +2062,6 @@ const mediana = (numeros) => {
 const dataCurta = (data) =>
   data.toLocaleDateString("pt-BR", { day: "2-digit", month: "short" });
 
-const haQuantoTempo = (dias) => {
-  if (dias <= 0) return "hoje";
-  if (dias === 1) return "ontem";
-  if (dias < 14) return `há ${dias} dias`;
-  if (dias < 60) return `há ${Math.round(dias / 7)} semanas`;
-  const meses = Math.round(dias / 30);
-  return meses <= 1 ? "há 1 mês" : `há ${meses} meses`;
-};
-
-const aCada = (dias) => {
-  const d = Math.round(dias);
-  if (d < 14) return `a cada ${d} dias`;
-  if (d < 60) return `a cada ${Math.round(d / 7)} semanas`;
-  return `a cada ${Math.round(d / 30)} meses`;
-};
-
 /*
  * Monta o índice por produto a partir das compras já fechadas.
  *
@@ -2427,19 +2411,13 @@ const calcularSugestoes = () => {
         return;
       }
 
-      sugestoes.push({
-        nome: reg.nome,
-        prioridade: 2,
-        maturidade,
-        detalhe: `Comprado ${haQuantoTempo(diasDesde)} · costuma repetir ${aCada(ritmo)}`,
-      });
+      sugestoes.push({ nome: reg.nome, prioridade: 2, maturidade });
     } else {
       if (diasDesde < 30 || diasDesde > 120) return;
       sugestoes.push({
         nome: reg.nome,
         prioridade: 1,
         maturidade: diasDesde / INTERVALO_PADRAO_DIAS,
-        detalhe: `Comprado ${haQuantoTempo(diasDesde)}, uma vez só`,
       });
     }
   });
@@ -2447,6 +2425,51 @@ const calcularSugestoes = () => {
   return sugestoes
     .sort((a, b) => b.prioridade - a.prioridade || b.maturidade - a.maturidade)
     .slice(0, MAX_SUGESTOES);
+};
+
+/*
+ * Quanto essa lista deve custar, pelo que esses produtos custaram antes.
+ *
+ * Por produto: preço médio por unidade × quantidade de costume — que dá
+ * no mesmo que o valor médio gasto naquele produto por ida ao mercado.
+ * É a quantidade que faz a conta fechar: 12 litros de leite e 1 litro
+ * têm o mesmo preço por litro e pesam muito diferente na compra.
+ */
+const gastoEsperadoDaLista = () => {
+  let total = 0;
+  let comHistorico = 0;
+
+  listaPrevia.forEach((item) => {
+    const unidade = unidadeHabitual(item.nome);
+    const ref = unidade ? precoDeReferencia(item.nome, unidade) : null;
+    if (!ref) return;
+    total += ref.preco * (ref.qtd / ref.compras);
+    comHistorico++;
+  });
+
+  return {
+    total,
+    comHistorico,
+    semHistorico: listaPrevia.length - comHistorico,
+  };
+};
+
+const renderizarEstimativa = () => {
+  const painel = document.getElementById("painel-estimativa");
+  const { total, comHistorico, semHistorico } = gastoEsperadoDaLista();
+
+  // Sem nenhum item conhecido não há estimativa nenhuma a dar
+  if (modoAnonimo || comHistorico === 0) {
+    painel.classList.add("hidden");
+    return;
+  }
+
+  painel.classList.remove("hidden");
+  document.getElementById("estimativa-valor").textContent = moeda(total);
+  document.getElementById("estimativa-detalhe").textContent =
+    semHistorico === 0
+      ? "pela média das suas últimas compras"
+      : `${comHistorico} de ${comHistorico + semHistorico} itens com histórico · ${semHistorico} ainda sem preço conhecido`;
 };
 
 const renderizarSugestoes = () => {
@@ -2462,17 +2485,12 @@ const renderizarSugestoes = () => {
 
   secao.classList.remove("hidden");
   painel.innerHTML = `
-    <p class="sugestao-intro">Pelo seu ritmo de compra, esses podem estar acabando.</p>
     <div class="sugestoes-lista">
       ${sugestoes
         .map(
           (s) => `
-        <button type="button" class="chip-sugestao" data-nome="${escapeHtml(s.nome)}">
-          <span class="material-icons">add</span>
-          <span class="chip-textos">
-            <span class="chip-nome">${escapeHtml(s.nome)}</span>
-            <span class="chip-detalhe">${escapeHtml(s.detalhe)}</span>
-          </span>
+        <button type="button" class="chip-pendente chip-sugestao" data-nome="${escapeHtml(s.nome)}">
+          ${escapeHtml(s.nome)}
         </button>`,
         )
         .join("")}
@@ -2515,6 +2533,7 @@ const renderizarListaPreviaEditor = () => {
   const div = document.getElementById("lista-previa-itens");
   atualizarBadgesTabs();
   renderizarSugestoes();
+  renderizarEstimativa();
   if (listaPrevia.length === 0) {
     div.innerHTML = `
       <div class="empty-state">
@@ -2651,6 +2670,7 @@ const carregarHistorico = async () => {
   );
   renderizarAnalise();
   renderizarSugestoes();
+  renderizarEstimativa();
 
   if (compras.length === 0) {
     histDiv.innerHTML = `

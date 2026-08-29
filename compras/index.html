@@ -218,6 +218,13 @@
 
             <!-- TELA EDITOR DE LISTA -->
             <section id="tela-editor-lista" class="tela hidden">
+                <!-- Some enquanto nenhum item da lista tiver histórico de preço -->
+                <div id="painel-estimativa" class="stats-card total estimativa hidden">
+                    <div class="stats-label">Gasto médio esperado</div>
+                    <div class="stats-value">R$ <span id="estimativa-valor">0,00</span></div>
+                    <small class="estimativa-detalhe" id="estimativa-detalhe"></small>
+                </div>
+
                 <div class="card">
                     <div class="input-group">
                         <input type="text" id="input-item-lista" placeholder="Ex: Arroz, Leite..." autocomplete="off"
@@ -235,7 +242,7 @@
                 <div id="secao-sugestoes" class="hidden">
                     <div class="card-header">
                         <span class="material-icons">auto_awesome</span>
-                        <h3>Talvez esteja na hora</h3>
+                        <h3>Sugestões</h3>
                     </div>
                     <div id="painel-sugestoes" class="card"></div>
                 </div>
@@ -556,7 +563,7 @@
                 </button>
             </div>
 
-            <p class="rodape-conta">Mercado Inteligente · <span id="versao-app">v30</span></p>
+            <p class="rodape-conta">Mercado Inteligente · <span id="versao-app">v31</span></p>
         </div>
     </div>
 

@@ -1192,65 +1192,30 @@ button .material-icons {
 
 /* ============ SUGESTÕES DE RECOMPRA ============ */
 
-.sugestao-intro {
-    margin-bottom: 12px;
-    font-size: 0.8125rem;
-    line-height: 1.45;
-    color: var(--gray-600);
-}
-
 .sugestoes-lista {
     display: flex;
-    flex-direction: column;
+    flex-wrap: wrap;
     gap: 8px;
 }
 
+/* A pílula é a mesma dos pendentes. Sendo botão, ela só precisa escapar do
+   width: 100% global e voltar a ter a largura do nome do produto. */
 .chip-sugestao {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    width: 100%;
-    padding: 10px 12px;
-    background: var(--gray-50);
-    color: var(--gray-900);
-    border: 1px solid var(--gray-200);
-    border-radius: 12px;
-    font-family: inherit;
-    text-align: left;
-    cursor: pointer;
-    animation: aparecer 0.25s ease;
-    transition: background 0.2s ease, transform 0.15s ease;
+    width: auto;
 }
 
-.chip-sugestao:active {
-    background: var(--gray-100);
-    transform: scale(0.98);
+/* ============ GASTO ESPERADO DA LISTA ============ */
+
+.estimativa {
+    margin-bottom: 16px;
 }
 
-.chip-sugestao .material-icons {
-    font-size: 20px;
-    color: var(--success-dark);
-    flex-shrink: 0;
-}
-
-.chip-textos {
-    display: flex;
-    flex-direction: column;
-    gap: 1px;
-    min-width: 0;
-}
-
-.chip-nome {
-    font-size: 0.875rem;
-    font-weight: 500;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-}
-
-.chip-detalhe {
-    font-size: 0.75rem;
-    color: var(--gray-600);
+.estimativa-detalhe {
+    display: block;
+    margin-top: 4px;
+    font-size: 0.6875rem;
+    line-height: 1.4;
+    opacity: 0.7;
 }
 
 /* ============ MODAIS ============ */
