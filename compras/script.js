@@ -556,38 +556,54 @@ const comLimite = (promessa, ms) =>
 
 /*
  * A abertura desenha o logo, e cortar isso pela metade faz o app parecer
- * que engasgou. Numa sessão já conhecida o Firebase responde em poucos
- * milissegundos, então o splash espera a animação terminar.
+ * que engasgou. Então o splash só sai quando a animação termina — e quem
+ * diz que terminou é a própria animação, não um cronômetro daqui.
+ *
+ * Cronômetro era o que estava errado antes: ele começava quando este
+ * módulo roda, e a animação só começa quando o navegador pinta o primeiro
+ * quadro. No Android, o app aberto pela tela de início pinta depois da
+ * tela de abertura do sistema sair — os dois relógios não batem, e o app
+ * abria com o logo pela metade.
+ *
+ * getAnimations({ subtree: true }) devolve as animações vivas dentro do
+ * splash. O carretel gira para sempre e a promessa dele nunca resolveria:
+ * animação sem fim fica de fora. O limite cobre o resto — navegador sem
+ * getAnimations, app aberto em segundo plano (onde nada anima) e animação
+ * cancelada no meio, que rejeita em vez de resolver.
  *
  * Ninguém fica olhando para uma tela parada nesse meio tempo: o splash
  * cobre a tela inteira, então o resto do app é montado por baixo dele e
  * já está pronto quando a animação sai.
  */
-const ABERTURA_MS = window.matchMedia("(prefers-reduced-motion: reduce)")
-  .matches
-  ? 0
-  : 1150;
-const inicioDaAbertura = performance.now();
-let timerSplash = null;
+const LIMITE_ABERTURA_MS = 2500;
+let geracaoSplash = 0;
 
-const esconderSplash = () => {
-  const restante = ABERTURA_MS - (performance.now() - inicioDaAbertura);
-  const sair = () =>
-    document.getElementById("area-loading").classList.add("hidden");
+const fimDaAnimacaoDeAbertura = () => {
+  const splash = document.getElementById("area-loading");
+  const animacoes = splash.getAnimations
+    ? splash
+        .getAnimations({ subtree: true })
+        .filter((a) => a.effect?.getTiming().iterations !== Infinity)
+    : [];
 
-  if (restante <= 0) {
-    sair();
-    return;
-  }
-  timerSplash = setTimeout(sair, restante);
+  return Promise.race([
+    Promise.all(animacoes.map((a) => a.finished)).catch(() => {}),
+    new Promise((resolver) => setTimeout(resolver, LIMITE_ABERTURA_MS)),
+  ]);
+};
+
+const esconderSplash = async () => {
+  const geracao = geracaoSplash;
+  await fimDaAnimacaoDeAbertura();
+
+  // Um mostrarSplash no meio do caminho quer o splash de volta na tela
+  if (geracao !== geracaoSplash) return;
+  document.getElementById("area-loading").classList.add("hidden");
 };
 
 // Sai da tela de login assim que o usuário é reconhecido, para dar sinal de vida
 const mostrarSplash = (texto) => {
-  if (timerSplash) {
-    clearTimeout(timerSplash);
-    timerSplash = null;
-  }
+  geracaoSplash++;
   document.getElementById("loading-msg").textContent = texto;
   document.getElementById("area-login").classList.add("hidden");
   document.getElementById("area-erro").classList.add("hidden");
