@@ -1356,6 +1356,13 @@ button .material-icons {
     width: auto;
 }
 
+/* O "+" herda a cor do texto de propósito: assim ele acompanha a pílula
+   quando ela escurece no toque, em vez de ficar aceso sozinho. */
+.chip-sugestao .material-icons {
+    font-size: 16px;
+    color: inherit;
+}
+
 /* ============ GASTO ESPERADO DA LISTA ============ */
 
 .estimativa {

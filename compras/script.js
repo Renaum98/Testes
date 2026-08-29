@@ -2537,7 +2537,7 @@ const renderizarSugestoes = () => {
         .map(
           (s) => `
         <button type="button" class="chip-pendente chip-sugestao" data-nome="${escapeHtml(s.nome)}">
-          ${escapeHtml(s.nome)}
+          <span class="material-icons">add</span>${escapeHtml(s.nome)}
         </button>`,
         )
         .join("")}
