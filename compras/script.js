@@ -1666,6 +1666,45 @@ const limparEstadoRemoto = async () => {
   }
 };
 
+/*
+ * Fim de compra. O carrinho vai embora, mas o que a lista pediu e não foi
+ * comprado, não: em vez de apagar o estado inteiro, ele é regravado só com
+ * as sobras, que reaparecem como a lista de compras da próxima ida ao
+ * mercado. Sem sobras, o estado é apagado como antes.
+ */
+const encerrarCompra = async (pendentes) => {
+  if (!pendentes.length) {
+    await limparEstadoRemoto();
+    return;
+  }
+
+  if (saveTimer) {
+    clearTimeout(saveTimer);
+    saveTimer = null;
+  }
+
+  carrinho = [];
+  orcamento = 0;
+  listaPrevia = pendentes.map((p) => ({ id: gerarId(), nome: p.nome }));
+
+  if (modoAnonimo) {
+    salvarEstadoLocal();
+    return;
+  }
+  if (!docRef) return;
+  try {
+    await setDoc(docRef, {
+      carrinho,
+      listaPrevia,
+      orcamento,
+      ultimosPrecos,
+      timestamp: Date.now(),
+    });
+  } catch (e) {
+    console.error("Erro ao guardar o que faltou comprar:", e);
+  }
+};
+
 // Flush de mutação pendente antes de fechar/recarregar
 window.addEventListener("beforeunload", () => {
   if (modoAnonimo) return; // o localStorage já foi gravado a cada mudança
@@ -1872,6 +1911,7 @@ const definirUnidade = (unidade) => {
   campoQtd.inputMode = cfg.qtd.inputmode;
 
   document.getElementById("input-preco").placeholder = cfg.preco;
+  atualizarAvisoPreco();
 };
 
 window.removerItem = (id) => {
@@ -1932,6 +1972,7 @@ const atualizarUI = () => {
   }
 
   atualizarListaPendenteVisual();
+  atualizarProgressoCompra();
   atualizarBadgesTabs();
   atualizarBotaoIniciar();
 };
@@ -1947,11 +1988,44 @@ const atualizarBotaoIniciar = () => {
     : "play_arrow";
 };
 
+/*
+ * O que a lista pediu e o carrinho ainda não cobriu. A conta é uma só e
+ * alimenta tudo que depende dela: o badge da aba, o painel "Falta
+ * Comprar", a barra de progresso e o que sobra ao finalizar a compra.
+ */
+const itensPendentes = () =>
+  listaPrevia.filter(
+    (p) =>
+      !carrinho.some((c) => normalizarNome(c.nome) === normalizarNome(p.nome)),
+  );
+
+// Quanto da lista já entrou no carrinho; sem lista não há o que medir
+const atualizarProgressoCompra = () => {
+  const painel = document.getElementById("progresso-compra");
+  const total = listaPrevia.length;
+
+  if (total === 0) {
+    painel.classList.add("hidden");
+    return;
+  }
+
+  const feitos = total - itensPendentes().length;
+  const porCento = Math.round((feitos / total) * 100);
+
+  painel.classList.remove("hidden");
+  painel.classList.toggle("completo", feitos === total);
+  document.getElementById("progresso-feitos").textContent = feitos;
+  document.getElementById("progresso-total").textContent = total;
+  document.getElementById("progresso-porcento").textContent = `${porCento}%`;
+
+  const barra = document.getElementById("progresso-barra");
+  barra.style.width = `${porCento}%`;
+  barra.parentElement.setAttribute("aria-valuenow", porCento);
+};
+
 // Contadores nas abas: itens que faltam comprar e itens já no carrinho
 const atualizarBadgesTabs = () => {
-  const pendentes = listaPrevia.filter(
-    (p) => !carrinho.some((c) => c.nome.toLowerCase() === p.nome.toLowerCase()),
-  ).length;
+  const pendentes = itensPendentes().length;
 
   const definir = (id, valor) => {
     const el = document.getElementById(id);
@@ -1971,9 +2045,7 @@ const atualizarListaPendenteVisual = () => {
     .getElementById("busca-pendente")
     .value.toLowerCase();
 
-  let pendentes = listaPrevia.filter(
-    (p) => !carrinho.some((c) => c.nome.toLowerCase() === p.nome.toLowerCase()),
-  );
+  let pendentes = itensPendentes();
   const totalPendentes = pendentes.length;
 
   if (termoBusca) {
@@ -2030,8 +2102,7 @@ window.selecionarPendente = (nomeItem) => {
     document.getElementById("input-preco").focus();
   }
 
-  const dica = dicaDePreco(nomeItem);
-  if (dica) mostrarNotificacao(dica, "neutro", "info");
+  atualizarAvisoPreco();
 };
 
 const mostrarNotificacao = (msg, tipo, icone = "info") => {
@@ -2217,34 +2288,98 @@ const dicaDePreco = (nome) => {
 const LIMIAR_REAIS = 0.05;
 const LIMIAR_PERCENTUAL = 0.03;
 
-const verificarHistoricoPreco = (nome, precoAtual, unidade = "un") => {
-  if (!precoAtual) return;
+/*
+ * O veredito sobre o preço digitado, já em forma de aviso. Sai daqui um
+ * objeto, e não um toast, porque o mesmo aviso aparece em dois lugares —
+ * o painel fixo da tela de compras e a notificação — e os dois nunca
+ * podem contar histórias diferentes sobre o mesmo preço.
+ */
+const compararComHistorico = (nome, precoAtual, unidade = "un") => {
+  if (!precoAtual || precoAtual <= 0) return null;
 
   const ref = precoDeReferencia(nome, unidade);
-  if (!ref) return;
+  if (!ref) return null;
 
   const diferenca = precoAtual - ref.preco;
   const fracao = Math.abs(diferenca) / ref.preco;
-  if (Math.abs(diferenca) < LIMIAR_REAIS || fracao < LIMIAR_PERCENTUAL) return;
-
-  const base = `média de R$ ${moeda(ref.preco)}${porUnidade(unidade)} em ${ref.compras} ${
+  const base = `Média de R$ ${moeda(ref.preco)}${porUnidade(unidade)} em ${ref.compras} ${
     ref.compras === 1 ? "compra" : "compras"
   }`;
-  const porCento = Math.round(fracao * 100);
 
-  if (diferenca > 0) {
-    mostrarNotificacao(
-      `${porCento}% mais caro que a ${base}`,
-      "negativo",
-      "trending_up",
-    );
-  } else {
-    mostrarNotificacao(
-      `${porCento}% mais barato que a ${base}`,
-      "positivo",
-      "trending_down",
-    );
+  // Abaixo dos limiares o preço é o de sempre: informa, mas não alerta
+  if (Math.abs(diferenca) < LIMIAR_REAIS || fracao < LIMIAR_PERCENTUAL) {
+    return {
+      tipo: "neutro",
+      icone: "check_circle",
+      titulo: "Preço de sempre",
+      detalhe: base,
+      alerta: false,
+    };
   }
+
+  const porCento = Math.round(fracao * 100);
+  return diferenca > 0
+    ? {
+        tipo: "negativo",
+        icone: "trending_up",
+        titulo: `${porCento}% mais caro que o de costume`,
+        detalhe: base,
+        alerta: true,
+      }
+    : {
+        tipo: "positivo",
+        icone: "trending_down",
+        titulo: `${porCento}% mais barato que o de costume`,
+        detalhe: base,
+        alerta: true,
+      };
+};
+
+const verificarHistoricoPreco = (nome, precoAtual, unidade = "un") => {
+  const aviso = compararComHistorico(nome, precoAtual, unidade);
+  if (!aviso?.alerta) return;
+  mostrarNotificacao(
+    `${aviso.titulo} · ${aviso.detalhe.toLowerCase()}`,
+    aviso.tipo,
+    aviso.icone,
+  );
+};
+
+/*
+ * O mesmo aviso, mas parado na tela, logo abaixo dos campos. O toast some
+ * em quatro segundos — e sumia justamente enquanto a pessoa ainda estava
+ * digitando o preço, que é a hora em que saber o preço de costume decide
+ * se o produto vai ou não para o carrinho.
+ */
+const atualizarAvisoPreco = () => {
+  const painel = document.getElementById("aviso-preco");
+  if (!painel) return;
+
+  const nome = document.getElementById("input-nome").value.trim();
+  const preco = parseFloat(document.getElementById("input-preco").value);
+  const aviso = nome ? compararComHistorico(nome, preco, unidadeAtual) : null;
+  const dica = !aviso && nome ? dicaDePreco(nome) : null;
+
+  if (!aviso && !dica) {
+    painel.className = "aviso-preco hidden";
+    painel.innerHTML = "";
+    return;
+  }
+
+  const { tipo, icone, titulo, detalhe } = aviso || {
+    tipo: "neutro",
+    icone: "history",
+    titulo: dica,
+    detalhe: "",
+  };
+
+  painel.className = `aviso-preco ${tipo}`;
+  painel.innerHTML = `
+    <span class="material-icons">${escapeHtml(icone)}</span>
+    <div class="aviso-preco-texto">
+      <strong>${escapeHtml(titulo)}</strong>
+      ${detalhe ? `<small>${escapeHtml(detalhe)}</small>` : ""}
+    </div>`;
 };
 
 /*
@@ -2781,6 +2916,7 @@ function iniciarApp() {
   inputNome.addEventListener("input", (e) => {
     const termo = e.target.value.toLowerCase();
     listaSugestoes.innerHTML = "";
+    atualizarAvisoPreco();
     if (termo.length < 1) {
       listaSugestoes.classList.add("hidden");
       return;
@@ -2955,6 +3091,9 @@ function iniciarApp() {
     }
   });
 
+  // O aviso de preço se refaz a cada tecla, enquanto ainda dá para desistir
+  inputPreco.addEventListener("input", atualizarAvisoPreco);
+
   inputPreco.addEventListener("keypress", (e) => {
     if (e.key === "Enter") document.getElementById("btn-adicionar").click();
   });
@@ -2971,18 +3110,41 @@ function iniciarApp() {
         .toFixed(2)
         .replace(".", ",")}`;
 
+      /*
+       * O que ficou faltando é capturado antes de qualquer gravação: o
+       * carrinho é zerado no caminho, e depois não haveria mais como saber
+       * o que a lista ainda pedia.
+       */
+      const pendentes = itensPendentes();
+      const sobras = pendentes.length
+        ? ` ${pendentes.length} ${
+            pendentes.length === 1
+              ? "item que faltou continua"
+              : "itens que faltaram continuam"
+          } na lista de compras.`
+        : "";
+      const aviso = pendentes.length
+        ? `Compra finalizada · ${pendentes.length} ${
+            pendentes.length === 1 ? "item ficou" : "itens ficaram"
+          } na lista`
+        : "Compra finalizada com sucesso!";
+
       // Visitante: nada é gravado, só se encerra a compra deste aparelho
       if (modoAnonimo) {
         const encerrar = await confirmar(
           "Encerrar a compra?",
-          `${resumo}. No modo visitante ela não é salva e não entra em nenhum histórico.`,
+          `${resumo}. No modo visitante ela não é salva e não entra em nenhum histórico.${sobras}`,
           "Encerrar",
         );
         if (!encerrar) return;
 
-        await limparEstadoRemoto();
+        await encerrarCompra(pendentes);
         mostrarNotificacao(
-          "Compra encerrada — nada foi salvo",
+          pendentes.length
+            ? `Compra encerrada — nada foi salvo, ${pendentes.length} ${
+                pendentes.length === 1 ? "item ficou" : "itens ficaram"
+              } na lista`
+            : "Compra encerrada — nada foi salvo",
           "positivo",
           "check_circle",
         );
@@ -2992,7 +3154,7 @@ function iniciarApp() {
 
       const confirmado = await confirmar(
         "Finalizar compra?",
-        resumo,
+        `${resumo}.${sobras}`,
         "Finalizar",
       );
       if (!confirmado) return;
@@ -3005,12 +3167,8 @@ function iniciarApp() {
           grupoId: grupoAtual?.id || null,
           finalizadaPor: usuarioAtual?.displayName || usuarioAtual?.email || "",
         });
-        mostrarNotificacao(
-          "Compra finalizada com sucesso!",
-          "positivo",
-          "check_circle",
-        );
-        await limparEstadoRemoto();
+        mostrarNotificacao(aviso, "positivo", "check_circle");
+        await encerrarCompra(pendentes);
         setTimeout(() => location.reload(), 1500);
       } catch (e) {
         mostrarNotificacao(

@@ -658,6 +658,71 @@ html:not(.icones-prontos) .material-icons {
     z-index: 100;
 }
 
+/* ============ PROGRESSO DA COMPRA ============ */
+
+.progresso-compra {
+    background: white;
+    border: 1px solid var(--gray-200);
+    border-radius: 14px;
+    padding: 13px 15px;
+    margin-bottom: 16px;
+    animation: descer 0.3s ease;
+}
+
+.progresso-topo {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 10px;
+}
+
+.progresso-rotulo {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.6875rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--gray-600);
+}
+
+.progresso-rotulo .material-icons {
+    font-size: 16px;
+}
+
+.progresso-contagem {
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: var(--gray-900);
+    white-space: nowrap;
+}
+
+.progresso-trilho {
+    height: 10px;
+    border-radius: 999px;
+    background: var(--gray-200);
+    overflow: hidden;
+}
+
+.progresso-barra {
+    width: 0;
+    height: 100%;
+    border-radius: 999px;
+    background: var(--success);
+    transition: width 0.4s cubic-bezier(0.32, 0.72, 0, 1), background 0.3s ease;
+}
+
+/* Lista inteira no carrinho: o verde fecha e o contador vira o destaque */
+.progresso-compra.completo .progresso-barra {
+    background: var(--success-dark);
+}
+
+.progresso-compra.completo .progresso-contagem {
+    color: var(--success-dark);
+}
+
 .stats-card {
     background: white;
     padding: 14px 16px;
@@ -824,6 +889,72 @@ input[type="number"]::-webkit-inner-spin-button {
        o seletor un/kg sem espremer o número que fica digitado nele. */
     grid-template-columns: 1fr 1.6fr;
     gap: 10px;
+}
+
+/* ============ AVISO DE PREÇO ============ */
+
+/* Fica na tela enquanto o preço é digitado, e por isso pesa mais que um
+   toast: fundo tingido, faixa lateral colorida e o número em destaque. */
+.aviso-preco {
+    display: flex;
+    align-items: center;
+    gap: 11px;
+    margin: 12px 0;
+    padding: 11px 13px;
+    border: 1px solid var(--gray-200);
+    border-left: 5px solid var(--gray-400);
+    border-radius: 12px;
+    background: var(--gray-100);
+    color: var(--gray-900);
+    animation: descer 0.25s ease;
+}
+
+.aviso-preco .material-icons {
+    font-size: 21px;
+    flex-shrink: 0;
+    color: var(--gray-600);
+}
+
+.aviso-preco-texto {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+}
+
+.aviso-preco-texto strong {
+    font-size: 0.875rem;
+    font-weight: 600;
+    line-height: 1.25;
+}
+
+.aviso-preco-texto small {
+    font-size: 0.75rem;
+    color: var(--gray-600);
+}
+
+.aviso-preco.positivo {
+    background: #f2fbe6;
+    border-color: #d6f0ac;
+    border-left-color: #4d7c0f;
+    color: #3f6212;
+}
+
+.aviso-preco.positivo .material-icons,
+.aviso-preco.positivo .aviso-preco-texto small {
+    color: #4d7c0f;
+}
+
+.aviso-preco.negativo {
+    background: #fef2f2;
+    border-color: #fecaca;
+    border-left-color: #dc2626;
+    color: #b91c1c;
+}
+
+.aviso-preco.negativo .material-icons,
+.aviso-preco.negativo .aviso-preco-texto small {
+    color: #dc2626;
 }
 
 /* ============ SELETOR DE UNIDADE (UN / KG) ============ */
@@ -1902,19 +2033,25 @@ img {
     pointer-events: none;
 }
 
+/* O aviso precisa ser lido de relance, no meio do corredor do mercado:
+   texto maior, fundo com a cor do recado e faixa lateral para separá-lo
+   do que estiver atrás dele. */
 .toast {
     width: 100%;
     max-width: var(--largura-app);
     background: var(--primary);
     color: #fff;
-    padding: 12px 14px;
-    border-radius: 12px;
-    font-size: 0.8125rem;
+    padding: 13px 15px;
+    border-radius: 14px;
+    border-left: 5px solid var(--gray-300);
+    font-size: 0.875rem;
+    font-weight: 500;
+    line-height: 1.35;
     pointer-events: auto;
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
+    box-shadow: 0 10px 28px rgba(0, 0, 0, 0.3);
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 10px;
     animation: descerToast 0.32s cubic-bezier(0.32, 0.72, 0, 1);
     transition: opacity 0.3s ease, transform 0.3s ease;
 }
@@ -1932,20 +2069,38 @@ img {
 }
 
 .toast .material-icons {
-    font-size: 18px;
+    font-size: 21px;
     flex-shrink: 0;
 }
 
+/* Verde e vermelho escuros: o verde-limão da marca não segura texto
+   branco em cima, e o aviso de preço é justamente o que precisa ser
+   legível. A cor da marca volta na faixa e no ícone. */
+.toast.positivo {
+    background: #24450a;
+    border-left-color: var(--success);
+}
+
+.toast.negativo {
+    background: #601b1b;
+    border-left-color: var(--danger);
+}
+
+.toast.neutro {
+    background: var(--primary);
+    border-left-color: var(--gray-400);
+}
+
 .toast.positivo .material-icons {
-    color: var(--success);
+    color: #bef264;
 }
 
 .toast.negativo .material-icons {
-    color: var(--danger);
+    color: #fca5a5;
 }
 
 .toast.neutro .material-icons {
-    color: var(--gray-400);
+    color: var(--gray-300);
 }
 
 /* ============ ALERTAS E ESTADOS ============ */

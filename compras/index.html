@@ -303,6 +303,23 @@
                     </div>
                 </div>
 
+                <div id="progresso-compra" class="progresso-compra hidden">
+                    <div class="progresso-topo">
+                        <span class="progresso-rotulo">
+                            <span class="material-icons">checklist</span>
+                            Progresso da lista
+                        </span>
+                        <span class="progresso-contagem">
+                            <strong id="progresso-feitos">0</strong> de <span id="progresso-total">0</span>
+                            · <span id="progresso-porcento">0%</span>
+                        </span>
+                    </div>
+                    <div class="progresso-trilho" role="progressbar" aria-label="Itens da lista já comprados"
+                        aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+                        <div id="progresso-barra" class="progresso-barra"></div>
+                    </div>
+                </div>
+
                 <div id="painel-lista-pendente" class="card hidden">
                     <div class="card-header">
                         <h3>Falta Comprar</h3>
@@ -332,6 +349,8 @@
                         <input type="number" id="input-preco" placeholder="Preço unitário" step="0.01"
                             inputmode="decimal" enterkeyhint="done">
                     </div>
+
+                    <div id="aviso-preco" class="aviso-preco hidden" aria-live="polite"></div>
 
                     <button id="btn-adicionar" class="btn-primary">
                         <span class="material-icons">add_shopping_cart</span>
